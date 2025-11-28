@@ -47,8 +47,8 @@ const formSchema = z.object({
   duration: z.string({
     required_error: "La durée est requise.",
   }),
-  bayType: z.enum(["standard", "premium"], {
-    required_error: "Le type de baie est requis.",
+  bayType: z.enum(["1", "2", "3", "4"], {
+    required_error: "La baie est requise.",
   }),
   players: z.string({
     required_error: "Le nombre de joueurs est requis.",
@@ -56,7 +56,7 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-type AvailabilitySlot = { time: string; remainingBays: number };
+type AvailabilitySlot = { time: string; availableBays: string[] };
 type DayAvailability = { slots: AvailabilitySlot[]; fullyBooked: boolean };
 type AvailabilityData = Record<string, DayAvailability>;
 
@@ -105,7 +105,7 @@ export default function BookingForm() {
       phone: "",
       notes: "",
       duration: "4h",
-      bayType: "standard",
+      bayType: undefined,
       players: "1"
     },
   });
@@ -139,16 +139,34 @@ export default function BookingForm() {
         const availableTimes = dayAvail.slots.map(s => s.time);
         if (watchTime && !availableTimes.includes(watchTime)) {
           form.setValue("time", "");
+          form.setValue("bayType", undefined as any);
         }
       }
     }
   }, [watchDate, watchDuration, availability, watchTime, form]);
+
+  useEffect(() => {
+    if (watchTime && watchDate && availability) {
+      const dateStr = watchDate.toISOString().split('T')[0];
+      const dayAvail = availability[dateStr];
+      const slot = dayAvail?.slots.find(s => s.time === watchTime);
+      if (slot && watchBayType && !slot.availableBays.includes(watchBayType)) {
+        form.setValue("bayType", undefined as any);
+      }
+    }
+  }, [watchTime, watchDate, availability, watchBayType, form]);
 
   const selectedDateSlots = useMemo(() => {
     if (!watchDate || !availability) return [];
     const dateStr = watchDate.toISOString().split('T')[0];
     return availability[dateStr]?.slots || [];
   }, [watchDate, availability]);
+
+  const availableBaysForSelectedTime = useMemo(() => {
+    if (!watchTime || !selectedDateSlots.length) return [];
+    const slot = selectedDateSlots.find(s => s.time === watchTime);
+    return slot?.availableBays || [];
+  }, [watchTime, selectedDateSlots]);
 
   const isDateDisabled = (date: Date) => {
     if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
@@ -210,7 +228,7 @@ export default function BookingForm() {
                 <div className="flex justify-between"><span className="text-foreground/60">Date:</span> <span className="font-medium">{watchDate ? format(watchDate, "d MMMM yyyy", { locale: fr }) : "-"}</span></div>
                 <div className="flex justify-between"><span className="text-foreground/60">Heure:</span> <span className="font-medium">{watchTime || "-"}</span></div>
                 <div className="flex justify-between"><span className="text-foreground/60">Durée:</span> <span className="font-medium">{watchDuration}</span></div>
-                <div className="flex justify-between"><span className="text-foreground/60">Baie:</span> <span className="font-medium capitalize">{watchBayType}</span></div>
+                <div className="flex justify-between"><span className="text-foreground/60">Baie:</span> <span className="font-medium">Baie {watchBayType}</span></div>
              </div>
         </div>
         <Button 
@@ -244,54 +262,30 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <h3 className="text-xl font-heading font-bold uppercase flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-primary" /> 
-                    1. Date & Heure
+                    1. Date & Créneau
                   </h3>
 
-                  <div className="grid grid-cols-2 gap-6 mb-6">
-                    <FormField
-                        control={form.control}
-                        name="duration"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
-                                    <SelectValue placeholder="Bloc de jeu" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                <SelectItem value="4h">4 Heures (Standard)</SelectItem>
-                                <SelectItem value="8h">8 Heures (Double)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="bayType"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Type de baie</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-baytype">
-                                    <SelectValue placeholder="Choisir" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                <SelectItem value="standard">Standard</SelectItem>
-                                <SelectItem value="premium">Premium (+20$)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                  </div>
+                  <FormField
+                      control={form.control}
+                      name="duration"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                              <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
+                                  <SelectValue placeholder="Bloc de jeu" />
+                              </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                              <SelectItem value="4h">4 Heures (Standard)</SelectItem>
+                              <SelectItem value="8h">8 Heures (Double)</SelectItem>
+                              </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
                   
                   <FormField
                     control={form.control}
@@ -330,14 +324,14 @@ export default function BookingForm() {
                 </div>
 
                 {watchDate && (
-                    <div className="space-y-4 animate-in fade-in duration-500">
+                    <div className="space-y-6 animate-in fade-in duration-500">
                         <FormField
                             control={form.control}
                             name="time"
                             render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">
-                                  Disponibilités pour le {format(watchDate, "d MMMM", { locale: fr })}
+                                  Créneaux disponibles pour le {format(watchDate, "d MMMM", { locale: fr })}
                                   {selectedDateSlots.length === 0 && !isLoadingAvailability && (
                                     <span className="text-red-500 ml-2">(Aucun créneau disponible)</span>
                                   )}
@@ -356,18 +350,21 @@ export default function BookingForm() {
                                                 type="button"
                                                 variant={field.value === slot.time ? "default" : "outline"}
                                                 className={cn(
-                                                    "h-12 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
+                                                    "h-14 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
                                                     field.value === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
                                                 )}
-                                                onClick={() => field.onChange(slot.time)}
+                                                onClick={() => {
+                                                  field.onChange(slot.time);
+                                                  form.setValue("bayType", undefined as any);
+                                                }}
                                                 data-testid={`timeslot-${slot.time}`}
                                             >
-                                                <span>{slot.time}</span>
+                                                <span className="font-bold">{slot.time}</span>
                                                 <span className={cn(
                                                   "text-[10px]",
                                                   field.value === slot.time ? "text-white/80" : "text-muted-foreground"
                                                 )}>
-                                                  {slot.remainingBays} baie{slot.remainingBays > 1 ? 's' : ''} dispo
+                                                  {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''} dispo
                                                 </span>
                                             </Button>
                                           ))
@@ -382,6 +379,51 @@ export default function BookingForm() {
                             </FormItem>
                             )}
                         />
+
+                        {watchTime && availableBaysForSelectedTime.length > 0 && (
+                          <FormField
+                              control={form.control}
+                              name="bayType"
+                              render={({ field }) => (
+                              <FormItem className="animate-in fade-in duration-300">
+                                  <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">
+                                    Choisir une baie
+                                  </FormLabel>
+                                  <FormControl>
+                                      <div className="grid grid-cols-4 gap-3">
+                                          {["1", "2", "3", "4"].map((bay) => {
+                                            const isAvailable = availableBaysForSelectedTime.includes(bay);
+                                            return (
+                                              <Button
+                                                  key={bay}
+                                                  type="button"
+                                                  variant={field.value === bay ? "default" : "outline"}
+                                                  className={cn(
+                                                      "h-16 text-lg font-bold transition-all flex flex-col items-center justify-center gap-1", 
+                                                      field.value === bay ? "bg-primary text-white border-primary" : "",
+                                                      !isAvailable ? "opacity-40 cursor-not-allowed" : "hover:border-primary hover:text-primary"
+                                                  )}
+                                                  onClick={() => isAvailable && field.onChange(bay)}
+                                                  disabled={!isAvailable}
+                                                  data-testid={`bay-${bay}`}
+                                              >
+                                                  <span>Baie {bay}</span>
+                                                  <span className={cn(
+                                                    "text-[10px] font-normal",
+                                                    field.value === bay ? "text-white/80" : "text-muted-foreground"
+                                                  )}>
+                                                    {isAvailable ? "Disponible" : "Réservée"}
+                                                  </span>
+                                              </Button>
+                                            );
+                                          })}
+                                      </div>
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                              )}
+                          />
+                        )}
                     </div>
                 )}
 
@@ -389,7 +431,7 @@ export default function BookingForm() {
                   type="button" 
                   onClick={nextStep} 
                   className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4" 
-                  disabled={!watchDate || !watchTime}
+                  disabled={!watchDate || !watchTime || !watchBayType}
                   data-testid="button-next"
                 >
                     Suivant <ChevronRight className="ml-2 w-4 h-4" />
@@ -548,7 +590,7 @@ export default function BookingForm() {
                         <Info className="w-4 h-4 text-primary mt-1" />
                         <div>
                             <span className="text-xs uppercase text-foreground/60 font-bold tracking-wider block">Détails</span>
-                            <span className="font-bold text-foreground block">Baie {watchBayType === "premium" ? "Premium" : "Standard"}</span>
+                            <span className="font-bold text-foreground block">{watchBayType ? `Baie ${watchBayType}` : "Choisir une baie..."}</span>
                             <span className="text-sm text-foreground/70 block">{watchPlayers} Joueur(s)</span>
                         </div>
                     </div>

@@ -250,16 +250,16 @@ export async function registerRoutes(
     }
   });
 
-  const MAX_BAYS = 4;
+  const BAY_NUMBERS = ["1", "2", "3", "4"];
   const OPENING_HOUR = 8;
   const CLOSING_HOUR = 22;
   const MIN_DURATION_HOURS = 4;
 
-  function calculateOccupancy(bookings: Booking[], targetDate: Date): Map<number, number> {
-    const occupancy = new Map<number, number>();
+  function getBayOccupancy(bookings: Booking[], targetDate: Date): Map<string, Set<number>> {
+    const bayOccupancy = new Map<string, Set<number>>();
     
-    for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour++) {
-      occupancy.set(hour, 0);
+    for (const bay of BAY_NUMBERS) {
+      bayOccupancy.set(bay, new Set<number>());
     }
     
     const targetDateStr = targetDate.toISOString().split('T')[0];
@@ -268,35 +268,49 @@ export async function registerRoutes(
       const bookingDateStr = new Date(booking.date).toISOString().split('T')[0];
       if (bookingDateStr !== targetDateStr) continue;
       
+      const bay = booking.bayType;
+      if (!BAY_NUMBERS.includes(bay)) continue;
+      
       const [startHour] = booking.time.split(':').map(Number);
       const durationHours = parseInt(booking.duration.replace('h', ''), 10);
       
+      const occupiedHours = bayOccupancy.get(bay) || new Set<number>();
       for (let h = startHour; h < startHour + durationHours && h < CLOSING_HOUR; h++) {
-        const current = occupancy.get(h) || 0;
-        occupancy.set(h, current + 1);
+        occupiedHours.add(h);
       }
+      bayOccupancy.set(bay, occupiedHours);
     }
     
-    return occupancy;
+    return bayOccupancy;
   }
 
-  function getAvailableSlots(occupancy: Map<number, number>, durationHours: number): Array<{ time: string; remainingBays: number }> {
-    const slots: Array<{ time: string; remainingBays: number }> = [];
+  function getAvailableSlots(bayOccupancy: Map<string, Set<number>>, durationHours: number): Array<{ time: string; availableBays: string[] }> {
+    const slots: Array<{ time: string; availableBays: string[] }> = [];
     
     const lastValidStartHour = CLOSING_HOUR - durationHours;
     
     for (let hour = OPENING_HOUR; hour <= lastValidStartHour; hour++) {
-      let minRemainingBays = MAX_BAYS;
+      const availableBays: string[] = [];
       
-      for (let h = hour; h < hour + durationHours; h++) {
-        const occupied = occupancy.get(h) || 0;
-        const remaining = MAX_BAYS - occupied;
-        minRemainingBays = Math.min(minRemainingBays, remaining);
+      for (const bay of BAY_NUMBERS) {
+        const occupiedHours = bayOccupancy.get(bay) || new Set<number>();
+        let bayAvailable = true;
+        
+        for (let h = hour; h < hour + durationHours; h++) {
+          if (occupiedHours.has(h)) {
+            bayAvailable = false;
+            break;
+          }
+        }
+        
+        if (bayAvailable) {
+          availableBays.push(bay);
+        }
       }
       
-      if (minRemainingBays > 0) {
+      if (availableBays.length > 0) {
         const timeStr = hour.toString().padStart(2, '0') + ':00';
-        slots.push({ time: timeStr, remainingBays: minRemainingBays });
+        slots.push({ time: timeStr, availableBays });
       }
     }
     
@@ -321,13 +335,13 @@ export async function registerRoutes(
       
       const bookings = await storage.getBookingsByDateRange(startDate, endDate);
       
-      const availability: Record<string, { slots: Array<{ time: string; remainingBays: number }>; fullyBooked: boolean }> = {};
+      const availability: Record<string, { slots: Array<{ time: string; availableBays: string[] }>; fullyBooked: boolean }> = {};
       
       const currentDate = new Date(startDate);
       while (currentDate <= endDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
-        const occupancy = calculateOccupancy(bookings, currentDate);
-        const slots = getAvailableSlots(occupancy, durationHours);
+        const bayOccupancy = getBayOccupancy(bookings, currentDate);
+        const slots = getAvailableSlots(bayOccupancy, durationHours);
         
         availability[dateStr] = {
           slots,
@@ -373,6 +387,13 @@ export async function registerRoutes(
         });
       }
       
+      if (!BAY_NUMBERS.includes(validatedData.bayType)) {
+        return res.status(400).json({
+          ok: false,
+          message: `Baie invalide. Choisissez parmi: ${BAY_NUMBERS.join(', ')}.`,
+        });
+      }
+      
       const bookingData = {
         name: validatedData.name,
         email: validatedData.email,
@@ -388,29 +409,25 @@ export async function registerRoutes(
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
         (existingBookings: Booking[]) => {
-          const occupancy = new Map<number, number>();
-          
-          for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour++) {
-            occupancy.set(hour, 0);
-          }
-          
-          for (const existing of existingBookings) {
-            const [startHour] = existing.time.split(':').map(Number);
-            const durationHours = parseInt(existing.duration.replace('h', ''), 10);
-            
-            for (let h = startHour; h < startHour + durationHours && h < CLOSING_HOUR; h++) {
-              const current = occupancy.get(h) || 0;
-              occupancy.set(h, current + 1);
-            }
-          }
-          
+          const requestedBay = validatedData.bayType;
           const [newStartHour] = validatedData.time.split(':').map(Number);
           const newDurationHours = parseInt(validatedData.duration.replace('h', ''), 10);
           
+          const newHours = new Set<number>();
           for (let h = newStartHour; h < newStartHour + newDurationHours && h < CLOSING_HOUR; h++) {
-            const current = occupancy.get(h) || 0;
-            if (current >= MAX_BAYS) {
-              return true;
+            newHours.add(h);
+          }
+          
+          for (const existing of existingBookings) {
+            if (existing.bayType !== requestedBay) continue;
+            
+            const [existingStartHour] = existing.time.split(':').map(Number);
+            const existingDurationHours = parseInt(existing.duration.replace('h', ''), 10);
+            
+            for (let h = existingStartHour; h < existingStartHour + existingDurationHours && h < CLOSING_HOUR; h++) {
+              if (newHours.has(h)) {
+                return true;
+              }
             }
           }
           
