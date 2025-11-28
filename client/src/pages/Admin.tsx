@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -84,6 +85,15 @@ async function revokeGoogleAccess() {
   return data;
 }
 
+async function deleteBooking(id: string) {
+  const response = await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+  const data = await response.json();
+  if (!response.ok || !data.ok) {
+    throw new Error(data.message || "Erreur lors de la suppression");
+  }
+  return data;
+}
+
 async function logout() {
   const response = await fetch("/api/auth/logout", { method: "POST" });
   const data = await response.json();
@@ -156,6 +166,17 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.clear();
       setLocation("/login");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteBooking,
+    onSuccess: () => {
+      toast({ title: "Réservation supprimée avec succès" });
+      queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
 
@@ -433,18 +454,57 @@ export default function Admin() {
                       <div>
                         <p className="font-bold text-foreground">{booking.name}</p>
                         <p className="text-sm text-muted-foreground">{booking.email}</p>
+                        {booking.phone && (
+                          <p className="text-sm text-muted-foreground">{booking.phone}</p>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-[#2B5734]">
-                          {format(new Date(booking.date), "d MMM yyyy", { locale: fr })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {booking.time} - {booking.duration}
-                        </p>
+                      <div className="text-right flex items-start gap-3">
+                        <div>
+                          <p className="font-bold text-[#2B5734]">
+                            {format(new Date(booking.date), "d MMM yyyy", { locale: fr })}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {booking.time} - {booking.duration}
+                          </p>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-${booking.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette réservation?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                La réservation de {booking.name} pour le {format(new Date(booking.date), "d MMMM yyyy", { locale: fr })} à {booking.time} sera supprimée définitivement.
+                                {booking.calendarEventId && " L'événement sera également retiré du calendrier Google."}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteMutation.mutate(booking.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deleteMutation.isPending}
+                              >
+                                {deleteMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : null}
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Bay: {booking.bayType === "premium" ? "Premium" : "Standard"}</span>
+                      <span>Baie {booking.bayType}</span>
                       <Separator orientation="vertical" className="h-4" />
                       <span>{booking.players} joueur(s)</span>
                       {booking.calendarEventId && (
@@ -457,6 +517,9 @@ export default function Admin() {
                         </>
                       )}
                     </div>
+                    {booking.notes && (
+                      <p className="mt-2 text-xs text-muted-foreground italic">Note: {booking.notes}</p>
+                    )}
                   </div>
                 ))}
               </div>

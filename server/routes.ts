@@ -167,6 +167,34 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      const bookings = await storage.getAllBookings();
+      const booking = bookings.find(b => b.id === id);
+      
+      if (!booking) {
+        return res.status(404).json({ ok: false, message: "Réservation non trouvée" });
+      }
+      
+      if (booking.calendarEventId) {
+        try {
+          await deleteCalendarEvent(booking.calendarEventId);
+        } catch (calendarError) {
+          console.error("Failed to delete calendar event:", calendarError);
+        }
+      }
+      
+      await storage.deleteBooking(id);
+      
+      return res.json({ ok: true, message: "Réservation supprimée" });
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la suppression" });
+    }
+  });
+
   app.get("/api/admin/calendar-connection", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const status = await getCalendarConnectionStatus();
