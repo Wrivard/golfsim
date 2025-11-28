@@ -59,7 +59,7 @@ export default function Rates() {
                 <span>Accès au lounge</span>
               </li>
             </ul>
-            <Link href="/contact">
+            <Link href="/booking">
               <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background">
                 Réserver une plage
               </Button>

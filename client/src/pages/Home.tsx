@@ -51,7 +51,7 @@ export default function Home() {
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <Link href="/contact">
+                <Link href="/booking">
                   <Button className="bg-primary text-white hover:bg-primary/90 rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
                     Réserver une session
                   </Button>

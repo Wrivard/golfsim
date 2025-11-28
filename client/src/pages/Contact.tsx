@@ -31,9 +31,9 @@ export default function Contact() {
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Contactez-nous</h1>
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Groupes & Événements</h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
-            Réservez votre départ ou contactez notre équipe.
+            Pour les réservations de groupe, événements d'entreprise et fêtes privées.
           </p>
         </div>
       </div>
@@ -44,8 +44,8 @@ export default function Contact() {
           {/* Form */}
           <div>
             <div className="mb-8">
-              <h2 className="text-3xl font-heading font-bold mb-4 uppercase">Faire une demande</h2>
-              <p className="text-muted-foreground font-sans">Remplissez ce formulaire et nous vous rappellerons pour confirmer la disponibilité.</p>
+              <h2 className="text-3xl font-heading font-bold mb-4 uppercase">Organiser un événement</h2>
+              <p className="text-muted-foreground font-sans">Remplissez ce formulaire pour nous faire part de votre projet. Notre équipe événementielle vous contactera rapidement.</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

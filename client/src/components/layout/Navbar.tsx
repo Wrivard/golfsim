@@ -63,7 +63,7 @@ export default function Navbar() {
 
         {/* CTA Button */}
         <div className="hidden md:block">
-          <Link href="/contact">
+          <Link href="/booking">
             <Button className="bg-foreground text-background hover:bg-primary hover:text-white rounded-full px-6 h-10 text-xs font-bold uppercase tracking-wider transition-all">
               Réserver
             </Button>
@@ -95,7 +95,7 @@ export default function Navbar() {
               </a>
             </Link>
           ))}
-          <Link href="/contact">
+          <Link href="/booking">
             <Button className="mt-4 rounded-full h-14 px-12 text-sm font-bold uppercase tracking-wider bg-primary text-white" onClick={() => setIsOpen(false)}>
               Réserver une session
             </Button>
