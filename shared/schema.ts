@@ -14,11 +14,13 @@ export const bookings = pgTable("bookings", {
   bayType: text("bay_type").notNull(),
   players: integer("players").notNull(),
   notes: text("notes"),
+  calendarEventId: text("calendar_event_id"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().default(sql`now()`),
 });
 
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
+  calendarEventId: true,
   createdAt: true,
 });
 

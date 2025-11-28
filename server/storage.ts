@@ -1,11 +1,14 @@
 import { type Booking, type InsertBooking, bookings } from "@shared/schema";
-import { db } from "@db/index";
-import { eq } from "drizzle-orm";
+import { db } from "./db";
+import { eq, and, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   getBooking(id: string): Promise<Booking | undefined>;
   getAllBookings(): Promise<Booking[]>;
+  getBookingsByDateAndBay(date: Date, bayType: string): Promise<Booking[]>;
+  updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void>;
+  deleteBooking(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -21,6 +24,30 @@ export class DatabaseStorage implements IStorage {
 
   async getAllBookings(): Promise<Booking[]> {
     return db.select().from(bookings);
+  }
+
+  async getBookingsByDateAndBay(date: Date, bayType: string): Promise<Booking[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return db.select().from(bookings).where(
+      and(
+        gte(bookings.date, startOfDay),
+        lt(bookings.date, endOfDay),
+        eq(bookings.bayType, bayType)
+      )
+    );
+  }
+
+  async updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void> {
+    await db.update(bookings).set({ calendarEventId }).where(eq(bookings.id, id));
+  }
+
+  async deleteBooking(id: string): Promise<void> {
+    await db.delete(bookings).where(eq(bookings.id, id));
   }
 }
 
