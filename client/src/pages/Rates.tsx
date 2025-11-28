@@ -15,7 +15,7 @@ export default function Rates() {
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-primary">Tarifs</span></h1>
+          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-white">Tarifs</span></h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
             Une structure simple et transparente. Payez par joueur pour des blocs de 4 heures.
           </p>
