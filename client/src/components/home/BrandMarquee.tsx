@@ -41,12 +41,12 @@ export default function BrandMarquee() {
           {[...BRANDS, ...BRANDS].map((brand, index) => (
             <div 
               key={index} 
-              className="w-32 md:w-40 h-16 relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+              className="w-32 md:w-40 h-16 relative flex items-center justify-center transition-opacity cursor-pointer hover:opacity-80"
             >
               <img 
                 src={brand.logo} 
                 alt={brand.name} 
-                className="w-full h-full object-contain filter brightness-0 invert" 
+                className="w-full h-full object-contain mix-blend-screen filter grayscale contrast-200" 
               />
             </div>
           ))}

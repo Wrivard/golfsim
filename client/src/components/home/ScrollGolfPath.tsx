@@ -41,25 +41,25 @@ export default function ScrollGolfPath() {
   
   const y = useTransform(scrollYProgress, 
     [0, 0.2, 0.4, 0.6, 0.8, 0.95], 
-    ["5%", "20%", "40%", "60%", "80%", "95%"]
+    ["15%", "25%", "45%", "65%", "85%", "95%"]
   );
 
   const scale = useTransform(scrollYProgress, 
-    [0, 0.05, 0.9, 0.95, 1], 
-    [0, 1, 1, 0.5, 0] // Scale down as it enters hole
+    [0, 0.9, 0.95, 1], 
+    [1, 1, 0.5, 0] // Always visible until hole
   );
 
-  const opacity = useTransform(scrollYProgress, [0, 0.02], [0, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.02], [1, 1]); // Always visible
   const rotation = useTransform(scrollYProgress, [0, 1], [0, 720]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden xl:block overflow-hidden">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-30 hidden xl:block overflow-hidden">
        <svg className="absolute top-0 left-0 w-full h-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="rgba(43, 87, 52, 0)" />
-              <stop offset="10%" stopColor="rgba(43, 87, 52, 0.2)" />
-              <stop offset="90%" stopColor="rgba(43, 87, 52, 0.2)" />
+              <stop offset="10%" stopColor="rgba(43, 87, 52, 0.4)" />
+              <stop offset="90%" stopColor="rgba(43, 87, 52, 0.4)" />
               <stop offset="100%" stopColor="rgba(43, 87, 52, 0)" />
             </linearGradient>
           </defs>
@@ -67,14 +67,14 @@ export default function ScrollGolfPath() {
           {/* Dotted Flight Path */}
           <motion.path
             ref={svgRef}
-            d="M 50% 5% Q 80% 15%, 80% 20% T 20% 40% T 70% 60% T 50% 95%"
+            d="M 50% 15% Q 80% 20%, 80% 25% T 20% 45% T 70% 65% T 50% 95%"
             fill="none"
             stroke="url(#lineGradient)"
-            strokeWidth="2"
-            strokeDasharray="8 8"
+            strokeWidth="3"
+            strokeDasharray="12 12"
             style={{ 
               pathLength: drawProgress,
-              opacity: 0.6 
+              opacity: 0.8 
             }}
           />
           
