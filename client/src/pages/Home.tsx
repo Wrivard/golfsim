@@ -99,9 +99,9 @@ export default function Home() {
               <div className="absolute -bottom-10 -left-10 z-30">
                 <motion.div
                   whileHover={{ scale: 1.1 }}
-                  className="w-20 h-20 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg border-[8px] border-background"
+                  className="w-20 h-20 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors border-[8px] border-background"
                 >
-                  <ArrowDown className="text-background w-8 h-8" strokeWidth={3} />
+                  <ArrowDown className="text-background w-8 h-8" strokeWidth={1.5} />
                 </motion.div>
               </div>
             </motion.div>
