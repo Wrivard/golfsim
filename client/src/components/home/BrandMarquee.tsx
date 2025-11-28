@@ -18,7 +18,7 @@ export default function BrandMarquee() {
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">Propulsé par les leaders de l'industrie</p>
       </div>
       
-      <div className="relative flex overflow-x-hidden group">
+      <div className="relative flex overflow-hidden group no-scrollbar">
         <motion.div
           className="flex items-center gap-16 md:gap-32 whitespace-nowrap"
           animate={{ x: ["0%", "-50%"] }}
