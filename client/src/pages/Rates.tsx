@@ -10,122 +10,93 @@ export default function Rates() {
        {/* Header */}
        <div className="bg-foreground text-background py-32 pt-40">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none">Tarifs & <span className="text-primary">Abonnements</span></h1>
+          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none">Nos <span className="text-primary">Tarifs</span></h1>
           <p className="text-lg text-white/70 max-w-2xl mx-auto font-sans">
-            Des options flexibles pour les joueurs occasionnels et les passionnés.
+            Une structure simple et transparente. Payez par joueur pour des blocs de 4 heures.
           </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-24">
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-24">
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
           
-          {/* Visitor Card */}
+          {/* Standard Rate Card */}
           <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
-            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Visiteur</h3>
-            <p className="text-muted-foreground mb-8 font-sans">Pour une partie occasionnelle.</p>
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Tarif Standard</h3>
+            <p className="text-muted-foreground mb-8 font-sans">Expérience complète de 4 heures.</p>
             <div className="mb-8 pb-8 border-b border-foreground/10">
-              <span className="text-6xl font-heading font-bold">45$</span>
-              <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider"> / heure</span>
+              <span className="text-6xl font-heading font-bold">40$</span>
+              <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider"> / personne</span>
             </div>
             <ul className="space-y-4 mb-12 flex-grow">
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Accès simulateur standard</span>
+                <span>Bloc de 4 heures de jeu</span>
               </li>
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Jusqu'à 4 joueurs par baie</span>
+                <span>Jusqu'à 4 joueurs par simulateur</span>
               </li>
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Location de clubs disponible</span>
+                <span>Technologie Trackman 4</span>
+              </li>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Accès au lounge</span>
               </li>
             </ul>
             <Link href="/contact">
               <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background">
-                Réserver
+                Réserver une plage
               </Button>
             </Link>
           </div>
 
-          {/* Member Card (Highlighted) */}
-          <div className="bg-foreground text-background p-10 flex flex-col relative shadow-2xl transform md:-translate-y-8 z-10">
-            <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-2">Populaire</div>
-            <h3 className="font-heading font-bold text-3xl mb-2 uppercase text-white">Membre</h3>
-            <p className="text-white/60 mb-8 font-sans">L'expérience complète.</p>
+          {/* Events Card (Highlighted) */}
+          <div className="bg-foreground text-background p-10 flex flex-col relative shadow-2xl transform md:-translate-y-4 z-10">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-2">Groupes</div>
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase text-white">Événements</h3>
+            <p className="text-white/60 mb-8 font-sans">Privatisation pour groupes et fêtes.</p>
             <div className="mb-8 pb-8 border-b border-white/10">
-              <span className="text-6xl font-heading font-bold text-white">120$</span>
-              <span className="text-white/60 font-sans font-bold text-sm uppercase tracking-wider"> / mois</span>
+              <span className="text-4xl font-heading font-bold text-white">Sur Mesure</span>
             </div>
             <ul className="space-y-4 mb-12 flex-grow">
               <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
                 <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span>Tarif horaire réduit (25$/h)</span>
-              </li>
-              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span>Accès 24/7 au centre</span>
-              </li>
-              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span>Réservation prioritaire (14 jours)</span>
-              </li>
-              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span>Casier de rangement inclus</span>
-              </li>
-            </ul>
-            <Link href="/contact">
-              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary text-white hover:bg-white hover:text-foreground border-none">
-                Devenir Membre
-              </Button>
-            </Link>
-          </div>
-
-          {/* Event Card */}
-          <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
-            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Événements</h3>
-            <p className="text-muted-foreground mb-8 font-sans">Groupes privés & fêtes.</p>
-            <div className="mb-8 pb-8 border-b border-foreground/10">
-              <span className="text-4xl font-heading font-bold">Sur Mesure</span>
-            </div>
-            <ul className="space-y-4 mb-12 flex-grow">
-              <li className="flex items-center gap-4 text-sm font-sans font-medium">
-                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
                 <span>Privatisation complète ou partielle</span>
               </li>
-              <li className="flex items-center gap-4 text-sm font-sans font-medium">
-                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Service traiteur disponible</span>
+                <span>Service de bar et traiteur</span>
               </li>
-              <li className="flex items-center gap-4 text-sm font-sans font-medium">
-                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                   <Check className="w-3 h-3" />
                 </div>
                 <span>Tournois organisés</span>
               </li>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Capacité jusqu'à 20+ personnes</span>
+              </li>
             </ul>
             <Link href="/contact">
-              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background">
+              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary text-white hover:bg-white hover:text-foreground border-none">
                 Demander un devis
               </Button>
             </Link>
