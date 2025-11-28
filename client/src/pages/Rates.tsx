@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "wouter";
 import FAQ from "@/components/rates/FAQ";
+import headerBg from "@assets/stock_images/golf_course_landscap_cbb63126.jpg";
 
 export default function Rates() {
   return (
     <Layout>
        {/* Header */}
-       <div className="bg-foreground text-background py-32 pt-40">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none">Nos <span className="text-primary">Tarifs</span></h1>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto font-sans">
+       <div className="relative py-32 pt-40">
+        <div className="absolute inset-0 z-0">
+            <img src={headerBg} alt="Golf Landscape" className="w-full h-full object-cover brightness-50" />
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-primary">Tarifs</span></h1>
+          <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
             Une structure simple et transparente. Payez par joueur pour des blocs de 4 heures.
           </p>
         </div>

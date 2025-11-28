@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import headerBg from "@assets/stock_images/modern_reception_des_b566db57.jpg";
 
 export default function Contact() {
   const { register, handleSubmit, reset } = useForm();
@@ -24,10 +25,13 @@ export default function Contact() {
 
   return (
     <Layout>
-      <div className="bg-foreground text-background py-24 pt-32">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase">Contactez-nous</h1>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto font-sans">
+      <div className="relative py-24 pt-32">
+        <div className="absolute inset-0 z-0">
+            <img src={headerBg} alt="Reception" className="w-full h-full object-cover brightness-50" />
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Contactez-nous</h1>
+          <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
             Réservez votre départ ou contactez notre équipe.
           </p>
         </div>

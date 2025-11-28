@@ -5,16 +5,20 @@ import { Link } from "wouter";
 
 // Images
 import loungeImage from "@assets/generated_images/luxury_golf_lounge_area.png";
+import headerBg from "@assets/stock_images/modern_indoor_golf_s_3c6fc92b.jpg";
 
 export default function About() {
   return (
     <Layout>
       {/* Header */}
-      <div className="bg-background pt-32 pb-24 border-b border-foreground/5">
-        <div className="container mx-auto px-4 text-center">
-          <span className="text-primary text-sm font-bold tracking-widest uppercase mb-4 block">Golf SIM Sorel-Tracy</span>
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 text-foreground uppercase tracking-tighter leading-none">Le Club</h1>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed font-sans">
+      <div className="relative pt-32 pb-24 border-b border-foreground/5">
+        <div className="absolute inset-0 z-0">
+            <img src={headerBg} alt="Lounge Golf" className="w-full h-full object-cover brightness-50" />
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <span className="text-white text-sm font-bold tracking-widest uppercase mb-4 block">Golf SIM Sorel-Tracy</span>
+          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 text-white uppercase tracking-tighter leading-none">Le Club</h1>
+          <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed font-sans">
             Plus qu'un simple centre de simulation, une véritable destination pour les passionnés de golf.
           </p>
         </div>

@@ -7,6 +7,7 @@ import img3 from "@assets/generated_images/golfer_swinging_indoors.png";
 import img4 from "@assets/generated_images/golf_ball_on_turf_close_up.png";
 import img5 from "@assets/generated_images/golf_simulator_screen_display.png";
 import img6 from "@assets/generated_images/golf_clubs_detail_shot.png";
+import headerBg from "@assets/stock_images/golf_bag_and_clubs_c_86609782.jpg";
 
 const images = [
   {
@@ -44,10 +45,13 @@ const images = [
 export default function Gallery() {
   return (
     <Layout>
-       <div className="bg-background pt-32 pb-12 border-b border-foreground/5">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 text-foreground uppercase">Galerie</h1>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto font-sans">
+       <div className="relative pt-32 pb-12 border-b border-foreground/5">
+        <div className="absolute inset-0 z-0">
+            <img src={headerBg} alt="Golf Equipment" className="w-full h-full object-cover brightness-50" />
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 text-white uppercase">Galerie</h1>
+          <p className="text-lg text-white/80 max-w-2xl mx-auto font-sans">
             Plongez dans l'expérience Golf SIM Sorel-Tracy.
           </p>
         </div>
