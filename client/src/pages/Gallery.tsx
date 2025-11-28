@@ -1,75 +1,77 @@
 import Layout from "@/components/layout/Layout";
 
 // Images
-import img1 from "@assets/81a69ff2-4a89-478a-b758-a37bcbab0737_1764338501085.jfif";
-import img2 from "@assets/901b5a8f-19af-4ef0-b0a6-e8d5ccac41d4_1764338501086.jfif";
-import img3 from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338501086.jfif";
+import img1 from "@assets/generated_images/luxury_indoor_golf_simulator_bay.png";
+import img2 from "@assets/generated_images/luxury_golf_lounge_area.png";
+import img3 from "@assets/generated_images/golfer_swinging_indoors.png";
+import img4 from "@assets/generated_images/golf_ball_on_turf_close_up.png";
+import img5 from "@assets/generated_images/golf_simulator_screen_display.png";
+import img6 from "@assets/generated_images/golf_clubs_detail_shot.png";
 
 const images = [
   {
     src: img1,
-    alt: "Simulateur de golf",
-    category: "Installations"
-  },
-  {
-    src: img2,
-    alt: "Espace Lounge",
-    category: "Ambiance"
+    alt: "Luxury Simulator Bay",
+    category: "The Bay"
   },
   {
     src: img3,
-    alt: "Jeu en action",
+    alt: "Golfer Swinging",
     category: "Action"
   },
-  // Duplicating for grid effect since we only have 3 images
-  {
-    src: img1,
-    alt: "Simulateur vue large",
-    category: "Installations"
-  },
   {
     src: img2,
-    alt: "Détail lounge",
-    category: "Détails"
+    alt: "Lounge Area",
+    category: "Lounge"
   },
   {
-    src: img3,
-    alt: "Swing analyse",
+    src: img5,
+    alt: "Simulator Screen",
+    category: "Experience"
+  },
+  {
+    src: img4,
+    alt: "Tech Detail",
     category: "Tech"
+  },
+  {
+    src: img6,
+    alt: "Premium Clubs",
+    category: "Equipment"
   }
 ];
 
 export default function Gallery() {
   return (
     <Layout>
-       <div className="bg-secondary py-24">
+       <div className="bg-background pt-32 pb-12 border-b border-foreground/5">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-serif font-medium mb-6 text-foreground">Galerie</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Plongez dans l'univers de Golf SIM Sorel-Tracy.
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 text-foreground uppercase">Gallery</h1>
+          <p className="text-lg text-foreground/70 max-w-2xl mx-auto font-sans">
+            Immerse yourself in the Golf SIM Sorel-Tracy experience.
           </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((img, idx) => (
             <div 
               key={idx} 
-              className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-muted shadow-md hover:shadow-2xl transition-all duration-500"
+              className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-muted cursor-pointer"
             >
               <img 
                 src={img.src} 
                 alt={img.alt} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
               />
-              <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <div className="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  <span className="text-white font-serif text-2xl tracking-wide block mb-2">
+                  <span className="text-white font-heading font-bold text-3xl tracking-wide block mb-2 uppercase">
                     {img.category}
                   </span>
-                  <span className="text-white/80 text-sm uppercase tracking-widest border-t border-white/30 pt-2 inline-block">
-                    Golf SIM Sorel-Tracy
+                  <span className="text-white/80 text-xs uppercase tracking-widest border-t border-white/30 pt-2 inline-block">
+                    View Full Size
                   </span>
                 </div>
               </div>

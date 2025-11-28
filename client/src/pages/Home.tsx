@@ -5,7 +5,8 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 
 // Images
-import heroImage from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338872257.jfif";
+import heroImage from "@assets/generated_images/luxury_indoor_golf_simulator_bay.png";
+import techImage from "@assets/generated_images/golf_ball_on_turf_close_up.png";
 
 export default function Home() {
   return (
@@ -29,8 +30,6 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Logo/Brand Small Header if needed, but Navbar covers it. Keeping clean as per image */}
-              
               <h1 className="text-6xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
                 BRING THE <br />
                 COURSE <br />
@@ -66,10 +65,10 @@ export default function Home() {
               className="relative w-full h-full"
             >
               {/* Main Image Card */}
-              <div className="w-full h-full rounded-lg overflow-hidden relative z-10">
+              <div className="w-full h-full rounded-lg overflow-hidden relative z-10 shadow-2xl">
                 <img 
                   src={heroImage} 
-                  alt="Golf balls on turf" 
+                  alt="Luxury indoor golf simulator" 
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -102,11 +101,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tour Level Tech Section (Preview of next section visible in image) */}
-      <section className="py-24 bg-background text-foreground text-center">
-         <h2 className="text-5xl md:text-7xl font-heading uppercase font-bold">
-            Tour-Level Technology
-         </h2>
+      {/* Tour Level Tech Section */}
+      <section className="py-24 bg-background text-foreground">
+        <div className="container mx-auto px-6 md:px-12">
+           <div className="grid md:grid-cols-2 gap-16 items-center">
+             <div className="relative h-[500px] rounded-lg overflow-hidden">
+                <img 
+                  src={techImage} 
+                  alt="Golf ball close up" 
+                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                />
+             </div>
+             <div className="space-y-8">
+                <h2 className="text-5xl md:text-7xl font-heading uppercase font-bold leading-none">
+                  Tour-Level Technology
+                </h2>
+                <p className="text-lg font-sans leading-relaxed max-w-md">
+                  Experience the precision of Trackman 4 technology. Every drive, chip, and putt is captured with hyper-realistic accuracy, allowing you to analyze your game like a pro.
+                </p>
+                <Button variant="link" className="text-primary p-0 h-auto font-bold uppercase tracking-wider text-sm hover:no-underline hover:opacity-70">
+                  Learn More About Our Tech
+                </Button>
+             </div>
+           </div>
+        </div>
       </section>
     </Layout>
   );
