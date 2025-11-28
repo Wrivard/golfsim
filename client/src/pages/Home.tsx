@@ -6,35 +6,33 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 
 // Images from attached_assets
-const HERO_IMAGE = "attached_assets/81a69ff2-4a89-478a-b758-a37bcbab0737_1764338501085.jfif";
-const FEATURE_IMAGE = "attached_assets/f114406a-3bc2-4494-871f-50634e13f809_1764338501086.jfif";
+import heroImage from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338872257.jfif";
+import featureImage from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338501086.jfif";
 
 export default function Home() {
   return (
     <Layout>
-      {/* Hero Section - Dark & Modern */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-        {/* Background Gradient Element */}
-        <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-l from-primary/10 to-transparent z-0" />
+      {/* Hero Section - Light & Elegant */}
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
         
-        <div className="container mx-auto px-4 grid md:grid-cols-12 gap-8 items-center relative z-10">
+        <div className="container mx-auto px-4 grid md:grid-cols-12 gap-12 items-center relative z-10">
           
           {/* Text Content (Left) */}
-          <div className="md:col-span-6 space-y-8 pt-12 md:pt-0 order-2 md:order-1">
+          <div className="md:col-span-5 space-y-8 pt-12 md:pt-0 order-2 md:order-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-block py-1 px-3 border border-primary/50 text-primary text-xs font-bold tracking-[0.2em] uppercase mb-6">
+              <span className="inline-block py-1 px-3 bg-primary/5 text-primary text-xs font-bold tracking-[0.2em] uppercase mb-6 border border-primary/10 rounded-full">
                 Golf Intérieur • Sorel-Tracy
               </span>
               <h1 className="text-5xl md:text-7xl font-serif font-medium leading-[1.1] text-foreground mb-6">
-                L'Excellence <br />
-                <span className="text-primary">Sans Compromis.</span>
+                Le Golf, <br />
+                <span className="text-primary italic">Réinventé.</span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md border-l border-primary pl-6">
-                Une expérience de simulation de golf immersive dans un environnement lounge haut de gamme. Ouvert 24/7 pour les membres.
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md border-l-2 border-accent pl-6">
+                Vivez une expérience de simulation immersive dans un cadre raffiné. La destination incontournable pour les passionnés, 12 mois par an.
               </p>
             </motion.div>
 
@@ -45,44 +43,45 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <Link href="/contact">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-none px-10 h-14 text-lg transition-all hover:-translate-y-1 font-medium tracking-wide">
-                  RÉSERVER
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg transition-all hover:-translate-y-1 shadow-lg shadow-primary/20">
+                  Réserver maintenant
                 </Button>
               </Link>
               <Link href="/rates">
-                <Button variant="outline" size="lg" className="rounded-none px-10 h-14 text-lg border-muted-foreground/30 hover:bg-secondary hover:text-primary hover:border-primary transition-all">
-                  FORFAITS
+                <Button variant="outline" size="lg" className="rounded-full px-10 h-14 text-lg border-primary/20 text-primary hover:bg-primary/5 transition-all">
+                  Nos Forfaits
                 </Button>
               </Link>
             </motion.div>
           </div>
 
           {/* Image Composition (Right) */}
-          <div className="md:col-span-6 relative h-[50vh] md:h-[70vh] order-1 md:order-2">
+          <div className="md:col-span-7 relative h-[50vh] md:h-[75vh] order-1 md:order-2">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               className="relative w-full h-full flex items-center justify-center"
             >
-              <div className="relative w-full h-full overflow-hidden rounded-none border border-white/10">
+              <div className="relative w-full h-full overflow-hidden rounded-[2rem] shadow-2xl">
                 <img 
-                  src={HERO_IMAGE} 
+                  src={heroImage} 
                   alt="Simulateur de golf intérieur" 
-                  className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-700"
+                  className="w-full h-full object-cover transform scale-105 hover:scale-100 transition-transform duration-[1.5s]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                {/* Elegant Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </div>
               
-              {/* Floating Stat Card - Tech Style */}
-              <div className="absolute bottom-8 left-8 bg-background/80 backdrop-blur-md p-6 border border-primary/30 z-20 min-w-[240px]">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Statut</span>
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              {/* Floating Stat Card - Elegant Style */}
+              <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-xl border border-border z-20 min-w-[200px] hidden md:block">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">En Direct</span>
                 </div>
                 <div className="space-y-1">
-                   <p className="text-3xl font-sans font-bold text-foreground">OUVERT</p>
-                   <p className="text-sm text-muted-foreground uppercase tracking-wide">Accès Membres 24/7</p>
+                   <p className="text-3xl font-serif font-bold text-foreground">24/7</p>
+                   <p className="text-sm text-muted-foreground font-medium">Accès Membres</p>
                 </div>
               </div>
             </motion.div>
@@ -91,55 +90,63 @@ export default function Home() {
       </section>
 
       {/* Features / Concept Section */}
-      <section className="py-24 bg-secondary/30 border-t border-white/5">
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative">
-              <div className="border border-white/10 p-2">
+            <div className="relative order-2 md:order-1">
+              <div className="relative rounded-lg overflow-hidden shadow-lg">
                  <img 
-                  src={FEATURE_IMAGE} 
+                  src={featureImage} 
                   alt="Joueur au simulateur" 
-                  className="grayscale hover:grayscale-0 transition-all duration-700 w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                 />
               </div>
               
-              <div className="absolute -bottom-6 -right-6 bg-background border border-primary/30 p-8 max-w-xs hidden md:block">
-                <p className="font-serif text-xl italic text-primary">"La précision à l'état pur."</p>
+              <div className="absolute -bottom-8 -right-8 bg-secondary p-8 rounded-lg max-w-xs shadow-lg hidden md:block z-10">
+                <p className="font-serif text-xl italic text-primary">"La précision à l'état pur, dans un confort absolu."</p>
               </div>
             </div>
             
-            <div className="space-y-8">
-              <h2 className="text-4xl md:text-5xl font-serif">Technologie &<br />Performance</h2>
+            <div className="space-y-8 order-1 md:order-2">
+              <h2 className="text-4xl md:text-5xl font-serif text-foreground">Technologie &<br />Élégance</h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Nos simulateurs Trackman 4 offrent une précision inégalée. Analysez chaque paramètre de votre swing dans un environnement contrôlé et confortable.
+                Nos simulateurs de dernière génération offrent une précision chirurgicale. Analysez chaque nuance de votre swing dans un environnement conçu pour le confort et la performance.
               </p>
               
               <div className="grid grid-cols-2 gap-x-8 gap-y-10 pt-4">
                 <div className="space-y-3 group">
-                  <Trophy className="w-8 h-8 text-primary group-hover:text-white transition-colors" />
-                  <h3 className="font-sans font-bold uppercase tracking-wide text-sm">Trackman 4</h3>
-                  <p className="text-sm text-muted-foreground">Technologie radar double pour une précision absolue.</p>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                    <Trophy className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="font-serif font-bold text-lg">Simulateurs Pro</h3>
+                  <p className="text-sm text-muted-foreground">Technologie radar double haute fidélité.</p>
                 </div>
                 <div className="space-y-3 group">
-                  <Clock className="w-8 h-8 text-primary group-hover:text-white transition-colors" />
-                  <h3 className="font-sans font-bold uppercase tracking-wide text-sm">Accès Illimité</h3>
-                  <p className="text-sm text-muted-foreground">Jouez à votre rythme avec nos abonnements mensuels.</p>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                    <Clock className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="font-serif font-bold text-lg">Accès Illimité</h3>
+                  <p className="text-sm text-muted-foreground">Forfaits flexibles adaptés à votre horaire.</p>
                 </div>
                 <div className="space-y-3 group">
-                  <Users className="w-8 h-8 text-primary group-hover:text-white transition-colors" />
-                  <h3 className="font-sans font-bold uppercase tracking-wide text-sm">Espace Lounge</h3>
-                  <p className="text-sm text-muted-foreground">Détendez-vous entre deux parties dans notre bar privé.</p>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                    <Users className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="font-serif font-bold text-lg">Espace Lounge</h3>
+                  <p className="text-sm text-muted-foreground">Détente et convivialité après l'effort.</p>
                 </div>
                 <div className="space-y-3 group">
-                  <Wifi className="w-8 h-8 text-primary group-hover:text-white transition-colors" />
-                  <h3 className="font-sans font-bold uppercase tracking-wide text-sm">Connectivité</h3>
-                  <p className="text-sm text-muted-foreground">Wi-Fi haute vitesse et application de réservation.</p>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                    <Wifi className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="font-serif font-bold text-lg">Connecté</h3>
+                  <p className="text-sm text-muted-foreground">Réservez votre baie en un clic.</p>
                 </div>
               </div>
               
               <div className="pt-8">
                 <Link href="/about">
-                  <Button variant="link" className="text-primary p-0 h-auto font-medium text-lg hover:no-underline hover:text-white gap-2 uppercase tracking-widest text-sm">
+                  <Button variant="link" className="text-primary p-0 h-auto font-medium text-lg hover:no-underline hover:opacity-80 gap-2 font-serif italic">
                     Découvrir le club <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -150,21 +157,23 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20" />
-        <div className="absolute inset-0 bg-background/80" />
+      <section className="py-24 bg-primary text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay" />
         
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-serif mb-8">Prêt à améliorer votre jeu ?</h2>
+        <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-serif mb-6">Prêt à jouer ?</h2>
+          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+            Réservez votre départ dès maintenant ou rejoignez notre communauté de membres privilégiés.
+          </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link href="/contact">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-12 h-16 text-lg tracking-widest uppercase font-bold">
-                Réserver un départ
+              <Button size="lg" className="bg-white text-primary hover:bg-secondary rounded-full px-10 h-14 text-lg font-bold shadow-xl">
+                Réserver une plage
               </Button>
             </Link>
             <Link href="/rates">
-              <Button size="lg" variant="outline" className="bg-transparent text-foreground border-white/20 hover:bg-white/5 rounded-none px-12 h-16 text-lg tracking-widest uppercase">
-                Voir les abonnements
+              <Button size="lg" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-14 text-lg">
+                Devenir membre
               </Button>
             </Link>
           </div>

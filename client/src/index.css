@@ -38,71 +38,76 @@
 }
 
 :root {
-  /* Dark Mode Default - High End Lounge Feel */
-  --background: 220 15% 6%; /* Very dark charcoal/blue-black */
-  --foreground: 40 20% 97%; /* Off-white text */
+  /* Light Mode - Elegant Golf Club Theme */
+  /* Background: Soft Cream / Off-White */
+  --background: 40 20% 98%; 
+  /* Foreground: Very Dark Green/Black */
+  --foreground: 145 60% 10%;
 
-  --card: 220 15% 10%;
-  --card-foreground: 40 20% 97%;
+  /* Card: Pure White */
+  --card: 0 0% 100%;
+  --card-foreground: 145 60% 10%;
 
-  --popover: 220 15% 10%;
-  --popover-foreground: 40 20% 97%;
+  /* Popover */
+  --popover: 0 0% 100%;
+  --popover-foreground: 145 60% 10%;
 
-  /* Primary: Vibrant Emerald/Neon Green for tech feel */
-  --primary: 142 70% 45%; 
-  --primary-foreground: 220 15% 6%;
+  /* Primary: Deep Racing Green */
+  --primary: 150 60% 25%;
+  --primary-foreground: 0 0% 100%;
 
-  /* Secondary: Darker Green/Grey */
-  --secondary: 220 15% 14%;
-  --secondary-foreground: 142 70% 45%;
+  /* Secondary: Light Beige/Sage */
+  --secondary: 40 20% 92%;
+  --secondary-foreground: 150 60% 25%;
 
-  /* Muted: Dark Grey */
-  --muted: 220 10% 20%;
-  --muted-foreground: 220 10% 65%;
+  /* Muted: Warm Grey */
+  --muted: 40 10% 94%;
+  --muted-foreground: 40 5% 45%;
 
   /* Accent: Gold/Bronze */
-  --accent: 35 60% 50%;
+  --accent: 35 50% 55%;
   --accent-foreground: 0 0% 100%;
 
   /* Destructive */
-  --destructive: 0 62% 30%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 220 15% 18%;
-  --input: 220 15% 18%;
-  --ring: 142 70% 45%;
+  /* Borders */
+  --border: 40 10% 88%;
+  --input: 40 10% 88%;
+  --ring: 150 60% 25%;
 
   --radius: 0.5rem;
 
-  /* Charts (Optional) */
-  --chart-1: 142 70% 45%;
-  --chart-2: 35 60% 50%;
-  --chart-3: 220 15% 40%;
-  --chart-4: 220 10% 65%;
-  --chart-5: 40 20% 97%;
+  /* Charts */
+  --chart-1: 150 60% 25%;
+  --chart-2: 35 50% 55%;
+  --chart-3: 140 30% 50%;
+  --chart-4: 40 5% 40%;
+  --chart-5: 40 20% 98%;
 }
 
-/* Light Mode Override (if needed later) */
-.light {
-  --background: 40 20% 97%;
-  --foreground: 145 60% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 145 60% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 145 60% 10%;
-  --primary: 145 63% 28%;
+.dark {
+  /* Dark Mode Override - Not primary anymore */
+  --background: 145 60% 5%;
+  --foreground: 40 20% 97%;
+  --card: 145 60% 8%;
+  --card-foreground: 40 20% 97%;
+  --popover: 145 60% 8%;
+  --popover-foreground: 40 20% 97%;
+  --primary: 145 50% 45%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 140 20% 90%;
-  --secondary-foreground: 145 63% 28%;
-  --muted: 40 10% 90%;
-  --muted-foreground: 40 5% 40%;
-  --accent: 35 40% 60%;
+  --secondary: 145 30% 15%;
+  --secondary-foreground: 40 20% 97%;
+  --muted: 145 30% 15%;
+  --muted-foreground: 145 10% 60%;
+  --accent: 35 50% 50%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --destructive: 0 62% 30%;
   --destructive-foreground: 0 0% 98%;
-  --border: 145 20% 85%;
-  --input: 145 20% 85%;
-  --ring: 145 63% 28%;
+  --border: 145 30% 15%;
+  --input: 145 30% 15%;
+  --ring: 145 50% 45%;
 }
 
 @layer base {

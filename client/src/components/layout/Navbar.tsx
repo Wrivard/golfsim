@@ -29,7 +29,7 @@ export default function Navbar() {
     <nav
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
-        scrolled ? "bg-background/95 backdrop-blur-md border-border py-3" : "bg-transparent py-6"
+        scrolled ? "bg-white/90 backdrop-blur-md border-border py-3 shadow-sm" : "bg-transparent py-6"
       )}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -46,8 +46,8 @@ export default function Navbar() {
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary uppercase tracking-widest",
-                  location === link.href ? "text-primary" : "text-muted-foreground"
+                  "text-sm font-medium transition-colors hover:text-primary uppercase tracking-wider",
+                  location === link.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
                 {link.name}
@@ -59,8 +59,8 @@ export default function Navbar() {
         {/* CTA Button */}
         <div className="hidden md:block">
           <Link href="/contact">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-6 rounded-none skew-x-[-10deg] transition-all hover:-translate-y-0.5">
-              <span className="skew-x-[10deg]">Réserver</span>
+            <Button className="bg-primary text-white hover:bg-primary/90 font-medium px-6 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+              Réserver
             </Button>
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default function Navbar() {
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-lg font-medium py-2 border-b border-border/50 uppercase tracking-widest",
+                  "text-lg font-medium py-2 border-b border-border/50",
                   location === link.href ? "text-primary" : "text-foreground"
                 )}
                 onClick={() => setIsOpen(false)}
@@ -91,7 +91,7 @@ export default function Navbar() {
             </Link>
           ))}
           <Link href="/contact">
-            <Button className="w-full mt-2 rounded-none" size="lg" onClick={() => setIsOpen(false)}>
+            <Button className="w-full mt-2 rounded-full" size="lg" onClick={() => setIsOpen(false)}>
               Réserver maintenant
             </Button>
           </Link>
