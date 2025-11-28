@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { type Booking } from "@shared/schema";
-import { createCalendarEvent, deleteCalendarEvent } from "./googleCalendar";
+import { createCalendarEvent, deleteCalendarEvent, getCalendarConnectionStatus } from "./googleCalendar";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 
@@ -153,6 +153,16 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching bookings:", error);
       return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des réservations" });
+    }
+  });
+
+  app.get("/api/admin/calendar-connection", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const status = await getCalendarConnectionStatus();
+      return res.json({ ok: true, ...status });
+    } catch (error) {
+      console.error("Error fetching calendar connection status:", error);
+      return res.json({ ok: true, connected: false });
     }
   });
   
