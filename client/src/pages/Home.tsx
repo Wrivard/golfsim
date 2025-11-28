@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Full Page Golf Ball Animation Path */}
-      <div className="absolute inset-0 w-full h-full z-30 pointer-events-none">
+      <div className="absolute inset-0 w-full h-full z-30 pointer-events-none overflow-hidden">
          <ScrollGolfPath />
       </div>
       

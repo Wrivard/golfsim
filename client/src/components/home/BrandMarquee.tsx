@@ -1,24 +1,14 @@
 import { motion } from "framer-motion";
 
-// Import images locally to ensure they load
-import trackman from "@/assets/images/trackman_logo_white_transparent.png";
-import titleist from "@/assets/images/titleist_logo_white_transparent.png";
-import taylormade from "@/assets/images/taylormade_logo_white_transparent.png";
-import callaway from "@/assets/images/callaway_logo_white_transparent.png";
-import ping from "@/assets/images/ping_logo_white_transparent.png";
-import cobra from "@/assets/images/cobra_logo_white_transparent.png";
-import pxg from "@/assets/images/pxg_logo_white_transparent.png";
-import mizuno from "@/assets/images/mizuno_logo_white_transparent.png";
-
 const BRANDS = [
-  { name: "Trackman", logo: trackman },
-  { name: "Titleist", logo: titleist },
-  { name: "TaylorMade", logo: taylormade },
-  { name: "Callaway", logo: callaway },
-  { name: "Ping", logo: ping },
-  { name: "Cobra", logo: cobra },
-  { name: "PXG", logo: pxg },
-  { name: "Mizuno", logo: mizuno },
+  "TRACKMAN",
+  "TITLEIST",
+  "TAYLORMADE",
+  "CALLAWAY",
+  "PING",
+  "COBRA",
+  "PXG",
+  "MIZUNO"
 ];
 
 export default function BrandMarquee() {
@@ -35,20 +25,16 @@ export default function BrandMarquee() {
           transition={{ 
             repeat: Infinity, 
             ease: "linear", 
-            duration: 30 
+            duration: 20 
           }}
         >
           {[...BRANDS, ...BRANDS].map((brand, index) => (
-            <div 
+            <span 
               key={index} 
-              className="w-32 md:w-40 h-16 relative flex items-center justify-center transition-opacity cursor-pointer hover:opacity-80"
+              className="text-4xl md:text-6xl font-heading font-bold text-white/20 uppercase tracking-tighter hover:text-white transition-colors cursor-default"
             >
-              <img 
-                src={brand.logo} 
-                alt={brand.name} 
-                className="w-full h-full object-contain mix-blend-screen filter grayscale contrast-200" 
-              />
-            </div>
+              {brand}
+            </span>
           ))}
         </motion.div>
         
