@@ -1,61 +1,81 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useLayoutEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 export default function ScrollGolfPath() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pathLength, setPathLength] = useState(0);
-  const svgRef = useRef<SVGPathElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  const ballRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
 
-  // Get path length for drawing animation
-  useEffect(() => {
-    if (svgRef.current) {
-      setPathLength(svgRef.current.getTotalLength());
-    }
-  }, []);
+  useGSAP(() => {
+    const path = pathRef.current;
+    const ball = ballRef.current;
+    const container = containerRef.current;
 
-  // Animate the path drawing
-  const drawProgress = useTransform(scrollYProgress, [0, 0.9], [0, 1]);
-  
-  // Ball position along the path
-  // We'll use a simpler approach for the ball: calculate position based on scroll percentage
-  // but mapping it to key coordinates that match our SVG path
-  
-  // SVG Path Definition:
-  // Start: Top Center (50% 0%)
-  // Curve 1: Right (80% 20%)
-  // Curve 2: Left (20% 40%)
-  // Curve 3: Right (70% 60%)
-  // Curve 4: Center (50% 80%)
-  // End: Hole at Bottom Center (50% 95%)
-  
-  // Simplified responsive coordinates - RIGHT SIDE
-  const x = useTransform(scrollYProgress, 
-    [0, 0.2, 0.5, 0.8, 1], 
-    ["90%", "80%", "90%", "80%", "90%"]
-  );
-  
-  const y = useTransform(scrollYProgress, 
-    [0, 0.2, 0.5, 0.8, 1], 
-    ["5%", "25%", "50%", "75%", "95%"]
-  );
+    if (!path || !ball || !container) return;
 
-  const scale = useTransform(scrollYProgress, 
-    [0, 0.98, 1], 
-    [1, 1, 0] // Vanish at end
-  );
+    // Initial states
+    gsap.set(ball, { 
+      opacity: 0, 
+      scale: 0,
+      xPercent: -50, 
+      yPercent: -50 
+    });
+    
+    const pathLength = path.getTotalLength();
+    gsap.set(path, { 
+      strokeDasharray: pathLength,
+      strokeDashoffset: pathLength,
+      opacity: 0.6
+    });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]); // Fade in at start
-  const rotation = useTransform(scrollYProgress, [0, 1], [0, 720]);
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: container,
+        start: "top bottom", // Start when container hits bottom of viewport
+        end: "bottom bottom", // End when container hits bottom of viewport
+        scrub: 1, // Smooth scrubbing
+        // markers: true // Debug markers
+      }
+    });
 
-  // Path draw animation - trails behind ball
-  // We're using scrollYProgress for both ball and line to sync them
-  // No need to redeclare drawProgress separately if it's just mapped 1:1
-  
+    // 1. Fade in ball at start
+    tl.to(ball, { opacity: 1, scale: 1, duration: 0.05 }, 0);
+
+    // 2. Animate Ball along path
+    tl.to(ball, {
+      motionPath: {
+        path: path,
+        align: path,
+        alignOrigin: [0.5, 0.5],
+        autoRotate: false, // We'll rotate manually for spin effect
+      },
+      rotation: 720, // Spin the ball
+      ease: "none",
+      duration: 1
+    }, 0);
+
+    // 3. Draw the line following the ball
+    tl.to(path, {
+      strokeDashoffset: 0,
+      ease: "none",
+      duration: 1
+    }, 0);
+
+    // 4. Drop into hole at end (last 5%)
+    tl.to(ball, {
+      scale: 0,
+      opacity: 0,
+      duration: 0.05,
+      ease: "power2.in"
+    }, 0.95);
+
+  }, { scope: containerRef });
+
   return (
     <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden xl:block overflow-hidden">
        <svg className="absolute top-0 left-0 w-full h-full" preserveAspectRatio="none">
@@ -69,17 +89,21 @@ export default function ScrollGolfPath() {
           </defs>
           
           {/* Dotted Flight Path - RIGHT SIDE ARC */}
-          <motion.path
-            ref={svgRef}
+          {/* Note: strokeDasharray is handled by GSAP for the drawing effect, 
+              but we can set a base pattern if we want dashes. 
+              However, simple drawSVG style is solid line. 
+              If we want dashed draw, it's trickier without DrawSVG plugin.
+              Let's stick to solid line for smoother GSAP drawing or try mask technique if needed.
+              For now: Solid semi-transparent line tracing.
+          */}
+          <path
+            ref={pathRef}
             d="M 90% 5% Q 70% 25%, 90% 50% T 90% 95%"
             fill="none"
             stroke="url(#lineGradient)"
-            strokeWidth="2"
-            strokeDasharray="6 6"
-            style={{ 
-              pathLength: scrollYProgress,
-              opacity: 0.6 
-            }}
+            strokeWidth="3"
+            strokeLinecap="round"
+            // Remove static dasharray so GSAP can animate dashoffset for 'drawing' effect
           />
           
           {/* The Hole - RIGHT SIDE */}
@@ -94,26 +118,18 @@ export default function ScrollGolfPath() {
        </svg>
        
        {/* The Ball */}
-       <motion.div 
-         className="absolute w-8 h-8 z-50 flex items-center justify-center"
-         style={{ 
-           left: x,
-           top: y,
-           scale,
-           opacity,
-           x: "-50%", // Center the ball on the point
-           y: "-50%"
-         }}
+       <div 
+         ref={ballRef}
+         className="absolute w-8 h-8 z-50 flex items-center justify-center opacity-0"
        >
-         <motion.div 
+         <div 
            className="w-full h-full bg-white rounded-full shadow-xl border border-gray-200 relative overflow-hidden"
-           style={{ rotate: rotation }}
          >
             {/* Dimples pattern simulation */}
             <div className="absolute inset-0 bg-[radial-gradient(#ccc_1px,transparent_1px)] [background-size:3px_3px] opacity-30" />
             <div className="w-full h-full rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-300 opacity-80" />
-         </motion.div>
-       </motion.div>
+         </div>
+       </div>
     </div>
   );
 }
