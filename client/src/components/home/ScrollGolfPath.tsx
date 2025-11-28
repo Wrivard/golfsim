@@ -35,32 +35,35 @@ export default function ScrollGolfPath() {
   
   // Simplified responsive coordinates - RIGHT SIDE
   const x = useTransform(scrollYProgress, 
-    [0, 0.2, 0.5, 0.8, 0.95], 
+    [0, 0.2, 0.5, 0.8, 1], 
     ["90%", "80%", "90%", "80%", "90%"]
   );
   
   const y = useTransform(scrollYProgress, 
-    [0, 0.2, 0.5, 0.8, 0.95], 
+    [0, 0.2, 0.5, 0.8, 1], 
     ["5%", "25%", "50%", "75%", "95%"]
   );
 
   const scale = useTransform(scrollYProgress, 
-    [0, 0.9, 0.95, 1], 
-    [1, 1, 0.5, 0] // Always visible until hole
+    [0, 0.98, 1], 
+    [1, 1, 0] // Vanish at end
   );
 
-  const opacity = useTransform(scrollYProgress, [0, 0.02], [1, 1]); // Always visible
+  const opacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]); // Fade in at start
   const rotation = useTransform(scrollYProgress, [0, 1], [0, 720]);
 
+  // Path draw animation - trails behind ball
+  const drawProgress = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-30 hidden xl:block overflow-hidden">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden xl:block overflow-hidden">
        <svg className="absolute top-0 left-0 w-full h-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(43, 87, 52, 0)" />
-              <stop offset="10%" stopColor="rgba(43, 87, 52, 0.4)" />
-              <stop offset="90%" stopColor="rgba(43, 87, 52, 0.4)" />
-              <stop offset="100%" stopColor="rgba(43, 87, 52, 0)" />
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
+              <stop offset="20%" stopColor="rgba(255, 255, 255, 0.5)" />
+              <stop offset="80%" stopColor="rgba(255, 255, 255, 0.5)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
             </linearGradient>
           </defs>
           
@@ -70,22 +73,28 @@ export default function ScrollGolfPath() {
             d="M 90% 5% Q 70% 25%, 90% 50% T 90% 95%"
             fill="none"
             stroke="url(#lineGradient)"
-            strokeWidth="3"
-            strokeDasharray="12 12"
+            strokeWidth="2"
+            strokeDasharray="6 6"
             style={{ 
               pathLength: drawProgress,
-              opacity: 0.8 
+              opacity: 0.6 
             }}
           />
           
           {/* The Hole - RIGHT SIDE */}
-          <circle cx="90%" cy="95%" r="12" fill="#1a1a1a" fillOpacity="0.8" />
-          <ellipse cx="90%" cy="95%" rx="12" ry="4" fill="#000" fillOpacity="0.5" />
+          <g transform="translate(0, -5)"> {/* Adjust for flag position */}
+            <circle cx="90%" cy="95%" r="14" fill="#1a1a1a" fillOpacity="0.8" />
+            <ellipse cx="90%" cy="95%" rx="14" ry="5" fill="#000" fillOpacity="0.5" />
+            
+            {/* Flag */}
+            <line x1="90%" y1="95%" x2="90%" y2="85%" stroke="white" strokeWidth="2" />
+            <path d="M 90% 85% L 93% 87% L 90% 89% Z" fill="#2B5734" />
+          </g>
        </svg>
        
        {/* The Ball */}
        <motion.div 
-         className="fixed w-8 h-8 z-50 flex items-center justify-center"
+         className="absolute w-8 h-8 z-50 flex items-center justify-center"
          style={{ 
            left: x,
            top: y,

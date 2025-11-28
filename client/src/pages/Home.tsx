@@ -18,11 +18,6 @@ import techImage from "@/assets/images/golf_ball_on_turf_close_up.png";
 export default function Home() {
   return (
     <Layout>
-      {/* Full Page Golf Ball Animation Path */}
-      <div className="absolute inset-0 w-full h-full z-30 pointer-events-none overflow-hidden">
-         <ScrollGolfPath />
-      </div>
-      
       {/* Hero Section - "Urban Swing" Style Replicas */}
       <section className="relative min-h-screen flex flex-col justify-center pt-20 overflow-hidden bg-background z-10">
         

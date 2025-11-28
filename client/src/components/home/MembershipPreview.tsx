@@ -1,10 +1,16 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Check, Crown } from "lucide-react";
+import ScrollGolfPath from "@/components/home/ScrollGolfPath";
 
 export default function MembershipPreview() {
   return (
     <section className="py-32 bg-foreground text-background relative overflow-hidden">
+      {/* Localized Golf Ball Path */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+         <ScrollGolfPath />
+      </div>
+
       {/* Background textural elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border-[100px] border-primary/20 blur-3xl" />
