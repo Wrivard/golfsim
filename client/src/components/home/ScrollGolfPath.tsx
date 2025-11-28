@@ -33,15 +33,15 @@ export default function ScrollGolfPath() {
   // Curve 4: Center (50% 80%)
   // End: Hole at Bottom Center (50% 95%)
   
-  // Simplified responsive coordinates
+  // Simplified responsive coordinates - RIGHT SIDE
   const x = useTransform(scrollYProgress, 
-    [0, 0.2, 0.4, 0.6, 0.8, 0.95], 
-    ["50%", "80%", "20%", "70%", "50%", "50%"]
+    [0, 0.2, 0.5, 0.8, 0.95], 
+    ["90%", "80%", "90%", "80%", "90%"]
   );
   
   const y = useTransform(scrollYProgress, 
-    [0, 0.2, 0.4, 0.6, 0.8, 0.95], 
-    ["15%", "25%", "45%", "65%", "85%", "95%"]
+    [0, 0.2, 0.5, 0.8, 0.95], 
+    ["5%", "25%", "50%", "75%", "95%"]
   );
 
   const scale = useTransform(scrollYProgress, 
@@ -64,10 +64,10 @@ export default function ScrollGolfPath() {
             </linearGradient>
           </defs>
           
-          {/* Dotted Flight Path */}
+          {/* Dotted Flight Path - RIGHT SIDE ARC */}
           <motion.path
             ref={svgRef}
-            d="M 50% 15% Q 80% 20%, 80% 25% T 20% 45% T 70% 65% T 50% 95%"
+            d="M 90% 5% Q 70% 25%, 90% 50% T 90% 95%"
             fill="none"
             stroke="url(#lineGradient)"
             strokeWidth="3"
@@ -78,9 +78,9 @@ export default function ScrollGolfPath() {
             }}
           />
           
-          {/* The Hole */}
-          <circle cx="50%" cy="95%" r="12" fill="#1a1a1a" fillOpacity="0.8" />
-          <ellipse cx="50%" cy="95%" rx="12" ry="4" fill="#000" fillOpacity="0.5" />
+          {/* The Hole - RIGHT SIDE */}
+          <circle cx="90%" cy="95%" r="12" fill="#1a1a1a" fillOpacity="0.8" />
+          <ellipse cx="90%" cy="95%" rx="12" ry="4" fill="#000" fillOpacity="0.5" />
        </svg>
        
        {/* The Ball */}
