@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink } from "lucide-react";
 import { format } from "date-fns";
@@ -28,6 +28,15 @@ async function fetchCalendarSettings() {
 
 async function fetchCalendarConnection() {
   const response = await fetch("/api/admin/calendar-connection");
+  if (response.status === 401) {
+    throw new Error("Non autorisé");
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function fetchCalendars() {
+  const response = await fetch("/api/admin/calendars");
   if (response.status === 401) {
     throw new Error("Non autorisé");
   }
@@ -107,6 +116,12 @@ export default function Admin() {
     refetchInterval: 30000,
   });
 
+  const calendarsQuery = useQuery({
+    queryKey: ["calendars"],
+    queryFn: fetchCalendars,
+    enabled: sessionQuery.data?.authenticated && connectionQuery.data?.connected,
+  });
+
   const bookingsQuery = useQuery({
     queryKey: ["adminBookings"],
     queryFn: fetchBookings,
@@ -116,7 +131,7 @@ export default function Admin() {
   const updateMutation = useMutation({
     mutationFn: updateCalendarSettings,
     onSuccess: () => {
-      toast({ title: "Paramètres sauvegardés" });
+      toast({ title: "Calendrier sélectionné avec succès" });
       queryClient.invalidateQueries({ queryKey: ["calendarSettings"] });
     },
     onError: (error: Error) => {
@@ -129,6 +144,7 @@ export default function Admin() {
     onSuccess: () => {
       toast({ title: "Compte Google déconnecté" });
       queryClient.invalidateQueries({ queryKey: ["calendarConnection"] });
+      queryClient.invalidateQueries({ queryKey: ["calendars"] });
     },
     onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -155,6 +171,7 @@ export default function Admin() {
         description: email ? `Connecté avec ${email}` : "Compte Google connecté",
       });
       queryClient.invalidateQueries({ queryKey: ["calendarConnection"] });
+      queryClient.invalidateQueries({ queryKey: ["calendars"] });
       window.history.replaceState({}, "", "/admin");
     } else if (oauth === "error") {
       toast({
@@ -193,11 +210,9 @@ export default function Admin() {
     }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate({
-      calendarId,
-    });
+  const handleCalendarChange = (newCalendarId: string) => {
+    setCalendarId(newCalendarId);
+    updateMutation.mutate({ calendarId: newCalendarId });
   };
 
   if (sessionQuery.isLoading) {
@@ -214,6 +229,7 @@ export default function Admin() {
 
   const isConfigured = connectionQuery.data?.configured !== false;
   const isConnected = connectionQuery.data?.connected;
+  const calendars = calendarsQuery.data?.calendars || [];
 
   return (
     <div className="min-h-screen bg-[#F7F3E8]">
@@ -278,7 +294,7 @@ export default function Admin() {
                 </p>
               </div>
             ) : isConnected ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
                   <div>
@@ -286,9 +302,37 @@ export default function Admin() {
                     <p className="text-green-700">{connectionQuery.data.email || "Compte Google"}</p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Les réservations seront automatiquement ajoutées au calendrier de ce compte.
-                </p>
+
+                <div className="space-y-3">
+                  <Label className="uppercase text-xs font-bold tracking-wider text-foreground/70">
+                    Calendrier de synchronisation
+                  </Label>
+                  {calendarsQuery.isLoading ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Chargement des calendriers...
+                    </div>
+                  ) : calendars.length > 0 ? (
+                    <Select value={calendarId} onValueChange={handleCalendarChange} disabled={updateMutation.isPending}>
+                      <SelectTrigger className="w-full h-12" data-testid="select-calendar">
+                        <SelectValue placeholder="Sélectionnez un calendrier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {calendars.map((cal: { id: string; summary: string; primary?: boolean }) => (
+                          <SelectItem key={cal.id} value={cal.id} data-testid={`calendar-option-${cal.id}`}>
+                            {cal.summary} {cal.primary && <span className="text-muted-foreground">(Principal)</span>}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun calendrier disponible</p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Les réservations seront automatiquement ajoutées à ce calendrier.
+                  </p>
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <Button
                     variant="outline"
@@ -359,58 +403,6 @@ export default function Admin() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-none">
-          <CardHeader className="bg-[#2B5734] text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
-              <Calendar className="w-5 h-5" />
-              Paramètres du Calendrier
-            </CardTitle>
-            <CardDescription className="text-white/80">
-              Configuration avancée (optionnel)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 bg-white">
-            <form onSubmit={handleSaveSettings} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="calendarId" className="uppercase text-xs font-bold tracking-wider text-foreground/70">
-                  ID du Calendrier
-                </Label>
-                <Input
-                  id="calendarId"
-                  type="text"
-                  placeholder="primary"
-                  value={calendarId}
-                  onChange={(e) => setCalendarId(e.target.value)}
-                  className="h-12"
-                  data-testid="input-calendar-id"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Utilisez "primary" pour le calendrier principal ou entrez un ID spécifique.
-                </p>
-              </div>
-
-              <Button
-                type="submit"
-                className="bg-[#2B5734] hover:bg-[#2B5734]/90 text-white font-bold uppercase tracking-wider"
-                disabled={updateMutation.isPending}
-                data-testid="button-save-settings"
-              >
-                {updateMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sauvegarde...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Sauvegarder
-                  </>
-                )}
-              </Button>
-            </form>
           </CardContent>
         </Card>
 

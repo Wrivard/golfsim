@@ -10,7 +10,8 @@ import {
   generateOAuthState,
   exchangeCodeForTokens,
   revokeGoogleAccess,
-  getRedirectUri
+  getRedirectUri,
+  listCalendars
 } from "./googleCalendar";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -173,6 +174,19 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching calendar connection status:", error);
       return res.json({ ok: true, connected: false, configured: false });
+    }
+  });
+
+  app.get("/api/admin/calendars", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const calendars = await listCalendars();
+      return res.json({ ok: true, calendars });
+    } catch (error: any) {
+      console.error("Error listing calendars:", error);
+      return res.status(500).json({ 
+        ok: false, 
+        message: error.message || "Erreur lors de la récupération des calendriers" 
+      });
     }
   });
 

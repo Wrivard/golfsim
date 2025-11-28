@@ -166,6 +166,22 @@ export async function getCalendarConnectionStatus(): Promise<{
   }
 }
 
+export async function listCalendars(): Promise<Array<{ id: string; summary: string; primary?: boolean }>> {
+  try {
+    const calendar = await getGoogleCalendarClient();
+    const response = await calendar.calendarList.list();
+    
+    return (response.data.items || []).map(cal => ({
+      id: cal.id || '',
+      summary: cal.summary || cal.id || 'Sans nom',
+      primary: cal.primary || false,
+    }));
+  } catch (error) {
+    console.error('Failed to list calendars:', error);
+    throw error;
+  }
+}
+
 export async function revokeGoogleAccess(): Promise<void> {
   const tokenData = await storage.getOAuthToken('google');
   

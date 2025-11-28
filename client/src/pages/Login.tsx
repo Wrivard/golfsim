@@ -31,7 +31,7 @@ export default function Login() {
     mutationFn: login,
     onSuccess: () => {
       toast({ title: "Connexion réussie" });
-      setLocation("/admin");
+      window.location.href = "/admin";
     },
     onError: (error: Error) => {
       toast({ 
