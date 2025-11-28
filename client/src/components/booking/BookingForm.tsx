@@ -185,7 +185,7 @@ export default function BookingForm() {
                                 cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                                 day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
                                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                day_today: "bg-[#1B1A18] text-[#F7F3E8]",
+                                today: "bg-[#1B1A18] text-[#F7F3E8] rounded-md",
                             }}
                             />
                         </div>
