@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react";
 import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
+import kuaLogo from "@assets/white-letter-kua-logo_1764361974050.png";
 
 export default function Footer() {
   return (
@@ -77,9 +78,17 @@ export default function Footer() {
 
         <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/40 font-sans uppercase tracking-wider">
           <p>&copy; {new Date().getFullYear()} Golf SIM Sorel-Tracy. Tous droits réservés.</p>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a>
-            <a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a>
+          
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
+            <div className="flex gap-8">
+              <a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a>
+              <a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a>
+            </div>
+            
+            <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+              <span>Conçu avec passion par :</span>
+              <img src={kuaLogo} alt="Kua" className="h-3 w-auto mt-[-2px]" />
+            </div>
           </div>
         </div>
       </div>
