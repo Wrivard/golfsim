@@ -1,14 +1,24 @@
 import { motion } from "framer-motion";
 
+// Import images
+import trackman from "@assets/generated_images/trackman_logo_white_transparent.png";
+import titleist from "@assets/generated_images/titleist_logo_white_transparent.png";
+import taylormade from "@assets/generated_images/taylormade_logo_white_transparent.png";
+import callaway from "@assets/generated_images/callaway_logo_white_transparent.png";
+import ping from "@assets/generated_images/ping_logo_white_transparent.png";
+import cobra from "@assets/generated_images/cobra_logo_white_transparent.png";
+import pxg from "@assets/generated_images/pxg_logo_white_transparent.png";
+import mizuno from "@assets/generated_images/mizuno_logo_white_transparent.png";
+
 const BRANDS = [
-  "TRACKMAN",
-  "TITLEIST",
-  "TAYLORMADE",
-  "CALLAWAY",
-  "PING",
-  "COBRA",
-  "PXG",
-  "MIZUNO"
+  { name: "Trackman", logo: trackman },
+  { name: "Titleist", logo: titleist },
+  { name: "TaylorMade", logo: taylormade },
+  { name: "Callaway", logo: callaway },
+  { name: "Ping", logo: ping },
+  { name: "Cobra", logo: cobra },
+  { name: "PXG", logo: pxg },
+  { name: "Mizuno", logo: mizuno },
 ];
 
 export default function BrandMarquee() {
@@ -25,16 +35,20 @@ export default function BrandMarquee() {
           transition={{ 
             repeat: Infinity, 
             ease: "linear", 
-            duration: 20 
+            duration: 30 
           }}
         >
           {[...BRANDS, ...BRANDS].map((brand, index) => (
-            <span 
+            <div 
               key={index} 
-              className="text-4xl md:text-6xl font-heading font-bold text-white/20 uppercase tracking-tighter hover:text-white transition-colors cursor-default"
+              className="w-32 md:w-40 h-16 relative flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
             >
-              {brand}
-            </span>
+              <img 
+                src={brand.logo} 
+                alt={brand.name} 
+                className="w-full h-full object-contain filter brightness-0 invert" 
+              />
+            </div>
           ))}
         </motion.div>
         

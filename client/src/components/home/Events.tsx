@@ -4,11 +4,33 @@ import { Check, CalendarDays } from "lucide-react";
 
 export default function Events() {
   return (
-    <section className="py-24 bg-background border-t border-foreground/5">
-      <div className="container mx-auto px-6 md:px-12">
+    <section className="relative py-32 bg-background overflow-hidden">
+      {/* Connector from Membership Section */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-foreground to-transparent opacity-10 pointer-events-none" />
+
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
         <div className="grid md:grid-cols-2 gap-16 items-center">
+          {/* Visual / Card - Swapped Order */}
+          <div className="order-2 md:order-1 relative">
+             <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl transform -translate-x-12 -translate-y-12" />
+             <div className="relative bg-[#EAE6D9] p-12 md:p-16 rounded-none border-l-4 border-primary flex flex-col items-start text-left space-y-6 shadow-2xl transform md:-rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-sm mb-2 border border-foreground/10">
+                   <CalendarDays className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-4xl font-heading font-bold uppercase leading-none">Soirée <br/>Corporative</h3>
+                <p className="text-foreground/70 font-sans leading-relaxed">
+                  "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience."
+                </p>
+                <div className="w-full h-px bg-foreground/10" />
+                <div className="flex justify-between w-full items-center">
+                   <p className="text-xs font-bold uppercase tracking-wider text-primary">Disponible 7 jours / 7</p>
+                   <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">Capacité 20+</p>
+                </div>
+             </div>
+          </div>
+
           {/* Content */}
-          <div className="space-y-8 order-2 md:order-1">
+          <div className="space-y-8 order-1 md:order-2 pl-0 md:pl-12">
             <div className="inline-block py-1 px-3 bg-foreground text-background rounded-full text-xs font-bold uppercase tracking-widest">
               Privatisation & Groupes
             </div>
@@ -43,22 +65,6 @@ export default function Events() {
                 </Button>
               </Link>
             </div>
-          </div>
-
-          {/* Visual / Card */}
-          <div className="order-1 md:order-2 relative">
-             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-lg transform translate-x-4 translate-y-4 -z-10" />
-             <div className="bg-[#EAE6D9] p-12 rounded-lg border border-foreground/10 flex flex-col items-center text-center space-y-6">
-                <div className="w-20 h-20 bg-background rounded-full flex items-center justify-center shadow-lg mb-4">
-                   <CalendarDays className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-3xl font-heading font-bold uppercase">Soirée Corporative</h3>
-                <p className="text-foreground/70 font-sans leading-relaxed">
-                  "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience."
-                </p>
-                <div className="w-12 h-1 bg-primary/20 rounded-full" />
-                <p className="text-sm font-bold uppercase tracking-wider text-primary">Disponible 7 jours / 7</p>
-             </div>
           </div>
         </div>
       </div>
