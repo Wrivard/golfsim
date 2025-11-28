@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "wouter";
 import FAQ from "@/components/rates/FAQ";
-import headerBg from "@assets/stock_images/golf_course_landscap_cbb63126.jpg";
+import headerBg from "@assets/stock_images/golfer_hitting_ball__a2cb5d6d.jpg";
 
 export default function Rates() {
   return (
