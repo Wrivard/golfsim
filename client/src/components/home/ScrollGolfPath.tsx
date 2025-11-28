@@ -86,7 +86,8 @@ export default function ScrollGolfPath() {
 
   // Coordinate system: 0-1000 for both X and Y
   // This ensures consistent scaling regardless of screen size
-  const pathData = "M 900 50 Q 700 250, 900 500 T 900 950";
+  // Adjusted to end higher (850) to avoid being too close to bottom
+  const pathData = "M 900 50 Q 700 250, 900 500 T 900 850";
 
   return (
     <div 
@@ -96,7 +97,7 @@ export default function ScrollGolfPath() {
       <svg 
         viewBox="0 0 1000 1000" 
         className="w-full h-full" 
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMaxYMid meet"
         style={{ overflow: "visible" }}
       >
         <defs>
@@ -128,7 +129,7 @@ export default function ScrollGolfPath() {
         />
 
         {/* The Hole */}
-        <g transform="translate(900, 950)">
+        <g transform="translate(900, 850)">
           <ellipse rx="20" ry="8" fill="rgba(0,0,0,0.5)" />
           <circle r="15" fill="#1a1a1a" />
           
