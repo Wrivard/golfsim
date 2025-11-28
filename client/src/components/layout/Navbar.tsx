@@ -46,8 +46,8 @@ export default function Navbar() {
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  location === link.href ? "text-primary font-semibold" : "text-muted-foreground"
+                  "text-sm font-medium transition-colors hover:text-primary uppercase tracking-widest",
+                  location === link.href ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 {link.name}
@@ -59,8 +59,8 @@ export default function Navbar() {
         {/* CTA Button */}
         <div className="hidden md:block">
           <Link href="/contact">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-6 rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-              Réserver
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-6 rounded-none skew-x-[-10deg] transition-all hover:-translate-y-0.5">
+              <span className="skew-x-[10deg]">Réserver</span>
             </Button>
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default function Navbar() {
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-lg font-medium py-2 border-b border-border/50",
+                  "text-lg font-medium py-2 border-b border-border/50 uppercase tracking-widest",
                   location === link.href ? "text-primary" : "text-foreground"
                 )}
                 onClick={() => setIsOpen(false)}
@@ -91,7 +91,7 @@ export default function Navbar() {
             </Link>
           ))}
           <Link href="/contact">
-            <Button className="w-full mt-2 rounded-full" size="lg" onClick={() => setIsOpen(false)}>
+            <Button className="w-full mt-2 rounded-none" size="lg" onClick={() => setIsOpen(false)}>
               Réserver maintenant
             </Button>
           </Link>
