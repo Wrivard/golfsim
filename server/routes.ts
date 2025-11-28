@@ -2,13 +2,23 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { type Booking } from "@shared/schema";
-import { createCalendarEvent, deleteCalendarEvent, getCalendarConnectionStatus } from "./googleCalendar";
+import { 
+  createCalendarEvent, 
+  deleteCalendarEvent, 
+  getCalendarConnectionStatus,
+  getGoogleAuthUrl,
+  generateOAuthState,
+  exchangeCodeForTokens,
+  revokeGoogleAccess,
+  getRedirectUri
+} from "./googleCalendar";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 
 declare module "express-session" {
   interface SessionData {
     adminId?: string;
+    oauthState?: string;
   }
 }
 
@@ -162,7 +172,67 @@ export async function registerRoutes(
       return res.json({ ok: true, ...status });
     } catch (error) {
       console.error("Error fetching calendar connection status:", error);
-      return res.json({ ok: true, connected: false });
+      return res.json({ ok: true, connected: false, configured: false });
+    }
+  });
+
+  app.get("/api/admin/oauth/google/url", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const redirectUri = getRedirectUri(req);
+      const state = generateOAuthState();
+      
+      req.session.oauthState = state;
+      
+      const authUrl = getGoogleAuthUrl(redirectUri, state);
+      return res.json({ ok: true, authUrl });
+    } catch (error: any) {
+      console.error("Error generating OAuth URL:", error);
+      return res.status(500).json({ 
+        ok: false, 
+        message: error.message || "Erreur lors de la génération de l'URL d'autorisation" 
+      });
+    }
+  });
+
+  app.get("/oauth/google/callback", async (req: Request, res: Response) => {
+    try {
+      const { code, state, error: oauthError } = req.query;
+      
+      if (oauthError) {
+        console.error("OAuth error:", oauthError);
+        return res.redirect("/admin?oauth=error&message=" + encodeURIComponent(String(oauthError)));
+      }
+      
+      if (!code || typeof code !== "string") {
+        return res.redirect("/admin?oauth=error&message=missing_code");
+      }
+      
+      if (!state || state !== req.session.oauthState) {
+        return res.redirect("/admin?oauth=error&message=invalid_state");
+      }
+      
+      delete req.session.oauthState;
+      
+      const redirectUri = getRedirectUri(req);
+      const result = await exchangeCodeForTokens(code, redirectUri);
+      
+      return res.redirect("/admin?oauth=success&email=" + encodeURIComponent(result.email || ""));
+    } catch (error: any) {
+      console.error("OAuth callback error:", error);
+      return res.redirect("/admin?oauth=error&message=" + encodeURIComponent(error.message || "unknown_error"));
+    }
+  });
+
+  app.post("/api/admin/oauth/google/revoke", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      await revokeGoogleAccess();
+      return res.json({ ok: true });
+    } catch (error: any) {
+      console.error("Error revoking Google access:", error);
+      return res.status(500).json({ 
+        ok: false, 
+        message: error.message || "Erreur lors de la révocation" 
+      });
     }
   });
   

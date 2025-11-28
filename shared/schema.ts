@@ -35,6 +35,19 @@ export const calendarSettings = pgTable("calendar_settings", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
 });
 
+export const oauthTokens = pgTable("oauth_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  provider: text("provider").notNull().default("google"),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
+  scope: text("scope"),
+  tokenType: text("token_type").default("Bearer"),
+  email: text("email"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
+});
+
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   calendarEventId: true,
@@ -51,6 +64,12 @@ export const insertCalendarSettingsSchema = createInsertSchema(calendarSettings)
   updatedAt: true,
 });
 
+export const insertOAuthTokenSchema = createInsertSchema(oauthTokens).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Booking = typeof bookings.$inferSelect;
 
@@ -59,3 +78,6 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 
 export type InsertCalendarSettings = z.infer<typeof insertCalendarSettingsSchema>;
 export type CalendarSettings = typeof calendarSettings.$inferSelect;
+
+export type InsertOAuthToken = z.infer<typeof insertOAuthTokenSchema>;
+export type OAuthToken = typeof oauthTokens.$inferSelect;

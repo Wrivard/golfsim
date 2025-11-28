@@ -1,7 +1,8 @@
 import { 
   type Booking, type InsertBooking, bookings,
   type AdminUser, type InsertAdminUser, adminUsers,
-  type CalendarSettings, type InsertCalendarSettings, calendarSettings
+  type CalendarSettings, type InsertCalendarSettings, calendarSettings,
+  type OAuthToken, type InsertOAuthToken, oauthTokens
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
@@ -24,6 +25,11 @@ export interface IStorage {
   
   getCalendarSettings(): Promise<CalendarSettings | undefined>;
   updateCalendarSettings(settings: Partial<InsertCalendarSettings>): Promise<CalendarSettings>;
+  
+  getOAuthToken(provider: string): Promise<OAuthToken | undefined>;
+  saveOAuthToken(token: InsertOAuthToken): Promise<OAuthToken>;
+  updateOAuthToken(provider: string, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined>;
+  deleteOAuthToken(provider: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -135,6 +141,30 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  async getOAuthToken(provider: string): Promise<OAuthToken | undefined> {
+    const [token] = await db.select().from(oauthTokens).where(eq(oauthTokens.provider, provider));
+    return token;
+  }
+
+  async saveOAuthToken(token: InsertOAuthToken): Promise<OAuthToken> {
+    await db.delete(oauthTokens).where(eq(oauthTokens.provider, token.provider || "google"));
+    
+    const [newToken] = await db.insert(oauthTokens).values(token).returning();
+    return newToken;
+  }
+
+  async updateOAuthToken(provider: string, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined> {
+    const [updated] = await db.update(oauthTokens)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(oauthTokens.provider, provider))
+      .returning();
+    return updated;
+  }
+
+  async deleteOAuthToken(provider: string): Promise<void> {
+    await db.delete(oauthTokens).where(eq(oauthTokens.provider, provider));
   }
 }
 
