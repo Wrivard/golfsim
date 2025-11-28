@@ -18,10 +18,10 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Memberships", href: "/rates" },
-    { name: "Gallery", href: "/gallery" },
+    { name: "Accueil", href: "/" },
+    { name: "Le Club", href: "/about" },
+    { name: "Forfaits", href: "/rates" },
+    { name: "Galerie", href: "/gallery" },
     { name: "Contact", href: "/contact" },
   ];
 
@@ -61,7 +61,7 @@ export default function Navbar() {
         <div className="hidden md:block">
           <Link href="/contact">
             <Button className="bg-foreground text-background hover:bg-primary hover:text-white rounded-full px-6 h-10 text-xs font-bold uppercase tracking-wider transition-all">
-              Book Now
+              Réserver
             </Button>
           </Link>
         </div>
@@ -93,7 +93,7 @@ export default function Navbar() {
           ))}
           <Link href="/contact">
             <Button className="w-full mt-4 rounded-full h-12 text-sm font-bold uppercase tracking-wider bg-primary text-white" onClick={() => setIsOpen(false)}>
-              Book a Session
+              Réserver une session
             </Button>
           </Link>
         </div>

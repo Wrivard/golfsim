@@ -9,22 +9,22 @@ export default function MembershipPreview() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <div className="inline-block py-1 px-3 bg-primary/20 border border-primary text-primary rounded-full text-xs font-bold uppercase tracking-widest">
-              Exclusive Access
+              Accès Exclusif
             </div>
             <h2 className="text-5xl md:text-7xl font-heading font-bold uppercase leading-none">
-              Join The <span className="text-primary">Club</span>
+              Rejoignez Le <span className="text-primary">Club</span>
             </h2>
             <p className="text-lg text-white/70 font-sans leading-relaxed max-w-md">
-              Become a member of Golf SIM Sorel-Tracy and unlock unlimited potential. Enjoy 24/7 access, priority booking, and exclusive events.
+              Devenez membre de Golf SIM Sorel-Tracy et débloquez un potentiel illimité. Profitez d'un accès 24/7, de réservations prioritaires et d'événements exclusifs.
             </p>
             
             <ul className="space-y-4 pt-4">
               {[
-                "24/7 Facility Access",
-                "Reduced Hourly Rates",
-                "Priority Booking (14 Days)",
-                "Storage Locker Included",
-                "Exclusive Member Events"
+                "Accès au centre 24/7",
+                "Tarifs horaires réduits",
+                "Réservation prioritaire (14 jours)",
+                "Casier de rangement inclus",
+                "Événements membres exclusifs"
               ].map((item, idx) => (
                 <li key={idx} className="flex items-center gap-4 group">
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white group-hover:scale-110 transition-transform">
@@ -38,7 +38,7 @@ export default function MembershipPreview() {
             <div className="pt-4">
               <Link href="/rates">
                 <Button className="bg-white text-foreground hover:bg-primary hover:text-white rounded-full px-10 h-14 text-sm font-bold uppercase tracking-wider transition-all">
-                  View Membership Plans
+                  Voir les plans d'abonnement
                 </Button>
               </Link>
             </div>
@@ -52,22 +52,22 @@ export default function MembershipPreview() {
              <div className="bg-white/5 border border-white/10 p-10 rounded-lg backdrop-blur-sm">
                 <div className="flex justify-between items-start mb-8">
                    <div>
-                      <h3 className="text-2xl font-heading font-bold uppercase mb-1">Monthly Membership</h3>
-                      <p className="text-white/50 text-sm font-sans">No commitment required</p>
+                      <h3 className="text-2xl font-heading font-bold uppercase mb-1">Abonnement Mensuel</h3>
+                      <p className="text-white/50 text-sm font-sans">Sans engagement</p>
                    </div>
                    <div className="text-right">
                       <span className="text-5xl font-heading font-bold text-white">120$</span>
-                      <span className="block text-white/50 text-xs font-bold uppercase tracking-wider">/ Month</span>
+                      <span className="block text-white/50 text-xs font-bold uppercase tracking-wider">/ Mois</span>
                    </div>
                 </div>
                 <div className="space-y-6">
                    <div className="h-px w-full bg-white/10" />
                    <p className="text-white/80 font-sans italic text-center">
-                      "The best investment for my game. The 24/7 access fits my busy schedule perfectly."
+                      "Le meilleur investissement pour mon jeu. L'accès 24/7 s'adapte parfaitement à mon horaire chargé."
                    </p>
                    <div className="flex items-center justify-center gap-3">
                       <div className="w-8 h-8 bg-primary rounded-full" />
-                      <span className="text-sm font-bold uppercase tracking-wider">Verified Member</span>
+                      <span className="text-sm font-bold uppercase tracking-wider">Membre Vérifié</span>
                    </div>
                 </div>
              </div>

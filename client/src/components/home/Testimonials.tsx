@@ -4,20 +4,20 @@ import { Star } from "lucide-react";
 const REVIEWS = [
   {
     name: "Marc-André L.",
-    role: "Member since 2023",
-    text: "The accuracy of the Trackman simulators here is unmatched. It's completely changed my training routine during the winter months.",
+    role: "Membre depuis 2023",
+    text: "La précision des simulateurs Trackman est inégalée. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
     rating: 5
   },
   {
     name: "Sophie T.",
-    role: "Casual Player",
-    text: "Love the atmosphere! It feels like a high-end lounge where you happen to play golf. The staff is incredibly helpful.",
+    role: "Joueuse occasionnelle",
+    text: "J'adore l'ambiance ! On se sent comme dans un lounge haut de gamme où on joue au golf. Le personnel est très serviable.",
     rating: 5
   },
   {
     name: "Jean-Pierre G.",
-    role: "Member",
-    text: "Being able to access the facility 24/7 is a game changer for my schedule. The booking app is super easy to use.",
+    role: "Membre",
+    text: "Pouvoir accéder au centre 24/7 change la donne pour mon horaire. L'application de réservation est super simple à utiliser.",
     rating: 5
   }
 ];
@@ -28,10 +28,10 @@ export default function Testimonials() {
       <div className="container mx-auto px-6 md:px-12">
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-7xl font-heading font-bold text-foreground uppercase leading-none mb-4">
-            Player Stories
+            Témoignages
           </h2>
           <p className="text-lg text-foreground/70 font-sans max-w-2xl mx-auto">
-            Don't just take our word for it. Here is what our community has to say.
+            Ne nous croyez pas sur parole. Voici ce que notre communauté en dit.
           </p>
         </div>
 

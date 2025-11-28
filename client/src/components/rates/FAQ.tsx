@@ -11,53 +11,53 @@ export default function FAQ() {
       <div className="container mx-auto px-6 md:px-12 max-w-4xl">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-heading font-bold text-foreground uppercase leading-none mb-4">
-            Frequently Asked Questions
+            Questions Fréquentes
           </h2>
         </div>
 
         <Accordion type="single" collapsible className="w-full space-y-4">
           <AccordionItem value="item-1" className="border-2 border-foreground/10 px-6">
             <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              Do I need to bring my own clubs?
+              Dois-je apporter mes propres clubs ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              We recommend bringing your own clubs for the best experience. However, we do offer premium rental sets (TaylorMade & Titleist) for a small fee if you don't have yours with you.
+              Nous recommandons d'apporter vos propres clubs pour une meilleure expérience. Cependant, nous offrons des ensembles de location premium (TaylorMade & Titleist) pour un petit supplément si vous n'avez pas les vôtres.
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-2" className="border-2 border-foreground/10 px-6">
             <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              How accurate are the simulators?
+              Quelle est la précision des simulateurs ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              Extremely accurate. We use Trackman 4 technology, which is the industry standard used by PGA Tour professionals. It tracks ball speed, spin rate, launch angle, and more with Doppler radar precision.
+              Extrêmement précis. Nous utilisons la technologie Trackman 4, qui est le standard de l'industrie utilisé par les professionnels de la PGA. Il suit la vitesse de la balle, le taux de rotation, l'angle de lancement et plus encore avec une précision radar Doppler.
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-3" className="border-2 border-foreground/10 px-6">
             <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              Can I bring my own food and drinks?
+              Puis-je apporter ma nourriture et mes boissons ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              We have a fully stocked lounge with snacks and beverages available for purchase. Outside food is allowed for private event bookings only.
+              Nous avons un lounge complet avec des collations et des breuvages disponibles à l'achat. La nourriture extérieure est permise uniquement pour les réservations d'événements privés.
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-4" className="border-2 border-foreground/10 px-6">
             <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              How does the 24/7 access work?
+              Comment fonctionne l'accès 24/7 ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              Members receive a digital key card on their smartphone that grants access to the facility at any time. You can book your bay online and let yourself in, even outside of staffed hours.
+              Les membres reçoivent une clé numérique sur leur téléphone intelligent qui donne accès à l'installation à tout moment. Vous pouvez réserver votre baie en ligne et entrer par vous-même, même en dehors des heures avec personnel.
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-5" className="border-2 border-foreground/10 px-6">
             <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              How long does it take to play 18 holes?
+              Combien de temps pour jouer 18 trous ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              It typically takes about 1 hour for a single player to complete 18 holes. For a group of 4, we recommend booking 3-4 hours to play a full round comfortably.
+              Il faut généralement environ 1 heure pour qu'un seul joueur complète 18 trous. Pour un groupe de 4, nous recommandons de réserver 3-4 heures pour jouer une ronde complète confortablement.
             </AccordionContent>
           </AccordionItem>
         </Accordion>

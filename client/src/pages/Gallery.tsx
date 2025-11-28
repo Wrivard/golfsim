@@ -11,33 +11,33 @@ import img6 from "@assets/generated_images/golf_clubs_detail_shot.png";
 const images = [
   {
     src: img1,
-    alt: "Luxury Simulator Bay",
-    category: "The Bay"
+    alt: "Simulateur de luxe",
+    category: "La Baie"
   },
   {
     src: img3,
-    alt: "Golfer Swinging",
+    alt: "Golfeur en action",
     category: "Action"
   },
   {
     src: img2,
-    alt: "Lounge Area",
+    alt: "Espace Lounge",
     category: "Lounge"
   },
   {
     src: img5,
-    alt: "Simulator Screen",
-    category: "Experience"
+    alt: "Écran Simulateur",
+    category: "Expérience"
   },
   {
     src: img4,
-    alt: "Tech Detail",
+    alt: "Détail Tech",
     category: "Tech"
   },
   {
     src: img6,
-    alt: "Premium Clubs",
-    category: "Equipment"
+    alt: "Clubs Premium",
+    category: "Équipement"
   }
 ];
 
@@ -46,9 +46,9 @@ export default function Gallery() {
     <Layout>
        <div className="bg-background pt-32 pb-12 border-b border-foreground/5">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 text-foreground uppercase">Gallery</h1>
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 text-foreground uppercase">Galerie</h1>
           <p className="text-lg text-foreground/70 max-w-2xl mx-auto font-sans">
-            Immerse yourself in the Golf SIM Sorel-Tracy experience.
+            Plongez dans l'expérience Golf SIM Sorel-Tracy.
           </p>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function Gallery() {
                     {img.category}
                   </span>
                   <span className="text-white/80 text-xs uppercase tracking-widest border-t border-white/30 pt-2 inline-block">
-                    View Full Size
+                    Voir en grand
                   </span>
                 </div>
               </div>

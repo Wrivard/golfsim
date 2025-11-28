@@ -7,6 +7,7 @@ import BrandMarquee from "@/components/home/BrandMarquee";
 import Testimonials from "@/components/home/Testimonials";
 import MembershipPreview from "@/components/home/MembershipPreview";
 import HowItWorks from "@/components/home/HowItWorks";
+import Events from "@/components/home/Events";
 
 // Images
 import heroImage from "@assets/generated_images/golf_balls_on_turf_in_simulator.png";
@@ -35,25 +36,25 @@ export default function Home() {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-6xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
-                BRING THE <br />
-                COURSE <br />
-                INDOORS WITH <br />
-                EVERY SWING
+                AMENEZ LE <br />
+                PARCOURS <br />
+                À L'INTÉRIEUR <br />
+                À CHAQUE ÉLAN
               </h1>
               
               <p className="text-lg md:text-xl text-foreground font-sans max-w-md leading-relaxed mb-8">
-                High-end golf simulators, real-course data, and a lounge-style experience.
+                Simulateurs de golf haut de gamme, données réelles et expérience lounge exclusive.
               </p>
 
               <div className="flex flex-wrap gap-4">
                 <Link href="/contact">
                   <Button className="bg-primary text-white hover:bg-primary/90 rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
-                    Book a Session
+                    Réserver une session
                   </Button>
                 </Link>
                 <Link href="/rates">
                   <Button variant="outline" className="bg-transparent text-foreground border-foreground hover:bg-foreground hover:text-background rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
-                    View Memberships
+                    Voir les abonnements
                   </Button>
                 </Link>
               </div>
@@ -72,7 +73,7 @@ export default function Home() {
               <div className="w-full h-full rounded-lg overflow-hidden relative z-10 shadow-2xl">
                 <img 
                   src={heroImage} 
-                  alt="Golf balls on turf in simulator" 
+                  alt="Balles de golf sur gazon synthétique" 
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -83,10 +84,10 @@ export default function Home() {
                   24/7
                 </h2>
                 <h3 className="text-2xl font-heading font-bold uppercase tracking-wider mb-4">
-                  Access
+                  Accès
                 </h3>
                 <p className="text-sm font-sans text-background/80 leading-relaxed">
-                  Play world-famous courses any time.
+                  Jouez sur des parcours de renommée mondiale à tout moment.
                 </p>
               </div>
 
@@ -117,19 +118,19 @@ export default function Home() {
              <div className="relative h-[500px] rounded-lg overflow-hidden">
                 <img 
                   src={techImage} 
-                  alt="Golf ball close up" 
+                  alt="Gros plan balle de golf" 
                   className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
                 />
              </div>
              <div className="space-y-8">
                 <h2 className="text-5xl md:text-7xl font-heading uppercase font-bold leading-none">
-                  Tour-Level Technology
+                  Technologie Pro
                 </h2>
                 <p className="text-lg font-sans leading-relaxed max-w-md">
-                  Experience the precision of Trackman 4 technology. Every drive, chip, and putt is captured with hyper-realistic accuracy, allowing you to analyze your game like a pro.
+                  Découvrez la précision de la technologie Trackman 4. Chaque drive, approche et putt est capturé avec une précision hyper-réaliste, vous permettant d'analyser votre jeu comme un pro.
                 </p>
                 <Button variant="link" className="text-primary p-0 h-auto font-bold uppercase tracking-wider text-sm hover:no-underline hover:opacity-70">
-                  Learn More About Our Tech
+                  En savoir plus sur notre tech
                 </Button>
              </div>
            </div>
@@ -138,6 +139,9 @@ export default function Home() {
 
       {/* Membership Preview */}
       <MembershipPreview />
+      
+      {/* Events Section */}
+      <Events />
 
       {/* Testimonials */}
       <Testimonials />

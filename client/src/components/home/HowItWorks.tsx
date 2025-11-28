@@ -3,18 +3,18 @@ import { Smartphone, Key, Trophy } from "lucide-react";
 const STEPS = [
   {
     icon: Smartphone,
-    title: "Book",
-    description: "Use our custom app to reserve your bay in seconds. Real-time availability at your fingertips."
+    title: "Réservez",
+    description: "Utilisez notre application pour réserver votre baie en quelques secondes. Disponibilité en temps réel au bout des doigts."
   },
   {
     icon: Key,
-    title: "Unlock",
-    description: "Access the facility 24/7 with your digital key. Your secure entry code is sent directly to your phone."
+    title: "Déverrouillez",
+    description: "Accédez au centre 24/7 avec votre clé numérique. Votre code d'entrée sécurisé est envoyé directement sur votre téléphone."
   },
   {
     icon: Trophy,
-    title: "Play",
-    description: "Load up your favorite course on Trackman and start swinging. Analyze your data instantly."
+    title: "Jouez",
+    description: "Lancez votre parcours préféré sur Trackman et commencez à jouer. Analysez vos données instantanément."
   }
 ];
 
@@ -24,10 +24,10 @@ export default function HowItWorks() {
       <div className="container mx-auto px-6 md:px-12">
         <div className="text-center mb-20">
           <h2 className="text-5xl md:text-7xl font-heading font-bold text-foreground uppercase leading-none mb-6">
-            How It Works
+            Comment ça marche
           </h2>
           <p className="text-lg text-foreground/70 font-sans max-w-2xl mx-auto">
-            Seamless, autonomous, and designed for the modern golfer.
+            Fluide, autonome et conçu pour le golfeur moderne.
           </p>
         </div>
 

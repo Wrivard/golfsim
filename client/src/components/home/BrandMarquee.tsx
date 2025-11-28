@@ -15,7 +15,7 @@ export default function BrandMarquee() {
   return (
     <div className="w-full bg-foreground text-background py-12 overflow-hidden border-y border-white/10">
       <div className="container mx-auto px-4 mb-8 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">Powered By Industry Leaders</p>
+        <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">Propulsé par les leaders de l'industrie</p>
       </div>
       
       <div className="relative flex overflow-x-hidden group">

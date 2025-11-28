@@ -12,7 +12,7 @@ export default function Footer() {
               Golf SIM <span className="text-primary block text-sm tracking-[0.2em] mt-1">Sorel-Tracy</span>
             </h3>
             <p className="text-white/60 leading-relaxed font-sans max-w-xs">
-              The ultimate indoor golf experience. High-end simulators, lounge atmosphere, and 24/7 access for members.
+              L'expérience de golf intérieur ultime. Simulateurs haut de gamme, ambiance lounge et accès 24/7 pour les membres.
             </p>
           </div>
 
@@ -20,10 +20,10 @@ export default function Footer() {
           <div className="space-y-6">
             <h4 className="font-heading font-bold text-xl uppercase tracking-wider text-white">Navigation</h4>
             <ul className="space-y-3">
-              <li><Link href="/"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Home</a></Link></li>
-              <li><Link href="/about"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">The Club</a></Link></li>
-              <li><Link href="/rates"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Rates & Memberships</a></Link></li>
-              <li><Link href="/gallery"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Gallery</a></Link></li>
+              <li><Link href="/"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Accueil</a></Link></li>
+              <li><Link href="/about"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Le Club</a></Link></li>
+              <li><Link href="/rates"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Tarifs & Forfaits</a></Link></li>
+              <li><Link href="/gallery"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Galerie</a></Link></li>
             </ul>
           </div>
 
@@ -54,7 +54,7 @@ export default function Footer() {
 
           {/* Social & Hours */}
           <div className="space-y-6">
-            <h4 className="font-heading font-bold text-xl uppercase tracking-wider text-white">Follow Us</h4>
+            <h4 className="font-heading font-bold text-xl uppercase tracking-wider text-white">Suivez-nous</h4>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">
                 <Facebook className="w-5 h-5" />
@@ -64,17 +64,17 @@ export default function Footer() {
               </a>
             </div>
             <div className="pt-6 border-t border-white/10">
-              <p className="text-sm font-bold text-primary uppercase tracking-wider mb-1">Members 24/7</p>
-              <p className="text-sm text-white/60 font-sans">Visitors: 10am - 10pm</p>
+              <p className="text-sm font-bold text-primary uppercase tracking-wider mb-1">Membres 24/7</p>
+              <p className="text-sm text-white/60 font-sans">Visiteurs : 10h - 22h</p>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/40 font-sans uppercase tracking-wider">
-          <p>&copy; {new Date().getFullYear()} Golf SIM Sorel-Tracy. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Golf SIM Sorel-Tracy. Tous droits réservés.</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a>
+            <a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a>
           </div>
         </div>
       </div>
