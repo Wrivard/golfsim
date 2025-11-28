@@ -172,14 +172,14 @@ export default function BookingForm() {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Sélectionner une date</FormLabel>
-                        <div className="border rounded-md p-4 bg-background/50">
+                        <div className="border rounded-md p-4 bg-background/50 w-fit mx-auto">
                             <Calendar
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                             initialFocus
-                            className="mx-auto pointer-events-auto"
+                            className="pointer-events-auto"
                             classNames={{
                                 head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider",
                                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
