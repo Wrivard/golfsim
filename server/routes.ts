@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema } from "@shared/schema";
+import { insertBookingSchema, type Booking } from "@shared/schema";
 import { createCalendarEvent, deleteCalendarEvent } from "./googleCalendar";
 import { z } from "zod";
 
@@ -49,28 +49,7 @@ export async function registerRoutes(
     try {
       const validatedData = bookingRequestSchema.parse(req.body);
       
-      const existingBookings = await storage.getBookingsByDateAndBay(
-        validatedData.date,
-        validatedData.bayType
-      );
-
-      const hasConflict = existingBookings.some((booking) =>
-        checkTimeOverlap(
-          booking.time,
-          booking.duration,
-          validatedData.time,
-          validatedData.duration
-        )
-      );
-
-      if (hasConflict) {
-        return res.status(409).json({
-          ok: false,
-          message: "Ce créneau n'est pas disponible. Veuillez choisir un autre horaire.",
-        });
-      }
-
-      const booking = await storage.createBooking({
+      const bookingData = {
         name: validatedData.name,
         email: validatedData.email,
         phone: validatedData.phone || null,
@@ -80,24 +59,59 @@ export async function registerRoutes(
         bayType: validatedData.bayType,
         players: validatedData.players,
         notes: validatedData.notes || null,
-      });
+      };
+
+      const booking = await storage.createBookingWithConflictCheck(
+        bookingData,
+        (existingBookings: Booking[]) => {
+          return existingBookings.some((existing) =>
+            checkTimeOverlap(
+              existing.time,
+              existing.duration,
+              validatedData.time,
+              validatedData.duration
+            )
+          );
+        }
+      );
+
+      if (!booking) {
+        return res.status(409).json({
+          ok: false,
+          message: "Ce créneau n'est pas disponible. Veuillez choisir un autre horaire.",
+        });
+      }
 
       let calendarEventId: string | null = null;
       try {
         calendarEventId = await createCalendarEvent({
           name: validatedData.name,
           email: validatedData.email,
-          phone: validatedData.phone,
+          phone: validatedData.phone || null,
           date: validatedData.date,
           time: validatedData.time,
           duration: validatedData.duration,
           bayType: validatedData.bayType,
           players: validatedData.players,
-          notes: validatedData.notes,
+          notes: validatedData.notes || null,
         });
 
         if (calendarEventId) {
-          await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+          try {
+            await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+          } catch (dbUpdateError) {
+            console.error("Failed to update calendar event ID in DB:", dbUpdateError);
+            try {
+              await deleteCalendarEvent(calendarEventId);
+            } catch (calendarDeleteError) {
+              console.error("Failed to delete orphaned calendar event:", calendarDeleteError);
+            }
+            await storage.deleteBooking(booking.id);
+            return res.status(500).json({
+              ok: false,
+              message: "Erreur lors de la sauvegarde. Veuillez réessayer.",
+            });
+          }
         }
       } catch (calendarError) {
         console.error("Failed to create calendar event:", calendarError);

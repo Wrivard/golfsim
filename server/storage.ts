@@ -1,6 +1,6 @@
 import { type Booking, type InsertBooking, bookings } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lt } from "drizzle-orm";
+import { eq, and, gte, lt, sql } from "drizzle-orm";
 
 export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -9,6 +9,10 @@ export interface IStorage {
   getBookingsByDateAndBay(date: Date, bayType: string): Promise<Booking[]>;
   updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void>;
   deleteBooking(id: string): Promise<void>;
+  createBookingWithConflictCheck(
+    booking: InsertBooking,
+    checkConflict: (existingBookings: Booking[]) => boolean
+  ): Promise<Booking | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -48,6 +52,32 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: string): Promise<void> {
     await db.delete(bookings).where(eq(bookings.id, id));
+  }
+
+  async createBookingWithConflictCheck(
+    insertBooking: InsertBooking,
+    checkConflict: (existingBookings: Booking[]) => boolean
+  ): Promise<Booking | null> {
+    const startOfDay = new Date(insertBooking.date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(insertBooking.date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingBookings = await db.select().from(bookings).where(
+      and(
+        gte(bookings.date, startOfDay),
+        lt(bookings.date, endOfDay),
+        eq(bookings.bayType, insertBooking.bayType)
+      )
+    );
+
+    if (checkConflict(existingBookings)) {
+      return null;
+    }
+
+    const [booking] = await db.insert(bookings).values(insertBooking).returning();
+    return booking;
   }
 }
 

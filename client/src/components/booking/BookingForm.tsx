@@ -19,16 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Clock, Users, CheckCircle2, ChevronRight, ChevronLeft, Info } from "lucide-react";
+import { CalendarIcon, Clock, Users, CheckCircle2, ChevronRight, ChevronLeft, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, addDays, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useMutation } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -61,6 +61,28 @@ const TIME_SLOTS = [
   "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"
 ];
 
+async function createBooking(data: z.infer<typeof formSchema>) {
+  const response = await fetch("/api/book", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...data,
+      date: data.date.toISOString(),
+      players: parseInt(data.players, 10),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.message || "Erreur lors de la réservation");
+  }
+
+  return result;
+}
+
 export default function BookingForm() {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -79,7 +101,24 @@ export default function BookingForm() {
     },
   });
 
-  // Watch values for summary
+  const bookingMutation = useMutation({
+    mutationFn: createBooking,
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast({
+        title: "Réservation confirmée",
+        description: "Votre réservation a été enregistrée et ajoutée au calendrier.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const watchDate = form.watch("date");
   const watchTime = form.watch("time");
   const watchBayType = form.watch("bayType");
@@ -87,15 +126,7 @@ export default function BookingForm() {
   const watchPlayers = form.watch("players");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Booking Data:", values);
-    
-    setTimeout(() => {
-      setIsSubmitted(true);
-      toast({
-        title: "Réservation reçue",
-        description: "Nous avons bien reçu votre demande. Un courriel de confirmation suivra sous peu.",
-      });
-    }, 1000);
+    bookingMutation.mutate(values);
   }
 
   const nextStep = async () => {
@@ -117,9 +148,9 @@ export default function BookingForm() {
         <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
           <CheckCircle2 className="w-10 h-10 text-white" />
         </div>
-        <h3 className="text-3xl font-heading font-bold uppercase mb-4 text-foreground">Demande Envoyée !</h3>
+        <h3 className="text-3xl font-heading font-bold uppercase mb-4 text-foreground">Réservation Confirmée !</h3>
         <p className="text-foreground/70 font-sans mb-8 text-lg max-w-md mx-auto">
-          Merci de votre intérêt pour Golf SIM Sorel-Tracy. Notre équipe validera votre réservation et vous contactera très bientôt.
+          Votre réservation a été enregistrée avec succès. Vous recevrez une confirmation par courriel sous peu.
         </p>
         <div className="bg-background/50 p-6 rounded-lg mb-8 text-left max-w-sm mx-auto border border-foreground/5">
              <h4 className="font-bold uppercase text-xs tracking-wider text-foreground/60 mb-4 border-b border-foreground/10 pb-2">Récapitulatif</h4>
@@ -147,12 +178,10 @@ export default function BookingForm() {
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
-      {/* Main Form Column */}
       <div className="md:col-span-2">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 bg-white/50 backdrop-blur-sm p-6 md:p-8 rounded-xl border border-foreground/5 shadow-xl">
             
-            {/* Progress Indicator */}
             <div className="flex items-center gap-2 mb-6">
                 <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 1 ? "bg-primary" : "bg-foreground/10")} />
                 <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 2 ? "bg-primary" : "bg-foreground/10")} />
@@ -215,6 +244,7 @@ export default function BookingForm() {
                                                     field.value === time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
                                                 )}
                                                 onClick={() => field.onChange(time)}
+                                                data-testid={`timeslot-${time}`}
                                             >
                                                 {time}
                                             </Button>
@@ -237,7 +267,7 @@ export default function BookingForm() {
                             <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12">
+                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
                                     <SelectValue placeholder="Bloc de jeu" />
                                 </SelectTrigger>
                                 </FormControl>
@@ -259,7 +289,7 @@ export default function BookingForm() {
                             <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Type de baie</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12">
+                                <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-baytype">
                                     <SelectValue placeholder="Choisir" />
                                 </SelectTrigger>
                                 </FormControl>
@@ -274,7 +304,7 @@ export default function BookingForm() {
                     />
                 </div>
 
-                <Button type="button" onClick={nextStep} className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4">
+                <Button type="button" onClick={nextStep} className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4" data-testid="button-next">
                     Suivant <ChevronRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
@@ -295,7 +325,7 @@ export default function BookingForm() {
                       <FormItem>
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Nom complet <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
-                          <Input placeholder="Jean Dupont" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" />
+                          <Input placeholder="Jean Dupont" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="input-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -309,7 +339,7 @@ export default function BookingForm() {
                       <FormItem>
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Courriel <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
-                          <Input placeholder="jean@exemple.com" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" />
+                          <Input placeholder="jean@exemple.com" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="input-email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -325,7 +355,7 @@ export default function BookingForm() {
                       <FormItem>
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Téléphone</FormLabel>
                         <FormControl>
-                          <Input placeholder="(450) 123-4567" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" />
+                          <Input placeholder="(450) 123-4567" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -340,7 +370,7 @@ export default function BookingForm() {
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Joueurs <span className="text-red-500">*</span></FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12">
+                            <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-players">
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
@@ -368,6 +398,7 @@ export default function BookingForm() {
                           placeholder="Demandes spéciales, gaucher/droitier, etc." 
                           className="bg-background/80 border-foreground/20 focus:border-primary min-h-[100px]" 
                           {...field} 
+                          data-testid="input-notes"
                         />
                       </FormControl>
                       <FormMessage />
@@ -376,11 +407,23 @@ export default function BookingForm() {
                 />
 
                 <div className="flex gap-4 pt-4">
-                    <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-full font-bold uppercase tracking-wider text-sm border-foreground/20">
+                    <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-full font-bold uppercase tracking-wider text-sm border-foreground/20" data-testid="button-back">
                         <ChevronLeft className="mr-2 w-4 h-4" /> Retour
                     </Button>
-                    <Button type="submit" className="flex-[2] h-14 bg-primary text-white hover:bg-primary/90 rounded-full font-bold uppercase tracking-wider text-sm shadow-lg transition-all hover:scale-[1.01]">
-                        Confirmer la réservation
+                    <Button 
+                      type="submit" 
+                      className="flex-[2] h-14 bg-primary text-white hover:bg-primary/90 rounded-full font-bold uppercase tracking-wider text-sm shadow-lg transition-all hover:scale-[1.01]"
+                      disabled={bookingMutation.isPending}
+                      data-testid="button-submit"
+                    >
+                        {bookingMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Réservation en cours...
+                          </>
+                        ) : (
+                          "Confirmer la réservation"
+                        )}
                     </Button>
                 </div>
               </div>
@@ -389,7 +432,6 @@ export default function BookingForm() {
         </Form>
       </div>
 
-      {/* Summary Sidebar */}
       <div className="md:col-span-1">
          <div className="sticky top-32 space-y-6">
             <Card className="bg-[#EAE6D9] border-none shadow-lg overflow-hidden">

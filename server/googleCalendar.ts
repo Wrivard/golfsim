@@ -98,7 +98,7 @@ ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     requestBody: event,
   });
 
-  return response.data.id;
+  return response.data.id || null;
 }
 
 export async function deleteCalendarEvent(eventId: string) {
