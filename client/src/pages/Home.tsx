@@ -10,6 +10,7 @@ import MembershipPreview from "@/components/home/MembershipPreview";
 import HowItWorks from "@/components/home/HowItWorks";
 import Events from "@/components/home/Events";
 import ScrollGolfPath from "@/components/home/ScrollGolfPath";
+import BarLounge from "@/components/home/BarLounge";
 
 // Images
 // Fix imports to use local assets instead of generated_images alias directly if inconsistent
@@ -156,6 +157,11 @@ export default function Home() {
            </div>
         </div>
       </section>
+
+      {/* Bar & Lounge Section */}
+      <div className="relative z-10">
+        <BarLounge />
+      </div>
 
       {/* Membership Preview - Overlaps next section */}
       <div className="relative z-20">
