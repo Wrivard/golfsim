@@ -557,7 +557,7 @@ export default function BookingForm() {
 
             <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed">
                 <p className="mb-2"><span className="font-bold text-foreground">Heures d'ouverture:</span> 8h à 22h</p>
-                <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 5 baies disponibles</p>
+                <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 4 baies disponibles</p>
                 <p className="mb-2"><span className="font-bold text-foreground">Politique :</span> Annulation gratuite jusqu'à 24h avant.</p>
                 <p>Paiement requis sur place avant le début de la session.</p>
             </div>

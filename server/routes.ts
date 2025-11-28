@@ -250,7 +250,7 @@ export async function registerRoutes(
     }
   });
 
-  const MAX_BAYS = 5;
+  const MAX_BAYS = 4;
   const OPENING_HOUR = 8;
   const CLOSING_HOUR = 22;
   const MIN_DURATION_HOURS = 4;
