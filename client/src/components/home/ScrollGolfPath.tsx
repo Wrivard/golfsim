@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 export default function ScrollGolfPath() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const ballRef = useRef<HTMLDivElement>(null);
+  const ballRef = useRef<SVGGElement>(null); // Changed to SVG element
   const pathRef = useRef<SVGPathElement>(null);
   const maskPathRef = useRef<SVGPathElement>(null);
 
@@ -22,10 +22,9 @@ export default function ScrollGolfPath() {
 
     // Initial states
     gsap.set(ball, { 
-      opacity: 0, 
+      autoAlpha: 0, // Use autoAlpha instead of opacity for better performance
       scale: 0,
-      xPercent: -50, 
-      yPercent: -50 
+      // No need for xPercent/yPercent if we use alignOrigin in motionPath
     });
     
     // Prepare the mask path for "drawing" animation
@@ -38,21 +37,21 @@ export default function ScrollGolfPath() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: container,
-        start: "top bottom", // Start when container hits bottom of viewport
-        end: "bottom bottom", // End when container hits bottom of viewport
+        start: "top center", // Start earlier so user sees it
+        end: "bottom bottom", // End when container hits bottom
         scrub: 1, // Smooth scrubbing
       }
     });
 
     // 1. Fade in ball at start
-    tl.to(ball, { opacity: 1, scale: 1, duration: 0.05 }, 0);
+    tl.to(ball, { autoAlpha: 1, scale: 1, duration: 0.05 }, 0);
 
     // 2. Animate Ball along path
     tl.to(ball, {
       motionPath: {
         path: path, // Use the actual path for alignment
         align: path,
-        alignOrigin: [0.5, 0.5],
+        alignOrigin: [0.5, 0.5], // Center ball on path
         autoRotate: false, 
       },
       rotation: 720, // Spin the ball
@@ -70,8 +69,8 @@ export default function ScrollGolfPath() {
     // 4. Drop into hole at end (last 5%)
     // Scale down and move slightly "into" the hole visually if needed
     tl.to(ball, {
-      scale: 0.2, // Don't disappear completely, just get small like it's deep
-      opacity: 0,
+      scale: 0.5, 
+      autoAlpha: 0,
       duration: 0.05,
       ease: "power1.in"
     }, 0.95);
@@ -89,16 +88,21 @@ export default function ScrollGolfPath() {
                 d="M 90% 5% Q 70% 25%, 90% 50% T 90% 95%"
                 fill="none"
                 stroke="white"
-                strokeWidth="5" // Slightly wider than the dotted line to ensure full coverage
+                strokeWidth="6" // Wider than the dotted line
                 strokeLinecap="round"
               />
             </mask>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
-              <stop offset="20%" stopColor="rgba(255, 255, 255, 0.5)" />
-              <stop offset="80%" stopColor="rgba(255, 255, 255, 0.5)" />
-              <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.2)" />
+              <stop offset="50%" stopColor="rgba(255, 255, 255, 0.8)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
             </linearGradient>
+            
+            {/* Ball Gradient */}
+            <radialGradient id="ballGradient" cx="30%" cy="30%" r="70%">
+               <stop offset="0%" stopColor="#ffffff" />
+               <stop offset="100%" stopColor="#d1d5db" />
+            </radialGradient>
           </defs>
           
           {/* The Hole - Layered behind */}
@@ -114,48 +118,29 @@ export default function ScrollGolfPath() {
             fill="none"
             stroke="url(#lineGradient)"
             strokeWidth="3"
-            strokeDasharray="6 10" // Dotted pattern
+            strokeDasharray="8 8" // Dotted pattern
             strokeLinecap="round"
             mask="url(#pathMask)" // Apply the mask
           />
-       </svg>
-
-       {/* Flag - Absolutely Positioned HTML Element for easier styling/geometry */}
-       <div 
-          className="absolute"
-          style={{ 
-            left: "90%", 
-            top: "95%", 
-            transform: "translate(-2px, -100%)" // Anchor at bottom
-          }}
-       >
-          {/* Pole */}
-          <div className="w-1 h-24 bg-white mx-auto shadow-sm origin-bottom"></div>
           
-          {/* Flag Triangle */}
-          <div 
-            className="absolute top-0 left-1/2 w-12 h-8 bg-[#2B5734] shadow-lg origin-left"
-            style={{ 
-              clipPath: "polygon(0 0, 100% 50%, 0 100%)"
-            }}
-          >
-            {/* Inner detail */}
-            <div className="absolute inset-0 bg-black/10" style={{ clipPath: "polygon(0 0, 30% 50%, 0 100%)" }}></div>
-          </div>
-       </div>
-       
-       {/* The Ball */}
-       <div 
-         ref={ballRef}
-         className="absolute w-8 h-8 z-50 flex items-center justify-center opacity-0"
-       >
-         <div 
-           className="w-full h-full bg-white rounded-full shadow-xl border border-gray-200 relative overflow-hidden"
-         >
-            <div className="absolute inset-0 bg-[radial-gradient(#ccc_1px,transparent_1px)] [background-size:3px_3px] opacity-30" />
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-300 opacity-80" />
-         </div>
-       </div>
+          {/* Flag - SVG Implementation for perfect positioning */}
+          <g transform="translate(-2, -2)"> {/* Small tweak to align with hole visually */}
+             <line x1="90%" y1="95%" x2="90%" y2="85%" stroke="white" strokeWidth="3" />
+             <path d="M 90% 85% L 93% 87% L 90% 89% Z" fill="#2B5734" stroke="#1B1A18" strokeWidth="0.5" />
+          </g>
+
+          {/* The Ball - Now purely SVG for perfect coordinate sync */}
+          <g ref={ballRef} style={{ opacity: 0 }}> {/* Initial opacity 0 handled by CSS/JS */}
+             <circle r="12" fill="url(#ballGradient)" stroke="#e5e7eb" strokeWidth="1" />
+             {/* Simple dimples simulation */}
+             <circle r="1" cx="-4" cy="-4" fill="#9ca3af" opacity="0.3" />
+             <circle r="1" cx="4" cy="-4" fill="#9ca3af" opacity="0.3" />
+             <circle r="1" cx="-4" cy="4" fill="#9ca3af" opacity="0.3" />
+             <circle r="1" cx="4" cy="4" fill="#9ca3af" opacity="0.3" />
+             <circle r="1" cx="0" cy="0" fill="#9ca3af" opacity="0.3" />
+          </g>
+
+       </svg>
     </div>
   );
 }
