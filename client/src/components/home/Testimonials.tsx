@@ -6,19 +6,22 @@ const REVIEWS = [
     name: "Marc-André L.",
     role: "Membre depuis 2023",
     text: "La précision des simulateurs Trackman est inégalée. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
-    rating: 5
+    rating: 5,
+    theme: "light"
   },
   {
-    name: "Sophie T.",
-    role: "Joueuse occasionnelle",
-    text: "J'adore l'ambiance ! On se sent comme dans un lounge haut de gamme où on joue au golf. Le personnel est très serviable.",
-    rating: 5
+    name: "Équipe Tech Sorel",
+    role: "Soirée Corporative",
+    text: "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience.",
+    rating: 5,
+    theme: "dark"
   },
   {
     name: "Jean-Pierre G.",
     role: "Membre",
     text: "Pouvoir accéder au centre 24/7 change la donne pour mon horaire. L'application de réservation est super simple à utiliser.",
-    rating: 5
+    rating: 5,
+    theme: "light"
   }
 ];
 
@@ -37,19 +40,41 @@ export default function Testimonials() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {REVIEWS.map((review, idx) => (
-            <Card key={idx} className="bg-background border-none rounded-none shadow-lg hover:shadow-xl transition-all duration-300">
+            <Card 
+              key={idx} 
+              className={`border-none rounded-none shadow-lg hover:shadow-xl transition-all duration-300 ${
+                review.theme === 'dark' 
+                  ? "bg-[#1B1A18] text-[#F7F3E8]" 
+                  : "bg-background text-foreground"
+              }`}
+            >
               <CardContent className="p-10 flex flex-col h-full">
                 <div className="flex gap-1 mb-6">
                   {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                    <Star 
+                      key={i} 
+                      className={`w-5 h-5 ${
+                        review.theme === 'dark' ? "fill-[#2B5734] text-[#2B5734]" : "fill-primary text-primary"
+                      }`} 
+                    />
                   ))}
                 </div>
-                <p className="text-lg font-sans leading-relaxed italic mb-8 flex-grow text-foreground/80">
+                <p className={`text-lg font-sans leading-relaxed italic mb-8 flex-grow ${
+                  review.theme === 'dark' ? "text-[#F7F3E8]/90" : "text-foreground/80"
+                }`}>
                   "{review.text}"
                 </p>
                 <div className="mt-auto">
-                  <p className="font-heading font-bold text-xl uppercase text-foreground">{review.name}</p>
-                  <p className="text-sm font-bold uppercase tracking-wider text-primary">{review.role}</p>
+                  <p className={`font-heading font-bold text-xl uppercase ${
+                    review.theme === 'dark' ? "text-[#F7F3E8]" : "text-foreground"
+                  }`}>
+                    {review.name}
+                  </p>
+                  <p className={`text-sm font-bold uppercase tracking-wider ${
+                    review.theme === 'dark' ? "text-[#2B5734]" : "text-primary"
+                  }`}>
+                    {review.role}
+                  </p>
                 </div>
               </CardContent>
             </Card>
