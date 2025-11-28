@@ -74,7 +74,7 @@ export default function Home() {
               className="relative w-full max-w-md md:max-w-full aspect-[3/4] md:aspect-auto md:h-full"
             >
               {/* Main Image Card */}
-              <div className="w-full h-full rounded-lg overflow-hidden relative z-10 shadow-2xl">
+              <div className="w-full h-full rounded-lg overflow-hidden relative z-10">
                 <img 
                   src={heroImage} 
                   alt="Balles de golf sur gazon synthétique" 
