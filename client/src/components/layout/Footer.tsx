@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react";
+import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
 
 export default function Footer() {
   return (
@@ -8,9 +9,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
           {/* Brand */}
           <div className="space-y-6">
-            <h3 className="font-heading text-4xl font-bold uppercase leading-none tracking-tighter">
-              Golf SIM <span className="text-primary block text-sm tracking-[0.2em] mt-1">Sorel-Tracy</span>
-            </h3>
+            <div className="w-40 filter invert brightness-0 saturate-100 opacity-90">
+              <img 
+                src={logo} 
+                alt="Golf SIM Sorel-Tracy" 
+                className="w-full h-auto object-contain"
+              />
+            </div>
             <p className="text-white/60 leading-relaxed font-sans max-w-xs">
               L'expérience de golf intérieur ultime. Simulateurs haut de gamme, ambiance lounge et accès 24/7 pour les membres.
             </p>

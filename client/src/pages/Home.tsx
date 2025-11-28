@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import BrandMarquee from "@/components/home/BrandMarquee";
@@ -106,44 +106,66 @@ export default function Home() {
       </section>
 
       {/* Brand Marquee */}
-      <BrandMarquee />
+      <div className="relative z-20">
+         <BrandMarquee />
+      </div>
 
-      {/* How It Works */}
-      <HowItWorks />
+      {/* How It Works - Moved Up for Better Flow */}
+      <div className="relative">
+         {/* Visual Connector Line */}
+         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-20 bg-foreground/10 z-10 hidden md:block" />
+         <HowItWorks />
+      </div>
 
-      {/* Tour Level Tech Section */}
-      <section className="py-24 bg-background text-foreground">
-        <div className="container mx-auto px-6 md:px-12">
+      {/* Tour Level Tech Section - Integrated with pattern */}
+      <section className="py-24 bg-background text-foreground relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(#000 1px, transparent 1px)", backgroundSize: "30px 30px" }}></div>
+        
+        <div className="container mx-auto px-6 md:px-12 relative z-10">
            <div className="grid md:grid-cols-2 gap-16 items-center">
-             <div className="relative h-[500px] rounded-lg overflow-hidden">
+             <div className="relative h-[500px] rounded-lg overflow-hidden order-2 md:order-1 shadow-2xl group">
+                <div className="absolute inset-0 bg-primary/10 z-10 group-hover:opacity-0 transition-opacity duration-500" />
                 <img 
                   src={techImage} 
                   alt="Gros plan balle de golf" 
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105"
                 />
+                {/* Tech Overlay Tag */}
+                <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur px-4 py-2 rounded text-xs font-bold uppercase tracking-widest z-20">
+                   Trackman 4
+                </div>
              </div>
-             <div className="space-y-8">
+             <div className="space-y-8 order-1 md:order-2">
+                <div className="inline-block py-1 px-3 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest">
+                  Performance
+                </div>
                 <h2 className="text-5xl md:text-7xl font-heading uppercase font-bold leading-none">
-                  Technologie Pro
+                  Technologie <br/> <span className="text-primary">Pro</span>
                 </h2>
-                <p className="text-lg font-sans leading-relaxed max-w-md">
+                <p className="text-lg font-sans leading-relaxed max-w-md text-muted-foreground">
                   Découvrez la précision de la technologie Trackman 4. Chaque drive, approche et putt est capturé avec une précision hyper-réaliste, vous permettant d'analyser votre jeu comme un pro.
                 </p>
-                <Button variant="link" className="text-primary p-0 h-auto font-bold uppercase tracking-wider text-sm hover:no-underline hover:opacity-70">
-                  En savoir plus sur notre tech
-                </Button>
+                
+                <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-sm cursor-pointer group">
+                   <span>En savoir plus sur notre tech</span>
+                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </div>
              </div>
            </div>
         </div>
       </section>
 
-      {/* Membership Preview */}
+      {/* Membership Preview - Dark Section for Contrast */}
       <MembershipPreview />
       
-      {/* Events Section */}
-      <Events />
+      {/* Events Section - Light Section */}
+      <div className="relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-foreground/10 z-10 hidden md:block" />
+        <Events />
+      </div>
 
-      {/* Testimonials */}
+      {/* Testimonials - Beige Section */}
       <Testimonials />
     </Layout>
   );
