@@ -172,7 +172,7 @@ export default function BookingForm() {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Sélectionner une date</FormLabel>
-                        <div className="border rounded-md p-4 bg-background/50 w-fit mx-auto">
+                        <div className="border rounded-md p-4 bg-background/50 w-full flex justify-center">
                             <Calendar
                             mode="single"
                             selected={field.value}
