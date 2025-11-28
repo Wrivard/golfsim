@@ -23,14 +23,9 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  --color-chart-1: hsl(var(--chart-1));
-  --color-chart-2: hsl(var(--chart-2));
-  --color-chart-3: hsl(var(--chart-3));
-  --color-chart-4: hsl(var(--chart-4));
-  --color-chart-5: hsl(var(--chart-5));
-
+  
   --font-sans: "DM Sans", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-heading: "Oswald", sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -38,33 +33,34 @@
 }
 
 :root {
-  /* Light Mode - Elegant Golf Club Theme */
-  /* Background: Soft Cream / Off-White */
-  --background: 40 20% 98%; 
-  /* Foreground: Very Dark Green/Black */
-  --foreground: 145 60% 10%;
+  /* User Specified Palette */
+  /* White/Cream: #F7F3E8 -> HSL(44, 48%, 94%) */
+  --background: 44 48% 94%;
+  
+  /* Black: #1B1A18 -> HSL(40, 6%, 10%) */
+  --foreground: 40 6% 10%;
 
-  /* Card: Pure White */
-  --card: 0 0% 100%;
-  --card-foreground: 145 60% 10%;
+  /* Card: Same as background for this style, or slightly lighter */
+  --card: 44 48% 94%;
+  --card-foreground: 40 6% 10%;
 
   /* Popover */
-  --popover: 0 0% 100%;
-  --popover-foreground: 145 60% 10%;
+  --popover: 44 48% 94%;
+  --popover-foreground: 40 6% 10%;
 
-  /* Primary: Deep Racing Green */
-  --primary: 150 60% 25%;
+  /* Primary Green: #2B5734 -> HSL(132, 34%, 25%) */
+  --primary: 132 34% 25%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary: Light Beige/Sage */
-  --secondary: 40 20% 92%;
-  --secondary-foreground: 150 60% 25%;
+  /* Secondary: Light Greenish tint or just darker cream */
+  --secondary: 132 10% 90%;
+  --secondary-foreground: 132 34% 25%;
 
-  /* Muted: Warm Grey */
-  --muted: 40 10% 94%;
-  --muted-foreground: 40 5% 45%;
+  /* Muted */
+  --muted: 40 10% 85%;
+  --muted-foreground: 40 10% 40%;
 
-  /* Accent: Gold/Bronze */
+  /* Accent: Keeping Gold for subtle touches if needed */
   --accent: 35 50% 55%;
   --accent-foreground: 0 0% 100%;
 
@@ -73,41 +69,26 @@
   --destructive-foreground: 0 0% 98%;
 
   /* Borders */
-  --border: 40 10% 88%;
-  --input: 40 10% 88%;
-  --ring: 150 60% 25%;
+  --border: 40 6% 10%; /* Dark borders for high contrast look */
+  --input: 40 6% 10%;
+  --ring: 132 34% 25%;
 
   --radius: 0.5rem;
-
-  /* Charts */
-  --chart-1: 150 60% 25%;
-  --chart-2: 35 50% 55%;
-  --chart-3: 140 30% 50%;
-  --chart-4: 40 5% 40%;
-  --chart-5: 40 20% 98%;
 }
 
 .dark {
-  /* Dark Mode Override - Not primary anymore */
-  --background: 145 60% 5%;
-  --foreground: 40 20% 97%;
-  --card: 145 60% 8%;
-  --card-foreground: 40 20% 97%;
-  --popover: 145 60% 8%;
-  --popover-foreground: 40 20% 97%;
-  --primary: 145 50% 45%;
+  /* Inverted for Dark Mode if user switches */
+  --background: 40 6% 10%;
+  --foreground: 44 48% 94%;
+  
+  --card: 40 6% 12%;
+  --card-foreground: 44 48% 94%;
+  
+  --primary: 132 34% 35%; /* Slightly lighter green */
   --primary-foreground: 0 0% 100%;
-  --secondary: 145 30% 15%;
-  --secondary-foreground: 40 20% 97%;
-  --muted: 145 30% 15%;
-  --muted-foreground: 145 10% 60%;
-  --accent: 35 50% 50%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 145 30% 15%;
-  --input: 145 30% 15%;
-  --ring: 145 50% 45%;
+  
+  --border: 44 20% 20%;
+  --input: 44 20% 20%;
 }
 
 @layer base {
@@ -118,6 +99,6 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-medium tracking-tight;
+    @apply font-heading font-bold uppercase tracking-tight;
   }
 }

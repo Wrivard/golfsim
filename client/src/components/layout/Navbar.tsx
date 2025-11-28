@@ -18,36 +18,37 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Accueil", href: "/" },
-    { name: "Le Club", href: "/about" },
-    { name: "Tarifs", href: "/rates" },
-    { name: "Galerie", href: "/gallery" },
+    { name: "Home", href: "/" },
+    { name: "About", href: "/about" },
+    { name: "Memberships", href: "/rates" },
+    { name: "Gallery", href: "/gallery" },
     { name: "Contact", href: "/contact" },
   ];
 
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
-        scrolled ? "bg-white/90 backdrop-blur-md border-border py-3 shadow-sm" : "bg-transparent py-6"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled ? "bg-[#F7F3E8]/90 backdrop-blur-md py-4 border-b border-black/5" : "bg-transparent py-8"
       )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
+      <div className="container mx-auto px-6 md:px-12 flex items-center justify-between">
+        {/* Logo - Urban Swing Style */}
         <Link href="/">
-          <a className="font-serif text-2xl font-bold tracking-tight text-primary hover:opacity-90 transition-opacity">
-            Golf SIM <span className="text-foreground font-light">Sorel-Tracy</span>
+          <a className="flex flex-col leading-none group">
+            <span className="font-heading font-bold text-2xl tracking-tighter text-foreground uppercase">Golf SIM</span>
+            <span className="font-heading font-medium text-xs tracking-[0.2em] text-foreground uppercase group-hover:text-primary transition-colors">Sorel-Tracy</span>
           </a>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary uppercase tracking-wider",
-                  location === link.href ? "text-primary font-bold" : "text-muted-foreground"
+                  "text-sm font-bold uppercase tracking-wider transition-colors hover:text-primary",
+                  location === link.href ? "text-primary" : "text-foreground"
                 )}
               >
                 {link.name}
@@ -59,8 +60,8 @@ export default function Navbar() {
         {/* CTA Button */}
         <div className="hidden md:block">
           <Link href="/contact">
-            <Button className="bg-primary text-white hover:bg-primary/90 font-medium px-6 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
-              Réserver
+            <Button className="bg-foreground text-background hover:bg-primary hover:text-white rounded-full px-6 h-10 text-xs font-bold uppercase tracking-wider transition-all">
+              Book Now
             </Button>
           </Link>
         </div>
@@ -76,12 +77,12 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 bg-background border-b border-border p-4 flex flex-col gap-4 shadow-2xl md:hidden animate-in slide-in-from-top-5">
+        <div className="absolute top-full left-0 right-0 bg-[#F7F3E8] border-b border-black/10 p-6 flex flex-col gap-6 shadow-2xl md:hidden animate-in slide-in-from-top-5 h-screen">
           {navLinks.map((link) => (
             <Link key={link.name} href={link.href}>
               <a
                 className={cn(
-                  "text-lg font-medium py-2 border-b border-border/50",
+                  "text-2xl font-heading font-bold uppercase tracking-tight",
                   location === link.href ? "text-primary" : "text-foreground"
                 )}
                 onClick={() => setIsOpen(false)}
@@ -91,8 +92,8 @@ export default function Navbar() {
             </Link>
           ))}
           <Link href="/contact">
-            <Button className="w-full mt-2 rounded-full" size="lg" onClick={() => setIsOpen(false)}>
-              Réserver maintenant
+            <Button className="w-full mt-4 rounded-full h-12 text-sm font-bold uppercase tracking-wider bg-primary text-white" onClick={() => setIsOpen(false)}>
+              Book a Session
             </Button>
           </Link>
         </div>

@@ -16,19 +16,19 @@ export default function Contact() {
   const onSubmit = (data: any) => {
     console.log(data);
     toast({
-      title: "Demande envoyée",
-      description: "Nous vous contacterons sous peu pour confirmer votre réservation.",
+      title: "Request Sent",
+      description: "We will contact you shortly to confirm your booking.",
     });
     reset();
   };
 
   return (
     <Layout>
-      <div className="bg-foreground text-background py-20">
+      <div className="bg-foreground text-background py-24 pt-32">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-serif font-medium mb-6">Réservation & Contact</h1>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto">
-            Réservez votre départ ou contactez-nous pour toute question.
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase">Contact Us</h1>
+          <p className="text-lg text-white/70 max-w-2xl mx-auto font-sans">
+            Book your tee time or get in touch with our team.
           </p>
         </div>
       </div>
@@ -39,107 +39,107 @@ export default function Contact() {
           {/* Form */}
           <div>
             <div className="mb-8">
-              <h2 className="text-3xl font-serif mb-4">Faire une demande</h2>
-              <p className="text-muted-foreground">Remplissez ce formulaire et nous vous rappellerons pour confirmer la disponibilité.</p>
+              <h2 className="text-3xl font-heading font-bold mb-4 uppercase">Make a Request</h2>
+              <p className="text-muted-foreground font-sans">Fill out this form and we'll get back to you to confirm availability.</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nom complet</Label>
-                  <Input id="name" placeholder="Jean Dupont" {...register("name")} />
+                  <Label htmlFor="name" className="uppercase font-bold text-xs tracking-wider">Full Name</Label>
+                  <Input id="name" placeholder="John Doe" {...register("name")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input id="phone" placeholder="(450) 123-4567" {...register("phone")} />
+                  <Label htmlFor="phone" className="uppercase font-bold text-xs tracking-wider">Phone</Label>
+                  <Input id="phone" placeholder="(450) 123-4567" {...register("phone")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Courriel</Label>
-                <Input id="email" type="email" placeholder="jean@exemple.com" {...register("email")} />
+                <Label htmlFor="email" className="uppercase font-bold text-xs tracking-wider">Email</Label>
+                <Input id="email" type="email" placeholder="john@example.com" {...register("email")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date souhaitée</Label>
-                  <Input id="date" type="date" {...register("date")} />
+                  <Label htmlFor="date" className="uppercase font-bold text-xs tracking-wider">Date</Label>
+                  <Input id="date" type="date" {...register("date")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="players">Nombre de joueurs</Label>
+                  <Label htmlFor="players" className="uppercase font-bold text-xs tracking-wider">Players</Label>
                   <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
+                    <SelectTrigger className="rounded-none border-foreground/20 h-12 bg-transparent">
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 Joueur</SelectItem>
-                      <SelectItem value="2">2 Joueurs</SelectItem>
-                      <SelectItem value="3">3 Joueurs</SelectItem>
-                      <SelectItem value="4">4 Joueurs</SelectItem>
+                      <SelectItem value="1">1 Player</SelectItem>
+                      <SelectItem value="2">2 Players</SelectItem>
+                      <SelectItem value="3">3 Players</SelectItem>
+                      <SelectItem value="4">4 Players</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Remarques / Questions</Label>
-                <Textarea id="message" placeholder="Avez-vous besoin d'équipement ?" className="min-h-[120px]" {...register("message")} />
+                <Label htmlFor="message" className="uppercase font-bold text-xs tracking-wider">Notes</Label>
+                <Textarea id="message" placeholder="Any special requests?" className="min-h-[120px] rounded-none border-foreground/20 focus:border-primary bg-transparent" {...register("message")} />
               </div>
 
-              <Button type="submit" className="w-full rounded-full h-12 text-lg bg-primary hover:bg-primary/90">
-                Envoyer la demande
+              <Button type="submit" className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary hover:bg-primary/90 text-white">
+                Send Request
               </Button>
             </form>
           </div>
 
           {/* Info & Map */}
           <div className="space-y-8">
-            <Card className="bg-secondary/20 border-none">
+            <Card className="bg-[#EAE6D9] border-none rounded-none">
               <CardContent className="p-8 space-y-6">
-                <h3 className="font-serif text-2xl mb-6">Coordonnées</h3>
+                <h3 className="font-heading font-bold text-2xl mb-6 uppercase">Information</h3>
                 
                 <div className="flex items-start gap-4">
                   <div className="bg-background p-3 rounded-full shadow-sm">
-                    <MapPin className="w-6 h-6 text-primary" />
+                    <MapPin className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">Adresse</h4>
-                    <p className="text-muted-foreground">123 Rue du Golf<br/>Sorel-Tracy, QC J3P 1A1</p>
+                    <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Address</h4>
+                    <p className="text-muted-foreground font-sans text-sm">123 Rue du Golf<br/>Sorel-Tracy, QC J3P 1A1</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="bg-background p-3 rounded-full shadow-sm">
-                    <Phone className="w-6 h-6 text-primary" />
+                    <Phone className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">Téléphone</h4>
-                    <p className="text-muted-foreground">(450) 123-4567</p>
+                    <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Phone</h4>
+                    <p className="text-muted-foreground font-sans text-sm">(450) 123-4567</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="bg-background p-3 rounded-full shadow-sm">
-                    <Mail className="w-6 h-6 text-primary" />
+                    <Mail className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">Courriel</h4>
-                    <p className="text-muted-foreground">info@golfsimst.com</p>
+                    <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Email</h4>
+                    <p className="text-muted-foreground font-sans text-sm">info@golfsimst.com</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
                   <div className="bg-background p-3 rounded-full shadow-sm">
-                    <Clock className="w-6 h-6 text-primary" />
+                    <Clock className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">Horaires</h4>
-                    <p className="text-muted-foreground text-sm">
-                      <span className="block font-medium text-foreground">Membres :</span> 24/7 Accès par carte
+                    <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Hours</h4>
+                    <p className="text-muted-foreground text-sm font-sans">
+                      <span className="block font-medium text-foreground">Members:</span> 24/7 Access
                     </p>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      <span className="block font-medium text-foreground">Visiteurs :</span>
-                      Lun - Dim : 10h00 - 22h00
+                    <p className="text-muted-foreground text-sm mt-1 font-sans">
+                      <span className="block font-medium text-foreground">Visitors:</span>
+                      Mon - Sun: 10am - 10pm
                     </p>
                   </div>
                 </div>
@@ -147,11 +147,10 @@ export default function Contact() {
             </Card>
 
             {/* Map Placeholder */}
-            <div className="w-full h-[300px] bg-muted rounded-xl overflow-hidden relative">
+            <div className="w-full h-[300px] bg-muted overflow-hidden relative">
                <div className="absolute inset-0 bg-slate-200 flex items-center justify-center">
-                  <p className="text-muted-foreground font-serif italic">Carte Google Maps</p>
+                  <p className="text-muted-foreground font-heading uppercase font-bold tracking-wider">Google Maps</p>
                </div>
-               {/* In a real app, embed Google Maps iframe here */}
                <iframe 
                  width="100%" 
                  height="100%" 

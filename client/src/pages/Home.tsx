@@ -1,183 +1,112 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Clock, Trophy, Users, Wifi } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 
-// Images from attached_assets
+// Images
 import heroImage from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338872257.jfif";
-import featureImage from "@assets/f114406a-3bc2-4494-871f-50634e13f809_1764338501086.jfif";
 
 export default function Home() {
   return (
     <Layout>
-      {/* Hero Section - Light & Elegant */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
+      {/* Hero Section - "Urban Swing" Style Replicas */}
+      <section className="relative min-h-screen flex flex-col justify-center pt-20 overflow-hidden bg-background">
         
-        <div className="container mx-auto px-4 grid md:grid-cols-12 gap-12 items-center relative z-10">
+        {/* Faint Background Text "GOLF" */}
+        <div className="absolute top-20 left-0 right-0 flex justify-center pointer-events-none select-none overflow-hidden z-0">
+           <span className="text-[25vw] font-heading font-bold text-[#EAE6D9] leading-none opacity-60 transform -translate-y-1/4">
+             GOLF
+           </span>
+        </div>
+
+        <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-12 items-center relative z-10">
           
-          {/* Text Content (Left) */}
-          <div className="md:col-span-5 space-y-8 pt-12 md:pt-0 order-2 md:order-1">
+          {/* Left Content */}
+          <div className="md:col-span-6 space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-block py-1 px-3 bg-primary/5 text-primary text-xs font-bold tracking-[0.2em] uppercase mb-6 border border-primary/10 rounded-full">
-                Golf Intérieur • Sorel-Tracy
-              </span>
-              <h1 className="text-5xl md:text-7xl font-serif font-medium leading-[1.1] text-foreground mb-6">
-                Le Golf, <br />
-                <span className="text-primary italic">Réinventé.</span>
+              {/* Logo/Brand Small Header if needed, but Navbar covers it. Keeping clean as per image */}
+              
+              <h1 className="text-6xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
+                BRING THE <br />
+                COURSE <br />
+                INDOORS WITH <br />
+                EVERY SWING
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md border-l-2 border-accent pl-6">
-                Vivez une expérience de simulation immersive dans un cadre raffiné. La destination incontournable pour les passionnés, 12 mois par an.
+              
+              <p className="text-lg md:text-xl text-foreground font-sans max-w-md leading-relaxed mb-8">
+                High-end golf simulators, real-course data, and a lounge-style experience.
               </p>
-            </motion.div>
 
-            <motion.div 
-              className="flex flex-wrap gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Link href="/contact">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg transition-all hover:-translate-y-1 shadow-lg shadow-primary/20">
-                  Réserver maintenant
-                </Button>
-              </Link>
-              <Link href="/rates">
-                <Button variant="outline" size="lg" className="rounded-full px-10 h-14 text-lg border-primary/20 text-primary hover:bg-primary/5 transition-all">
-                  Nos Forfaits
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Image Composition (Right) */}
-          <div className="md:col-span-7 relative h-[50vh] md:h-[75vh] order-1 md:order-2">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="relative w-full h-full flex items-center justify-center"
-            >
-              <div className="relative w-full h-full overflow-hidden rounded-[2rem] shadow-2xl">
-                <img 
-                  src={heroImage} 
-                  alt="Simulateur de golf intérieur" 
-                  className="w-full h-full object-cover transform scale-105 hover:scale-100 transition-transform duration-[1.5s]"
-                />
-                {/* Elegant Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              </div>
-              
-              {/* Floating Stat Card - Elegant Style */}
-              <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-xl border border-border z-20 min-w-[200px] hidden md:block">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">En Direct</span>
-                </div>
-                <div className="space-y-1">
-                   <p className="text-3xl font-serif font-bold text-foreground">24/7</p>
-                   <p className="text-sm text-muted-foreground font-medium">Accès Membres</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features / Concept Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative order-2 md:order-1">
-              <div className="relative rounded-lg overflow-hidden shadow-lg">
-                 <img 
-                  src={featureImage} 
-                  alt="Joueur au simulateur" 
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-              
-              <div className="absolute -bottom-8 -right-8 bg-secondary p-8 rounded-lg max-w-xs shadow-lg hidden md:block z-10">
-                <p className="font-serif text-xl italic text-primary">"La précision à l'état pur, dans un confort absolu."</p>
-              </div>
-            </div>
-            
-            <div className="space-y-8 order-1 md:order-2">
-              <h2 className="text-4xl md:text-5xl font-serif text-foreground">Technologie &<br />Élégance</h2>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                Nos simulateurs de dernière génération offrent une précision chirurgicale. Analysez chaque nuance de votre swing dans un environnement conçu pour le confort et la performance.
-              </p>
-              
-              <div className="grid grid-cols-2 gap-x-8 gap-y-10 pt-4">
-                <div className="space-y-3 group">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                    <Trophy className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg">Simulateurs Pro</h3>
-                  <p className="text-sm text-muted-foreground">Technologie radar double haute fidélité.</p>
-                </div>
-                <div className="space-y-3 group">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                    <Clock className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg">Accès Illimité</h3>
-                  <p className="text-sm text-muted-foreground">Forfaits flexibles adaptés à votre horaire.</p>
-                </div>
-                <div className="space-y-3 group">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                    <Users className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg">Espace Lounge</h3>
-                  <p className="text-sm text-muted-foreground">Détente et convivialité après l'effort.</p>
-                </div>
-                <div className="space-y-3 group">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                    <Wifi className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="font-serif font-bold text-lg">Connecté</h3>
-                  <p className="text-sm text-muted-foreground">Réservez votre baie en un clic.</p>
-                </div>
-              </div>
-              
-              <div className="pt-8">
-                <Link href="/about">
-                  <Button variant="link" className="text-primary p-0 h-auto font-medium text-lg hover:no-underline hover:opacity-80 gap-2 font-serif italic">
-                    Découvrir le club <ArrowRight className="w-4 h-4" />
+              <div className="flex flex-wrap gap-4">
+                <Link href="/contact">
+                  <Button className="bg-primary text-white hover:bg-primary/90 rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
+                    Book a Session
+                  </Button>
+                </Link>
+                <Link href="/rates">
+                  <Button variant="outline" className="bg-transparent text-foreground border-foreground hover:bg-foreground hover:text-background rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
+                    View Memberships
                   </Button>
                 </Link>
               </div>
-            </div>
+            </motion.div>
           </div>
+
+          {/* Right Content - Image Composition */}
+          <div className="md:col-span-6 relative h-[600px] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative w-full h-full"
+            >
+              {/* Main Image Card */}
+              <div className="w-full h-full rounded-lg overflow-hidden relative z-10">
+                <img 
+                  src={heroImage} 
+                  alt="Golf balls on turf" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Floating Black Card */}
+              <div className="absolute top-1/2 -translate-y-1/2 -right-4 md:-right-12 bg-foreground text-background p-8 md:p-10 z-20 shadow-2xl max-w-[280px]">
+                <h2 className="text-6xl md:text-7xl font-heading font-bold leading-none mb-2">
+                  24/7
+                </h2>
+                <h3 className="text-2xl font-heading font-bold uppercase tracking-wider mb-4">
+                  Access
+                </h3>
+                <p className="text-sm font-sans text-background/80 leading-relaxed">
+                  Play world-famous courses any time.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Bottom Arrow Circle */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20">
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="w-16 h-16 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
+          >
+            <ArrowDown className="text-white w-6 h-6" />
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-primary text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay" />
-        
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-serif mb-6">Prêt à jouer ?</h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Réservez votre départ dès maintenant ou rejoignez notre communauté de membres privilégiés.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-6">
-            <Link href="/contact">
-              <Button size="lg" className="bg-white text-primary hover:bg-secondary rounded-full px-10 h-14 text-lg font-bold shadow-xl">
-                Réserver une plage
-              </Button>
-            </Link>
-            <Link href="/rates">
-              <Button size="lg" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-14 text-lg">
-                Devenir membre
-              </Button>
-            </Link>
-          </div>
-        </div>
+      {/* Tour Level Tech Section (Preview of next section visible in image) */}
+      <section className="py-24 bg-background text-foreground text-center">
+         <h2 className="text-5xl md:text-7xl font-heading uppercase font-bold">
+            Tour-Level Technology
+         </h2>
       </section>
     </Layout>
   );
