@@ -5,6 +5,8 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import BrandMarquee from "@/components/home/BrandMarquee";
 import Testimonials from "@/components/home/Testimonials";
+import MembershipPreview from "@/components/home/MembershipPreview";
+import HowItWorks from "@/components/home/HowItWorks";
 
 // Images
 import heroImage from "@assets/generated_images/golf_balls_on_turf_in_simulator.png";
@@ -105,6 +107,9 @@ export default function Home() {
       {/* Brand Marquee */}
       <BrandMarquee />
 
+      {/* How It Works */}
+      <HowItWorks />
+
       {/* Tour Level Tech Section */}
       <section className="py-24 bg-background text-foreground">
         <div className="container mx-auto px-6 md:px-12">
@@ -130,6 +135,9 @@ export default function Home() {
            </div>
         </div>
       </section>
+
+      {/* Membership Preview */}
+      <MembershipPreview />
 
       {/* Testimonials */}
       <Testimonials />
