@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 const REVIEWS = [
   {
     name: "Marc-André L.",
-    role: "Membre depuis 2023",
+    role: "Client Fidèle",
     text: "La précision des simulateurs Trackman est inégalée. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
     rating: 5,
     theme: "light"
@@ -18,8 +18,8 @@ const REVIEWS = [
   },
   {
     name: "Jean-Pierre G.",
-    role: "Membre",
-    text: "Pouvoir accéder au centre 24/7 change la donne pour mon horaire. L'application de réservation est super simple à utiliser.",
+    role: "Client Régulier",
+    text: "Pouvoir réserver un écran pour 4h avec mes amis est génial. L'application de réservation est super simple à utiliser.",
     rating: 5,
     theme: "light"
   }

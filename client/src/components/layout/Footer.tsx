@@ -18,7 +18,7 @@ export default function Footer() {
               />
             </div>
             <p className="text-white/60 leading-relaxed font-sans max-w-xs">
-              L'expérience de golf intérieur ultime. Simulateurs haut de gamme, ambiance lounge et accès 24/7 pour les membres.
+              L'expérience de golf intérieur ultime. Simulateurs haut de gamme, ambiance lounge et accès sur réservation.
             </p>
           </div>
 
@@ -70,8 +70,8 @@ export default function Footer() {
               </a>
             </div>
             <div className="pt-6 border-t border-white/10">
-              <p className="text-sm font-bold text-primary uppercase tracking-wider mb-1">Membres 24/7</p>
-              <p className="text-sm text-white/60 font-sans">Visiteurs : 10h - 22h</p>
+              <p className="text-sm font-bold text-primary uppercase tracking-wider mb-1">Ouvert 7 jours</p>
+              <p className="text-sm text-white/60 font-sans">Réservation requise</p>
             </div>
           </div>
         </div>

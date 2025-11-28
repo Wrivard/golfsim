@@ -57,7 +57,7 @@ export default function Home() {
                 </Link>
                 <Link href="/rates">
                   <Button variant="outline" className="bg-transparent text-foreground border-foreground hover:bg-foreground hover:text-background rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-transform hover:scale-105">
-                    Voir les abonnements
+                    Voir nos tarifs
                   </Button>
                 </Link>
               </div>
@@ -84,13 +84,13 @@ export default function Home() {
               {/* Floating Black Card - Overlapping Right */}
               <div className="absolute top-[20%] -right-4 md:-right-12 bg-foreground text-background p-8 md:p-10 z-20 shadow-2xl max-w-[240px] md:max-w-[280px]">
                 <h2 className="text-6xl md:text-7xl font-heading font-bold leading-none mb-2">
-                  24/7
+                  5
                 </h2>
                 <h3 className="text-2xl font-heading font-bold uppercase tracking-wider mb-4">
-                  Accès
+                  Simulateurs
                 </h3>
                 <p className="text-sm font-sans text-background/80 leading-relaxed">
-                  Jouez sur des parcours de renommée mondiale à tout moment.
+                  Jouez sur des parcours de renommée mondiale avec la technologie Trackman.
                 </p>
               </div>
 
