@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 
 // Images
-import heroImage from "@assets/generated_images/luxury_indoor_golf_simulator_bay.png";
+import heroImage from "@assets/generated_images/golf_balls_on_turf_in_simulator.png";
 import techImage from "@assets/generated_images/golf_ball_on_turf_close_up.png";
 
 export default function Home() {
@@ -62,19 +62,19 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative w-full h-full"
+              className="relative w-full max-w-md md:max-w-full aspect-[3/4] md:aspect-auto md:h-full"
             >
               {/* Main Image Card */}
               <div className="w-full h-full rounded-lg overflow-hidden relative z-10 shadow-2xl">
                 <img 
                   src={heroImage} 
-                  alt="Luxury indoor golf simulator" 
+                  alt="Golf balls on turf in simulator" 
                   className="w-full h-full object-cover"
                 />
               </div>
 
-              {/* Floating Black Card */}
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4 md:-right-12 bg-foreground text-background p-8 md:p-10 z-20 shadow-2xl max-w-[280px]">
+              {/* Floating Black Card - Overlapping Right */}
+              <div className="absolute top-[20%] -right-4 md:-right-12 bg-foreground text-background p-8 md:p-10 z-20 shadow-2xl max-w-[240px] md:max-w-[280px]">
                 <h2 className="text-6xl md:text-7xl font-heading font-bold leading-none mb-2">
                   24/7
                 </h2>
@@ -85,19 +85,18 @@ export default function Home() {
                   Play world-famous courses any time.
                 </p>
               </div>
+
+              {/* Arrow Circle - Overlapping Bottom Left Corner */}
+              <div className="absolute -bottom-8 left-8 md:left-12 z-30">
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="w-20 h-20 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg border-4 border-background"
+                >
+                  <ArrowDown className="text-white w-8 h-8" />
+                </motion.div>
+              </div>
             </motion.div>
           </div>
-        </div>
-
-        {/* Bottom Arrow Circle */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20">
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="w-16 h-16 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
-          >
-            <ArrowDown className="text-white w-6 h-6" />
-          </motion.div>
         </div>
       </section>
 
