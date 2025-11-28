@@ -13,18 +13,18 @@ export default function Events() {
           {/* Visual / Card - Swapped Order */}
           <div className="order-2 md:order-1 relative">
              <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl transform -translate-x-12 -translate-y-12" />
-             <div className="relative bg-[#EAE6D9] p-12 md:p-16 rounded-none border-l-4 border-primary flex flex-col items-start text-left space-y-6 shadow-2xl transform md:-rotate-2 hover:rotate-0 transition-transform duration-500">
-                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-sm mb-2 border border-foreground/10">
-                   <CalendarDays className="w-6 h-6 text-primary" />
+             <div className="relative bg-[#1B1A18] p-12 md:p-16 rounded-none border-l-4 border-[#2B5734] flex flex-col items-start text-left space-y-6 shadow-2xl transform md:-rotate-2 hover:rotate-0 transition-transform duration-500">
+                <div className="w-16 h-16 bg-[#F7F3E8]/10 rounded-full flex items-center justify-center shadow-sm mb-2 border border-[#F7F3E8]/20">
+                   <CalendarDays className="w-6 h-6 text-[#2B5734]" />
                 </div>
-                <h3 className="text-4xl font-heading font-bold uppercase leading-none">Soirée <br/>Corporative</h3>
-                <p className="text-foreground/70 font-sans leading-relaxed">
+                <h3 className="text-4xl font-heading font-bold uppercase leading-none text-[#F7F3E8]">Soirée <br/>Corporative</h3>
+                <p className="text-[#F7F3E8]/80 font-sans leading-relaxed">
                   "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience."
                 </p>
-                <div className="w-full h-px bg-foreground/10" />
+                <div className="w-full h-px bg-[#F7F3E8]/10" />
                 <div className="flex justify-between w-full items-center">
-                   <p className="text-xs font-bold uppercase tracking-wider text-primary">Disponible 7 jours / 7</p>
-                   <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">Capacité 20+</p>
+                   <p className="text-xs font-bold uppercase tracking-wider text-[#2B5734]">Disponible 7 jours / 7</p>
+                   <p className="text-xs font-bold uppercase tracking-wider text-[#F7F3E8]/40">Capacité 20+</p>
                 </div>
              </div>
           </div>
