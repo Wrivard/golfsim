@@ -53,8 +53,9 @@ export default function ScrollGolfPath() {
   const rotation = useTransform(scrollYProgress, [0, 1], [0, 720]);
 
   // Path draw animation - trails behind ball
-  const drawProgress = useTransform(scrollYProgress, [0, 1], [0, 1]);
-
+  // We're using scrollYProgress for both ball and line to sync them
+  // No need to redeclare drawProgress separately if it's just mapped 1:1
+  
   return (
     <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden xl:block overflow-hidden">
        <svg className="absolute top-0 left-0 w-full h-full" preserveAspectRatio="none">
@@ -76,7 +77,7 @@ export default function ScrollGolfPath() {
             strokeWidth="2"
             strokeDasharray="6 6"
             style={{ 
-              pathLength: drawProgress,
+              pathLength: scrollYProgress,
               opacity: 0.6 
             }}
           />
