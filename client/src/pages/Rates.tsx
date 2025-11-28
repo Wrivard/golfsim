@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "wouter";
+import FAQ from "@/components/rates/FAQ";
 
 export default function Rates() {
   return (
@@ -17,7 +18,7 @@ export default function Rates() {
       </div>
 
       <div className="container mx-auto px-4 py-24">
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-24">
           
           {/* Visitor Card */}
           <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
@@ -131,11 +132,8 @@ export default function Rates() {
           </div>
         </div>
 
-        <div className="mt-20 text-center">
-          <p className="text-muted-foreground text-xs font-sans max-w-2xl mx-auto uppercase tracking-wide">
-            * Rates subject to change without notice. Taxes not included. Cancellation required 24h in advance.
-          </p>
-        </div>
+        {/* FAQ Section */}
+        <FAQ />
       </div>
     </Layout>
   );
