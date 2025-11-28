@@ -1,0 +1,59 @@
+Contexte : Je veux créer un site web pour un simulateur de golf appelé “Golf SIM Sorel-Tracy”.
+Ton rôle : développeur + designer du site, capable de générer le squelette complet (Next.js + React + CSS/Tailwind ou modules CSS), les pages, le layout, et intégrer mes images.
+Objectif : un site moderne, élégant, responsive, qui donne l’impression d’un club de golf haut de gamme en intérieur, avec ambiance lounge / premium, et une réservation simple.
+
+Ce qu’il doit faire :
+
+Crée un projet Next.js
+
+Installer une solution de style simple (Tailwind CSS ou CSS modules, au choix)
+
+Créer les pages suivantes :
+
+Accueil — hero avec image large + titre accrocheur + sous-titre + bouton CTA (“Réserver”, “Voir nos forfaits”) + mise en page “magazine / editorial” : gros titre, layout asymétrique, blocs superposés, un petit “card stat” (ex : “24/7 accès”, ou “Bays disponibles”).
+
+À propos / Lieu — un texte de présentation (“Golf SIM Sorel-Tracy”, concept, ambiance, ce qu’on offre) + photo(s) + éventuellement icônes/points clés (simulateurs, équipement, confort, etc.).
+
+Tarifs & Membres / Forfaits — grille de forfaits (ex : “À la séance”, “Abonnement mensuel”, “Soirée / événement”) + prix + ce que chaque forfait inclut.
+
+Galerie / Photos — galerie responsive avec les images que je fournis (simulateurs, intérieur, gens en train de jouer, ambiance lounge).
+
+Réservation / Contact — formulaire simple (nom, courriel, téléphone, nombre de joueurs, date/heure, remarques), téléphone / adresse, plan Google Maps ou lien vers carte, horaires, et infos nécessaires.
+
+Footer — avec infos de l’entreprise, coordonnées, liens vers réseaux sociaux, copyright.
+
+Utiliser ta palette de couleurs (fond clair, textes foncés, accents verts) + typographie élégante, moderne, respirante. Donner l’impression d’un site haut de gamme.
+
+Rendre le site responsive : mobile, tablette, desktop.
+
+Organiser le code de façon modulaire : composants réutilisables pour header, footer, cards, gallery, formulaire, etc.
+
+Générer un README avec les instructions : comment lancer le site localement, où remplacer les images/textes, comment déployer (ex: sur Replit ou autre).
+
+Détail du hero / style :
+
+Hero section :
+
+image principale (ton image de simulateur / ambiance)
+
+titre large : “Vivez le golf autrement à Sorel-Tracy” (ou équivalent)
+
+sous-titre : “Simulateurs haut de gamme – Ambiance lounge – Réservation facile”
+
+bouton CTA principal : “Réserver maintenant”
+
+Dans le hero, ajouter un petit stat-card superposé (ex : “24/7 accès · Bays disponibles”) positionné en coin, pour effet design “magazine”.
+
+Layout asymétrique, peut-être image à droite dépassant du contenu, texte à gauche.
+
+✅ Ce que je veux en sortie
+
+Projet complet avec les pages + composants + styles
+
+Code propre et commenté
+
+Emplacement clair pour remplacer les images / textes / tarifs
+
+Site fonctionnel, responsive
+
+README pour instructions
