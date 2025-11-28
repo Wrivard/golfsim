@@ -18,7 +18,7 @@ export default function About() {
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <span className="text-white text-sm font-bold tracking-widest uppercase mb-4 block">Golf SIM Sorel-Tracy</span>
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 text-white uppercase tracking-tighter leading-none">Le Club</h1>
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-heading font-bold mb-6 text-white uppercase tracking-tighter leading-none">Le Club</h1>
           <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed font-sans">
             Plus qu'un simple centre de simulation, une véritable destination pour les passionnés de golf.
           </p>
@@ -59,14 +59,14 @@ export default function About() {
             
             <Separator className="bg-foreground/10" />
             
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-4 md:gap-8">
               <div>
-                <h4 className="font-heading text-7xl mb-2 text-primary font-bold leading-none">3</h4>
-                <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Simulateurs Pro</p>
+                <h4 className="font-heading text-5xl md:text-7xl mb-2 text-primary font-bold leading-none">4</h4>
+                <p className="text-[10px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider">Simulateurs Pro</p>
               </div>
               <div>
-                <h4 className="font-heading text-7xl mb-2 text-primary font-bold leading-none">100+</h4>
-                <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Parcours Mondiaux</p>
+                <h4 className="font-heading text-5xl md:text-7xl mb-2 text-primary font-bold leading-none">100+</h4>
+                <p className="text-[10px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider">Parcours Mondiaux</p>
               </div>
             </div>
           </div>

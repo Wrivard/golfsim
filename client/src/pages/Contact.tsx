@@ -31,7 +31,7 @@ export default function Contact() {
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Groupes & Événements</h1>
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Groupes & Événements</h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
             Pour les réservations de groupe, événements d'entreprise et fêtes privées.
           </p>

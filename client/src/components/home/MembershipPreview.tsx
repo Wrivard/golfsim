@@ -23,7 +23,7 @@ export default function MembershipPreview() {
           <span className="inline-block py-1 px-3 bg-primary/20 border border-primary text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-6">
              Expérience Golf
           </span>
-          <h2 className="text-5xl md:text-8xl font-heading font-bold uppercase leading-none mb-6">
+          <h2 className="text-4xl sm:text-5xl md:text-8xl font-heading font-bold uppercase leading-none mb-6">
             Réservez <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">Votre Élan</span>
           </h2>
           <p className="text-lg text-white/60 font-sans max-w-2xl mx-auto leading-relaxed">
@@ -36,14 +36,14 @@ export default function MembershipPreview() {
            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden grid md:grid-cols-2">
               
               {/* Left: Features */}
-              <div className="p-10 md:p-12 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/10">
+              <div className="p-6 md:p-12 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/10">
                  <h3 className="text-3xl font-heading font-bold uppercase mb-8 flex items-center gap-3">
                     <Crown className="w-8 h-8 text-primary" />
                     Nos Services
                  </h3>
                  <ul className="space-y-6">
                     {[
-                      { title: "5 Simulateurs", desc: "Technologie Trackman 4 sur tous nos écrans." },
+                      { title: "4 Simulateurs", desc: "Technologie Trackman 4 sur tous nos écrans." },
                       { title: "Groupes de 4", desc: "Jusqu'à 4 joueurs par simulateur." },
                       { title: "Blocs de 4 Heures", desc: "Prenez le temps de jouer un 18 trous complet." },
                       { title: "Ambiance Lounge", desc: "Service de bar et détente sur place." }
@@ -62,7 +62,7 @@ export default function MembershipPreview() {
               </div>
 
               {/* Right: Pricing & CTA */}
-              <div className="p-10 md:p-12 bg-gradient-to-br from-white/5 to-transparent flex flex-col justify-center items-center text-center relative">
+              <div className="p-6 md:p-12 bg-gradient-to-br from-white/5 to-transparent flex flex-col justify-center items-center text-center relative">
                  <div className="absolute top-0 right-0 p-4 opacity-20">
                     <Crown className="w-32 h-32 text-white rotate-12" />
                  </div>

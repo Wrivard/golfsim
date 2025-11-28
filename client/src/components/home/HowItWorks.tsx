@@ -4,7 +4,7 @@ const STEPS = [
   {
     icon: Smartphone,
     title: "Réservez",
-    description: "Sélectionnez votre plage horaire de 4 heures en ligne. Disponibilité en temps réel pour nos 5 simulateurs."
+    description: "Sélectionnez votre plage horaire de 4 heures en ligne. Disponibilité en temps réel pour nos 4 simulateurs."
   },
   {
     icon: Users,
@@ -23,7 +23,7 @@ export default function HowItWorks() {
     <section className="py-24 bg-[#EAE6D9]">
       <div className="container mx-auto px-6 md:px-12">
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-7xl font-heading font-bold text-foreground uppercase leading-none mb-6">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-heading font-bold text-foreground uppercase leading-none mb-6">
             Comment ça marche
           </h2>
           <p className="text-lg text-foreground/70 font-sans max-w-2xl mx-auto">

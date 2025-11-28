@@ -14,7 +14,7 @@ export default function BarLounge() {
             <div className="space-y-8">
               <div>
                 <span className="text-primary font-bold uppercase tracking-widest text-sm mb-2 block">L'Après-Golf</span>
-                <h2 className="text-5xl md:text-6xl font-heading font-bold text-foreground uppercase leading-[0.9] mb-6">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold text-foreground uppercase leading-[0.9] mb-6">
                   Le 19e <br/> <span className="text-primary">Trou</span>
                 </h2>
                 <p className="text-lg text-foreground/80 font-sans leading-relaxed">

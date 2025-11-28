@@ -15,7 +15,7 @@ export default function Rates() {
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-white">Tarifs</span></h1>
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-white">Tarifs</span></h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
             Une structure simple et transparente. Payez par joueur pour des blocs de 4 heures.
           </p>
@@ -26,7 +26,7 @@ export default function Rates() {
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
           
           {/* Standard Rate Card */}
-          <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
+          <div className="bg-transparent border-2 border-foreground/10 p-6 md:p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
             <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Tarif Standard</h3>
             <p className="text-muted-foreground mb-8 font-sans">Expérience complète de 4 heures.</p>
             <div className="mb-8 pb-8 border-b border-foreground/10">
@@ -67,7 +67,7 @@ export default function Rates() {
           </div>
 
           {/* Events Card (Highlighted) */}
-          <div className="bg-foreground text-background p-10 flex flex-col relative shadow-2xl transform md:-translate-y-4 z-10">
+          <div className="bg-foreground text-background p-6 md:p-10 flex flex-col relative shadow-2xl transform md:-translate-y-4 z-10">
             <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-2">Groupes</div>
             <h3 className="font-heading font-bold text-3xl mb-2 uppercase text-white">Événements</h3>
             <p className="text-white/60 mb-8 font-sans">Privatisation pour groupes et fêtes.</p>

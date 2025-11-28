@@ -22,7 +22,7 @@ export default function SimulatorCTA() {
             Expérience Immersive
           </span>
           
-          <h2 className="text-5xl md:text-8xl font-heading font-bold text-white uppercase leading-[0.9] mb-8 drop-shadow-2xl">
+          <h2 className="text-3xl sm:text-5xl md:text-8xl font-heading font-bold text-white uppercase leading-[0.9] mb-8 drop-shadow-2xl">
             Prêt à <br/>
             perfectionner <br/>
             <span className="text-[#F7F3E8]">votre élan ?</span>
