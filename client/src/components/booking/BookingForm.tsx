@@ -182,8 +182,8 @@ export default function BookingForm() {
                             className="pointer-events-auto w-full"
                             classNames={{
                                 head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider w-full",
-                                cell: "h-9 w-full text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                day: "h-9 w-full p-0 font-normal aria-selected:opacity-100",
+                                cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
                                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                                 day_today: "bg-accent text-accent-foreground",
                             }}
