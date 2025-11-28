@@ -2,49 +2,29 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import BrandMarquee from "@/components/home/BrandMarquee";
 import Testimonials from "@/components/home/Testimonials";
 import MembershipPreview from "@/components/home/MembershipPreview";
 import HowItWorks from "@/components/home/HowItWorks";
 import Events from "@/components/home/Events";
+import ScrollGolfPath from "@/components/home/ScrollGolfPath";
 
 // Images
-import heroImage from "@assets/generated_images/golf_balls_on_turf_in_simulator.png";
-import techImage from "@assets/generated_images/golf_ball_on_turf_close_up.png";
-
-// Golf Ball Component
-function FloatingGolfBall() {
-  const { scrollYProgress } = useScroll();
-  
-  // Ball moves from top right to bottom left across sections
-  const y = useTransform(scrollYProgress, [0, 1], [0, 2000]);
-  const x = useTransform(scrollYProgress, [0, 0.2, 0.5, 0.8, 1], [0, -100, 50, -50, 0]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 720]);
-  const scale = useTransform(scrollYProgress, [0, 0.1, 1], [0.5, 1, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]);
-
-  return (
-    <motion.div 
-      className="fixed top-20 right-20 z-40 pointer-events-none hidden xl:block"
-      style={{ y, x, rotate, scale, opacity }}
-    >
-      <div className="w-12 h-12 bg-white rounded-full shadow-2xl border border-gray-200 flex items-center justify-center relative overflow-hidden">
-         {/* Dimples pattern simulation */}
-         <div className="absolute inset-0 bg-[radial-gradient(#ccc_1px,transparent_1px)] [background-size:4px_4px] opacity-30" />
-         <div className="w-full h-full rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-300 opacity-80" />
-      </div>
-    </motion.div>
-  );
-}
+// Fix imports to use local assets instead of generated_images alias directly if inconsistent
+import heroImage from "@/assets/images/golf_balls_on_turf_in_simulator.png";
+import techImage from "@/assets/images/golf_ball_on_turf_close_up.png";
 
 export default function Home() {
   return (
     <Layout>
-      <FloatingGolfBall />
+      {/* Full Page Golf Ball Animation Path */}
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+         <ScrollGolfPath />
+      </div>
       
       {/* Hero Section - "Urban Swing" Style Replicas */}
-      <section className="relative min-h-screen flex flex-col justify-center pt-20 overflow-hidden bg-background">
+      <section className="relative min-h-screen flex flex-col justify-center pt-20 overflow-hidden bg-background z-10">
         
         {/* Faint Background Text "GOLF" */}
         <div className="absolute top-20 left-0 right-0 flex justify-center pointer-events-none select-none overflow-hidden z-0">

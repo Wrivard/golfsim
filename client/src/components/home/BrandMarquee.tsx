@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 
-// Import images
-import trackman from "@assets/generated_images/trackman_logo_white_transparent.png";
-import titleist from "@assets/generated_images/titleist_logo_white_transparent.png";
-import taylormade from "@assets/generated_images/taylormade_logo_white_transparent.png";
-import callaway from "@assets/generated_images/callaway_logo_white_transparent.png";
-import ping from "@assets/generated_images/ping_logo_white_transparent.png";
-import cobra from "@assets/generated_images/cobra_logo_white_transparent.png";
-import pxg from "@assets/generated_images/pxg_logo_white_transparent.png";
-import mizuno from "@assets/generated_images/mizuno_logo_white_transparent.png";
+// Import images locally to ensure they load
+import trackman from "@/assets/images/trackman_logo_white_transparent.png";
+import titleist from "@/assets/images/titleist_logo_white_transparent.png";
+import taylormade from "@/assets/images/taylormade_logo_white_transparent.png";
+import callaway from "@/assets/images/callaway_logo_white_transparent.png";
+import ping from "@/assets/images/ping_logo_white_transparent.png";
+import cobra from "@/assets/images/cobra_logo_white_transparent.png";
+import pxg from "@/assets/images/pxg_logo_white_transparent.png";
+import mizuno from "@/assets/images/mizuno_logo_white_transparent.png";
 
 const BRANDS = [
   { name: "Trackman", logo: trackman },
