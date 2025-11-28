@@ -20,11 +20,42 @@ export const bookings = pgTable("bookings", {
   uniqueSlot: uniqueIndex("unique_booking_slot").on(table.bayType, table.date, table.time),
 }));
 
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("admin"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().default(sql`now()`),
+});
+
+export const calendarSettings = pgTable("calendar_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  syncEmail: text("sync_email"),
+  calendarId: text("calendar_id").default("primary"),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
+});
+
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   calendarEventId: true,
   createdAt: true,
 });
 
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCalendarSettingsSchema = createInsertSchema(calendarSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Booking = typeof bookings.$inferSelect;
+
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+export type InsertCalendarSettings = z.infer<typeof insertCalendarSettingsSchema>;
+export type CalendarSettings = typeof calendarSettings.$inferSelect;

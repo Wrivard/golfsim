@@ -10,6 +10,8 @@ import Rates from "@/pages/Rates";
 import Gallery from "@/pages/Gallery";
 import Contact from "@/pages/Contact";
 import BookingPage from "@/pages/Booking";
+import Login from "@/pages/Login";
+import Admin from "@/pages/Admin";
 
 function Router() {
   return (
@@ -20,6 +22,8 @@ function Router() {
       <Route path="/gallery" component={Gallery} />
       <Route path="/contact" component={Contact} />
       <Route path="/booking" component={BookingPage} />
+      <Route path="/login" component={Login} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

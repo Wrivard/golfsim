@@ -1,4 +1,8 @@
-import { type Booking, type InsertBooking, bookings } from "@shared/schema";
+import { 
+  type Booking, type InsertBooking, bookings,
+  type AdminUser, type InsertAdminUser, adminUsers,
+  type CalendarSettings, type InsertCalendarSettings, calendarSettings
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
 
@@ -13,6 +17,13 @@ export interface IStorage {
     booking: InsertBooking,
     checkConflict: (existingBookings: Booking[]) => boolean
   ): Promise<{ booking: Booking | null; conflict: boolean }>;
+  
+  getAdminByUsername(username: string): Promise<AdminUser | undefined>;
+  getAdminById(id: string): Promise<AdminUser | undefined>;
+  createAdmin(admin: InsertAdminUser): Promise<AdminUser>;
+  
+  getCalendarSettings(): Promise<CalendarSettings | undefined>;
+  updateCalendarSettings(settings: Partial<InsertCalendarSettings>): Promise<CalendarSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -87,6 +98,43 @@ export class DatabaseStorage implements IStorage {
         throw error;
       }
     });
+  }
+
+  async getAdminByUsername(username: string): Promise<AdminUser | undefined> {
+    const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    return admin;
+  }
+
+  async getAdminById(id: string): Promise<AdminUser | undefined> {
+    const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return admin;
+  }
+
+  async createAdmin(admin: InsertAdminUser): Promise<AdminUser> {
+    const [newAdmin] = await db.insert(adminUsers).values(admin).returning();
+    return newAdmin;
+  }
+
+  async getCalendarSettings(): Promise<CalendarSettings | undefined> {
+    const [settings] = await db.select().from(calendarSettings);
+    return settings;
+  }
+
+  async updateCalendarSettings(settings: Partial<InsertCalendarSettings>): Promise<CalendarSettings> {
+    const existing = await this.getCalendarSettings();
+    
+    if (existing) {
+      const [updated] = await db.update(calendarSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(calendarSettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(calendarSettings)
+        .values({ ...settings })
+        .returning();
+      return created;
+    }
   }
 }
 

@@ -1,9 +1,16 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema, type Booking } from "@shared/schema";
+import { type Booking } from "@shared/schema";
 import { createCalendarEvent, deleteCalendarEvent } from "./googleCalendar";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+
+declare module "express-session" {
+  interface SessionData {
+    adminId?: string;
+  }
+}
 
 const bookingRequestSchema = z.object({
   name: z.string().min(2),
@@ -15,6 +22,16 @@ const bookingRequestSchema = z.object({
   bayType: z.enum(["standard", "premium"]),
   players: z.number().min(1).max(4),
   notes: z.string().optional(),
+});
+
+const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+const calendarSettingsSchema = z.object({
+  syncEmail: z.string().email().optional().nullable(),
+  calendarId: z.string().optional(),
 });
 
 function checkTimeOverlap(
@@ -40,10 +57,104 @@ function checkTimeOverlap(
   return newStart < existingEnd && newEnd > existingStart;
 }
 
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.session?.adminId) {
+    return res.status(401).json({ ok: false, message: "Non autorisé" });
+  }
+  next();
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
+    try {
+      const { username, password } = loginSchema.parse(req.body);
+      
+      const admin = await storage.getAdminByUsername(username);
+      if (!admin) {
+        return res.status(401).json({ ok: false, message: "Identifiants invalides" });
+      }
+
+      const validPassword = await bcrypt.compare(password, admin.passwordHash);
+      if (!validPassword) {
+        return res.status(401).json({ ok: false, message: "Identifiants invalides" });
+      }
+
+      req.session.adminId = admin.id;
+      
+      return res.json({ 
+        ok: true, 
+        admin: { id: admin.id, username: admin.username, role: admin.role } 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ ok: false, message: "Erreur de connexion" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ ok: false, message: "Erreur de déconnexion" });
+      }
+      res.clearCookie("connect.sid");
+      return res.json({ ok: true });
+    });
+  });
+
+  app.get("/api/auth/session", async (req: Request, res: Response) => {
+    if (!req.session?.adminId) {
+      return res.json({ ok: true, authenticated: false });
+    }
+
+    const admin = await storage.getAdminById(req.session.adminId);
+    if (!admin) {
+      return res.json({ ok: true, authenticated: false });
+    }
+
+    return res.json({ 
+      ok: true, 
+      authenticated: true,
+      admin: { id: admin.id, username: admin.username, role: admin.role }
+    });
+  });
+
+  app.get("/api/admin/calendar-settings", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const settings = await storage.getCalendarSettings();
+      return res.json({ ok: true, settings: settings || { syncEmail: null, calendarId: "primary" } });
+    } catch (error) {
+      console.error("Error fetching calendar settings:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des paramètres" });
+    }
+  });
+
+  app.put("/api/admin/calendar-settings", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const validated = calendarSettingsSchema.parse(req.body);
+      const settings = await storage.updateCalendarSettings(validated);
+      return res.json({ ok: true, settings });
+    } catch (error) {
+      console.error("Error updating calendar settings:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ ok: false, message: "Données invalides" });
+      }
+      return res.status(500).json({ ok: false, message: "Erreur lors de la mise à jour" });
+    }
+  });
+
+  app.get("/api/admin/bookings", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      return res.json({ ok: true, bookings });
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des réservations" });
+    }
+  });
   
   app.post("/api/book", async (req: Request, res: Response) => {
     try {
@@ -61,7 +172,7 @@ export async function registerRoutes(
         notes: validatedData.notes || null,
       };
 
-      const { booking, conflict } = await storage.createBookingWithLock(
+      const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
         (existingBookings: Booking[]) => {
           return existingBookings.some((existing) =>
