@@ -39,7 +39,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-6xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
+              <h1 className="text-4xl sm:text-5xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
                 AMENEZ LE <br />
                 PARCOURS <br />
                 À L'INTÉRIEUR <br />
@@ -66,7 +66,7 @@ export default function Home() {
           </div>
 
           {/* Right Content - Image Composition */}
-          <div className="md:col-span-6 relative h-[600px] flex items-center justify-center">
+          <div className="md:col-span-6 relative h-[400px] md:h-[600px] flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -83,25 +83,25 @@ export default function Home() {
               </div>
 
               {/* Floating Black Card - Overlapping Right */}
-              <div className="absolute top-[20%] -right-4 md:-right-12 bg-foreground text-background p-8 md:p-10 z-20 shadow-2xl max-w-[240px] md:max-w-[280px]">
-                <h2 className="text-6xl md:text-7xl font-heading font-bold leading-none mb-2">
-                  5
+              <div className="absolute top-[10%] md:top-[20%] right-0 md:-right-12 bg-foreground text-background p-6 md:p-10 z-20 shadow-2xl max-w-[180px] md:max-w-[280px]">
+                <h2 className="text-4xl md:text-7xl font-heading font-bold leading-none mb-2">
+                  4
                 </h2>
-                <h3 className="text-2xl font-heading font-bold uppercase tracking-wider mb-4">
+                <h3 className="text-xl md:text-2xl font-heading font-bold uppercase tracking-wider mb-2 md:mb-4">
                   Simulateurs
                 </h3>
-                <p className="text-sm font-sans text-background/80 leading-relaxed">
+                <p className="text-xs md:text-sm font-sans text-background/80 leading-relaxed hidden md:block">
                   Jouez sur des parcours de renommée mondiale avec la technologie Trackman.
                 </p>
               </div>
 
               {/* Arrow Circle - Overlapping Bottom Left Corner */}
-              <div className="absolute -bottom-16 -left-16 z-30">
+              <div className="absolute -bottom-8 md:-bottom-16 -left-4 md:-left-16 z-30">
                 <motion.div
                   whileHover={{ scale: 1.1 }}
-                  className="w-32 h-32 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors border-[12px] border-background"
+                  className="w-20 h-20 md:w-32 md:h-32 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors border-[8px] md:border-[12px] border-background"
                 >
-                  <ArrowDown className="text-background w-12 h-12" strokeWidth={1.5} />
+                  <ArrowDown className="text-background w-8 h-8 md:w-12 md:h-12" strokeWidth={1.5} />
                 </motion.div>
               </div>
             </motion.div>

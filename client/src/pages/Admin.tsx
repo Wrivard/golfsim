@@ -254,31 +254,31 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#F7F3E8]">
-      <header className="bg-[#1B1A18] text-[#F7F3E8] py-4 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="font-heading text-xl uppercase tracking-wider flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Administration Golf SIM
+      <header className="bg-[#1B1A18] text-[#F7F3E8] py-4 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <h1 className="font-heading text-base md:text-xl uppercase tracking-wider flex items-center gap-2">
+            <Settings className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
+            <span className="truncate">Administration Golf SIM</span>
           </h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm opacity-70">
+          <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+            <span className="text-xs md:text-sm opacity-70 truncate">
               {sessionQuery.data?.admin?.username}
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => logoutMutation.mutate()}
-              className="text-[#F7F3E8] hover:text-white hover:bg-white/10"
+              className="text-[#F7F3E8] hover:text-white hover:bg-white/10 shrink-0"
               data-testid="button-logout"
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
+              <LogOut className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Déconnexion</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto py-8 px-6 space-y-8">
+      <main className="max-w-6xl mx-auto py-6 md:py-8 px-4 md:px-6 space-y-6 md:space-y-8">
         
         <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
@@ -449,21 +449,21 @@ export default function Admin() {
             ) : (
               <div className="divide-y">
                 {bookingsQuery.data?.bookings?.map((booking: any) => (
-                  <div key={booking.id} className="p-4 hover:bg-gray-50">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-bold text-foreground">{booking.name}</p>
-                        <p className="text-sm text-muted-foreground">{booking.email}</p>
+                  <div key={booking.id} className="p-3 md:p-4 hover:bg-gray-50">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground truncate">{booking.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{booking.email}</p>
                         {booking.phone && (
-                          <p className="text-sm text-muted-foreground">{booking.phone}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{booking.phone}</p>
                         )}
                       </div>
-                      <div className="text-right flex items-start gap-3">
-                        <div>
-                          <p className="font-bold text-[#2B5734]">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                        <div className="text-left sm:text-right">
+                          <p className="font-bold text-[#2B5734] text-sm md:text-base">
                             {format(new Date(booking.date), "d MMM yyyy", { locale: fr })}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {booking.time} - {booking.duration}
                           </p>
                         </div>

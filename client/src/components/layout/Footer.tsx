@@ -76,17 +76,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/40 font-sans uppercase tracking-wider">
+        <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/40 font-sans uppercase tracking-wider text-center md:text-left">
           <p>&copy; {new Date().getFullYear()} Golf SIM Sorel-Tracy. Tous droits réservés.</p>
           
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a>
-              <a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a>
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-12">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+              <a href="#" className="hover:text-white transition-colors whitespace-nowrap">Politique de confidentialité</a>
+              <a href="#" className="hover:text-white transition-colors whitespace-nowrap">Conditions d'utilisation</a>
             </div>
             
             <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
-              <span>Conçu avec passion par :</span>
+              <span className="whitespace-nowrap">Conçu avec passion par :</span>
               <img src={kuaLogo} alt="Kua" className="h-5 w-auto mt-[-2px]" />
             </div>
           </div>
