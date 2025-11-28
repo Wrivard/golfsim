@@ -1,19 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import ctaImage from "@assets/stock_images/golf_ball_on_tee_ind_c9e1d0d8.jpg";
+import ctaImage from "@assets/stock_images/close_up_golf_balls__b53e793b.jpg";
 
 export default function SimulatorCTA() {
   return (
     <section className="relative py-40 overflow-hidden">
-      {/* Background Image - No Overlay as requested */}
+      {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
           src={ctaImage} 
-          alt="Golf simulator close up" 
-          className="w-full h-full object-cover"
+          alt="Golf balls close up in simulator" 
+          className="w-full h-full object-cover brightness-75" // Slightly darkened for text legibility without heavy overlay
         />
-        {/* Subtle gradient only at bottom for text readability if needed, but keeping it minimal */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+        {/* Subtle dark gradient for text pop */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
       </div>
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
