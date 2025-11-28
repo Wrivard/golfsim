@@ -12,7 +12,7 @@ export interface IStorage {
   createBookingWithConflictCheck(
     booking: InsertBooking,
     checkConflict: (existingBookings: Booking[]) => boolean
-  ): Promise<Booking | null>;
+  ): Promise<{ booking: Booking | null; conflict: boolean }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -57,27 +57,36 @@ export class DatabaseStorage implements IStorage {
   async createBookingWithConflictCheck(
     insertBooking: InsertBooking,
     checkConflict: (existingBookings: Booking[]) => boolean
-  ): Promise<Booking | null> {
-    const startOfDay = new Date(insertBooking.date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(insertBooking.date);
-    endOfDay.setHours(23, 59, 59, 999);
+  ): Promise<{ booking: Booking | null; conflict: boolean }> {
+    return await db.transaction(async (tx) => {
+      const startOfDay = new Date(insertBooking.date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(insertBooking.date);
+      endOfDay.setHours(23, 59, 59, 999);
 
-    const existingBookings = await db.select().from(bookings).where(
-      and(
-        gte(bookings.date, startOfDay),
-        lt(bookings.date, endOfDay),
-        eq(bookings.bayType, insertBooking.bayType)
-      )
-    );
+      const existingBookings = await tx.select().from(bookings).where(
+        and(
+          gte(bookings.date, startOfDay),
+          lt(bookings.date, endOfDay),
+          eq(bookings.bayType, insertBooking.bayType)
+        )
+      );
 
-    if (checkConflict(existingBookings)) {
-      return null;
-    }
+      if (checkConflict(existingBookings)) {
+        return { booking: null, conflict: true };
+      }
 
-    const [booking] = await db.insert(bookings).values(insertBooking).returning();
-    return booking;
+      try {
+        const [booking] = await tx.insert(bookings).values(insertBooking).returning();
+        return { booking, conflict: false };
+      } catch (error: any) {
+        if (error?.code === '23505') {
+          return { booking: null, conflict: true };
+        }
+        throw error;
+      }
+    });
   }
 }
 

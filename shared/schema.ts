@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,7 +16,9 @@ export const bookings = pgTable("bookings", {
   notes: text("notes"),
   calendarEventId: text("calendar_event_id"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().default(sql`now()`),
-});
+}, (table) => ({
+  uniqueSlot: uniqueIndex("unique_booking_slot").on(table.bayType, table.date, table.time),
+}));
 
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,

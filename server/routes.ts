@@ -61,7 +61,7 @@ export async function registerRoutes(
         notes: validatedData.notes || null,
       };
 
-      const booking = await storage.createBookingWithConflictCheck(
+      const { booking, conflict } = await storage.createBookingWithLock(
         bookingData,
         (existingBookings: Booking[]) => {
           return existingBookings.some((existing) =>
@@ -75,7 +75,7 @@ export async function registerRoutes(
         }
       );
 
-      if (!booking) {
+      if (conflict || !booking) {
         return res.status(409).json({
           ok: false,
           message: "Ce créneau n'est pas disponible. Veuillez choisir un autre horaire.",
