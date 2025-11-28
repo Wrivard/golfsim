@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import BrandMarquee from "@/components/home/BrandMarquee";
 import Testimonials from "@/components/home/Testimonials";
+import SimulatorCTA from "@/components/home/SimulatorCTA";
 import MembershipPreview from "@/components/home/MembershipPreview";
 import HowItWorks from "@/components/home/HowItWorks";
 import Events from "@/components/home/Events";
@@ -168,6 +169,9 @@ export default function Home() {
 
       {/* Testimonials */}
       <Testimonials />
+
+      {/* Simulator CTA */}
+      <SimulatorCTA />
     </Layout>
   );
 }
