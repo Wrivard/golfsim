@@ -30,6 +30,8 @@ export interface IStorage {
   saveOAuthToken(token: InsertOAuthToken): Promise<OAuthToken>;
   updateOAuthToken(provider: string, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined>;
   deleteOAuthToken(provider: string): Promise<void>;
+  
+  getBookingsByDateRange(startDate: Date, endDate: Date): Promise<Booking[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -85,8 +87,7 @@ export class DatabaseStorage implements IStorage {
       const existingBookings = await tx.select().from(bookings).where(
         and(
           gte(bookings.date, startOfDay),
-          lt(bookings.date, endOfDay),
-          eq(bookings.bayType, insertBooking.bayType)
+          lt(bookings.date, endOfDay)
         )
       );
 
@@ -165,6 +166,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOAuthToken(provider: string): Promise<void> {
     await db.delete(oauthTokens).where(eq(oauthTokens.provider, provider));
+  }
+
+  async getBookingsByDateRange(startDate: Date, endDate: Date): Promise<Booking[]> {
+    return db.select().from(bookings).where(
+      and(
+        gte(bookings.date, startDate),
+        lt(bookings.date, endDate)
+      )
+    );
   }
 }
 

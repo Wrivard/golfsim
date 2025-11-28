@@ -19,16 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Clock, Users, CheckCircle2, ChevronRight, ChevronLeft, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -56,10 +56,18 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-const TIME_SLOTS = [
-  "10:00", "11:00", "12:00", "13:00", "14:00", 
-  "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"
-];
+type AvailabilitySlot = { time: string; remainingBays: number };
+type DayAvailability = { slots: AvailabilitySlot[]; fullyBooked: boolean };
+type AvailabilityData = Record<string, DayAvailability>;
+
+async function fetchAvailability(start: Date, end: Date, duration: number): Promise<AvailabilityData> {
+  const startStr = start.toISOString().split('T')[0];
+  const endStr = end.toISOString().split('T')[0];
+  const response = await fetch(`/api/availability?start=${startStr}&end=${endStr}&duration=${duration}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.message);
+  return data.availability;
+}
 
 async function createBooking(data: z.infer<typeof formSchema>) {
   const response = await fetch("/api/book", {
@@ -87,6 +95,7 @@ export default function BookingForm() {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [step, setStep] = useState(1);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,6 +110,54 @@ export default function BookingForm() {
     },
   });
 
+  const watchDate = form.watch("date");
+  const watchTime = form.watch("time");
+  const watchBayType = form.watch("bayType");
+  const watchDuration = form.watch("duration");
+  const watchPlayers = form.watch("players");
+
+  const durationHours = parseInt(watchDuration?.replace('h', '') || '4', 10);
+
+  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth]);
+  const monthEnd = useMemo(() => endOfMonth(addMonths(currentMonth, 1)), [currentMonth]);
+
+  const { data: availability, isLoading: isLoadingAvailability, refetch } = useQuery({
+    queryKey: ['availability', monthStart.toISOString(), monthEnd.toISOString(), durationHours],
+    queryFn: () => fetchAvailability(monthStart, monthEnd, durationHours),
+    staleTime: 30000,
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [durationHours, refetch]);
+
+  useEffect(() => {
+    if (watchDate && availability) {
+      const dateStr = watchDate.toISOString().split('T')[0];
+      const dayAvail = availability[dateStr];
+      if (dayAvail) {
+        const availableTimes = dayAvail.slots.map(s => s.time);
+        if (watchTime && !availableTimes.includes(watchTime)) {
+          form.setValue("time", "");
+        }
+      }
+    }
+  }, [watchDate, watchDuration, availability, watchTime, form]);
+
+  const selectedDateSlots = useMemo(() => {
+    if (!watchDate || !availability) return [];
+    const dateStr = watchDate.toISOString().split('T')[0];
+    return availability[dateStr]?.slots || [];
+  }, [watchDate, availability]);
+
+  const isDateDisabled = (date: Date) => {
+    if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
+    if (!availability) return false;
+    const dateStr = date.toISOString().split('T')[0];
+    const dayAvail = availability[dateStr];
+    return dayAvail?.fullyBooked === true;
+  };
+
   const bookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: () => {
@@ -109,6 +166,7 @@ export default function BookingForm() {
         title: "Réservation confirmée",
         description: "Votre réservation a été enregistrée et ajoutée au calendrier.",
       });
+      refetch();
     },
     onError: (error: Error) => {
       toast({
@@ -118,12 +176,6 @@ export default function BookingForm() {
       });
     },
   });
-
-  const watchDate = form.watch("date");
-  const watchTime = form.watch("time");
-  const watchBayType = form.watch("bayType");
-  const watchDuration = form.watch("duration");
-  const watchPlayers = form.watch("players");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     bookingMutation.mutate(values);
@@ -194,71 +246,8 @@ export default function BookingForm() {
                     <CalendarIcon className="w-5 h-5 text-primary" /> 
                     1. Date & Heure
                   </h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Sélectionner une date</FormLabel>
-                        <div className="border rounded-md p-4 bg-background/50 w-full">
-                            <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
-                            initialFocus
-                            className="pointer-events-auto w-full"
-                            classNames={{
-                                head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider w-full",
-                                cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
-                                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                today: "bg-[#1B1A18] text-[#F7F3E8] rounded-md",
-                            }}
-                            />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
 
-                {watchDate && (
-                    <div className="space-y-4 animate-in fade-in duration-500">
-                        <FormField
-                            control={form.control}
-                            name="time"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Disponibilités pour le {format(watchDate, "d MMMM", { locale: fr })}</FormLabel>
-                                <FormControl>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                        {TIME_SLOTS.map((time) => (
-                                            <Button
-                                                key={time}
-                                                type="button"
-                                                variant={field.value === time ? "default" : "outline"}
-                                                className={cn(
-                                                    "h-10 text-sm font-sans transition-all", 
-                                                    field.value === time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
-                                                )}
-                                                onClick={() => field.onChange(time)}
-                                                data-testid={`timeslot-${time}`}
-                                            >
-                                                {time}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                    </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-6 mb-6">
                     <FormField
                         control={form.control}
                         name="duration"
@@ -302,9 +291,107 @@ export default function BookingForm() {
                             </FormItem>
                         )}
                     />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Sélectionner une date</FormLabel>
+                        <div className="border rounded-md p-4 bg-background/50 w-full relative">
+                            {isLoadingAvailability && (
+                              <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 rounded-md">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                              </div>
+                            )}
+                            <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            onMonthChange={setCurrentMonth}
+                            disabled={isDateDisabled}
+                            initialFocus
+                            className="pointer-events-auto w-full"
+                            classNames={{
+                                head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider w-full",
+                                cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
+                                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                                today: "bg-[#1B1A18] text-[#F7F3E8] rounded-md",
+                                day_disabled: "text-muted-foreground/40 opacity-50",
+                            }}
+                            />
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                <Button type="button" onClick={nextStep} className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4" data-testid="button-next">
+                {watchDate && (
+                    <div className="space-y-4 animate-in fade-in duration-500">
+                        <FormField
+                            control={form.control}
+                            name="time"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">
+                                  Disponibilités pour le {format(watchDate, "d MMMM", { locale: fr })}
+                                  {selectedDateSlots.length === 0 && !isLoadingAvailability && (
+                                    <span className="text-red-500 ml-2">(Aucun créneau disponible)</span>
+                                  )}
+                                </FormLabel>
+                                <FormControl>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                        {isLoadingAvailability ? (
+                                          <div className="col-span-full flex items-center justify-center py-4">
+                                            <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                                            <span className="text-sm text-muted-foreground">Chargement...</span>
+                                          </div>
+                                        ) : selectedDateSlots.length > 0 ? (
+                                          selectedDateSlots.map((slot) => (
+                                            <Button
+                                                key={slot.time}
+                                                type="button"
+                                                variant={field.value === slot.time ? "default" : "outline"}
+                                                className={cn(
+                                                    "h-12 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
+                                                    field.value === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
+                                                )}
+                                                onClick={() => field.onChange(slot.time)}
+                                                data-testid={`timeslot-${slot.time}`}
+                                            >
+                                                <span>{slot.time}</span>
+                                                <span className={cn(
+                                                  "text-[10px]",
+                                                  field.value === slot.time ? "text-white/80" : "text-muted-foreground"
+                                                )}>
+                                                  {slot.remainingBays} baie{slot.remainingBays > 1 ? 's' : ''} dispo
+                                                </span>
+                                            </Button>
+                                          ))
+                                        ) : (
+                                          <div className="col-span-full text-center py-4 text-muted-foreground">
+                                            Aucun créneau disponible pour cette date et durée.
+                                          </div>
+                                        )}
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+
+                <Button 
+                  type="button" 
+                  onClick={nextStep} 
+                  className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4" 
+                  disabled={!watchDate || !watchTime}
+                  data-testid="button-next"
+                >
                     Suivant <ChevronRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
@@ -469,6 +556,8 @@ export default function BookingForm() {
             </Card>
 
             <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed">
+                <p className="mb-2"><span className="font-bold text-foreground">Heures d'ouverture:</span> 8h à 22h</p>
+                <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 5 baies disponibles</p>
                 <p className="mb-2"><span className="font-bold text-foreground">Politique :</span> Annulation gratuite jusqu'à 24h avant.</p>
                 <p>Paiement requis sur place avant le début de la session.</p>
             </div>

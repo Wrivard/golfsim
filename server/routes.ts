@@ -249,10 +249,129 @@ export async function registerRoutes(
       });
     }
   });
+
+  const MAX_BAYS = 5;
+  const OPENING_HOUR = 8;
+  const CLOSING_HOUR = 22;
+  const MIN_DURATION_HOURS = 4;
+
+  function calculateOccupancy(bookings: Booking[], targetDate: Date): Map<number, number> {
+    const occupancy = new Map<number, number>();
+    
+    for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour++) {
+      occupancy.set(hour, 0);
+    }
+    
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+    
+    for (const booking of bookings) {
+      const bookingDateStr = new Date(booking.date).toISOString().split('T')[0];
+      if (bookingDateStr !== targetDateStr) continue;
+      
+      const [startHour] = booking.time.split(':').map(Number);
+      const durationHours = parseInt(booking.duration.replace('h', ''), 10);
+      
+      for (let h = startHour; h < startHour + durationHours && h < CLOSING_HOUR; h++) {
+        const current = occupancy.get(h) || 0;
+        occupancy.set(h, current + 1);
+      }
+    }
+    
+    return occupancy;
+  }
+
+  function getAvailableSlots(occupancy: Map<number, number>, durationHours: number): Array<{ time: string; remainingBays: number }> {
+    const slots: Array<{ time: string; remainingBays: number }> = [];
+    
+    const lastValidStartHour = CLOSING_HOUR - durationHours;
+    
+    for (let hour = OPENING_HOUR; hour <= lastValidStartHour; hour++) {
+      let minRemainingBays = MAX_BAYS;
+      
+      for (let h = hour; h < hour + durationHours; h++) {
+        const occupied = occupancy.get(h) || 0;
+        const remaining = MAX_BAYS - occupied;
+        minRemainingBays = Math.min(minRemainingBays, remaining);
+      }
+      
+      if (minRemainingBays > 0) {
+        const timeStr = hour.toString().padStart(2, '0') + ':00';
+        slots.push({ time: timeStr, remainingBays: minRemainingBays });
+      }
+    }
+    
+    return slots;
+  }
+
+  app.get("/api/availability", async (req: Request, res: Response) => {
+    try {
+      const { start, end, duration } = req.query;
+      
+      if (!start || !end) {
+        return res.status(400).json({ ok: false, message: "Les paramètres start et end sont requis" });
+      }
+      
+      const startDate = new Date(start as string);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(end as string);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const durationHours = duration ? parseInt(duration as string, 10) : MIN_DURATION_HOURS;
+      
+      const bookings = await storage.getBookingsByDateRange(startDate, endDate);
+      
+      const availability: Record<string, { slots: Array<{ time: string; remainingBays: number }>; fullyBooked: boolean }> = {};
+      
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const occupancy = calculateOccupancy(bookings, currentDate);
+        const slots = getAvailableSlots(occupancy, durationHours);
+        
+        availability[dateStr] = {
+          slots,
+          fullyBooked: slots.length === 0,
+        };
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      return res.json({ ok: true, availability });
+    } catch (error) {
+      console.error("Error fetching availability:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des disponibilités" });
+    }
+  });
   
   app.post("/api/book", async (req: Request, res: Response) => {
     try {
       const validatedData = bookingRequestSchema.parse(req.body);
+      
+      const [startHour] = validatedData.time.split(':').map(Number);
+      const durationHours = parseInt(validatedData.duration.replace('h', ''), 10);
+      const endHour = startHour + durationHours;
+      
+      if (startHour < OPENING_HOUR) {
+        return res.status(400).json({
+          ok: false,
+          message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
+        });
+      }
+      
+      if (endHour > CLOSING_HOUR) {
+        return res.status(400).json({
+          ok: false,
+          message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
+        });
+      }
+      
+      if (durationHours < MIN_DURATION_HOURS) {
+        return res.status(400).json({
+          ok: false,
+          message: `La durée minimale est de ${MIN_DURATION_HOURS} heures.`,
+        });
+      }
       
       const bookingData = {
         name: validatedData.name,
@@ -269,14 +388,33 @@ export async function registerRoutes(
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
         (existingBookings: Booking[]) => {
-          return existingBookings.some((existing) =>
-            checkTimeOverlap(
-              existing.time,
-              existing.duration,
-              validatedData.time,
-              validatedData.duration
-            )
-          );
+          const occupancy = new Map<number, number>();
+          
+          for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour++) {
+            occupancy.set(hour, 0);
+          }
+          
+          for (const existing of existingBookings) {
+            const [startHour] = existing.time.split(':').map(Number);
+            const durationHours = parseInt(existing.duration.replace('h', ''), 10);
+            
+            for (let h = startHour; h < startHour + durationHours && h < CLOSING_HOUR; h++) {
+              const current = occupancy.get(h) || 0;
+              occupancy.set(h, current + 1);
+            }
+          }
+          
+          const [newStartHour] = validatedData.time.split(':').map(Number);
+          const newDurationHours = parseInt(validatedData.duration.replace('h', ''), 10);
+          
+          for (let h = newStartHour; h < newStartHour + newDurationHours && h < CLOSING_HOUR; h++) {
+            const current = occupancy.get(h) || 0;
+            if (current >= MAX_BAYS) {
+              return true;
+            }
+          }
+          
+          return false;
         }
       );
 
