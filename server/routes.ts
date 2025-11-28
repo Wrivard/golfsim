@@ -30,7 +30,7 @@ const bookingRequestSchema = z.object({
   date: z.string().transform((str) => new Date(str)),
   time: z.string(),
   duration: z.string(),
-  bayType: z.enum(["standard", "premium"]),
+  bayType: z.enum(["1", "2", "3", "4"]),
   players: z.number().min(1).max(4),
   notes: z.string().optional(),
 });
