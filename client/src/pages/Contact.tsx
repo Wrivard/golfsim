@@ -27,7 +27,8 @@ export default function Contact() {
     <Layout>
       <div className="relative py-24 pt-32">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Reception" className="w-full h-full object-cover brightness-50" />
+            <img src={headerBg} alt="Reception" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 uppercase text-white">Contactez-nous</h1>

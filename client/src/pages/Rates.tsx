@@ -11,7 +11,8 @@ export default function Rates() {
        {/* Header */}
        <div className="relative py-32 pt-40">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Golf Landscape" className="w-full h-full object-cover brightness-50" />
+            <img src={headerBg} alt="Golf Landscape" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-primary">Tarifs</span></h1>

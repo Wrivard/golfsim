@@ -13,7 +13,8 @@ export default function About() {
       {/* Header */}
       <div className="relative pt-32 pb-24 border-b border-foreground/5">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Lounge Golf" className="w-full h-full object-cover brightness-50" />
+            <img src={headerBg} alt="Lounge Golf" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <span className="text-white text-sm font-bold tracking-widest uppercase mb-4 block">Golf SIM Sorel-Tracy</span>
