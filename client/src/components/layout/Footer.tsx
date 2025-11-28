@@ -87,7 +87,7 @@ export default function Footer() {
             
             <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
               <span>Conçu avec passion par :</span>
-              <img src={kuaLogo} alt="Kua" className="h-3 w-auto mt-[-2px]" />
+              <img src={kuaLogo} alt="Kua" className="h-5 w-auto mt-[-2px]" />
             </div>
           </div>
         </div>
