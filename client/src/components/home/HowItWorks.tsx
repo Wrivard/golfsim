@@ -1,20 +1,20 @@
-import { Smartphone, Key, Trophy } from "lucide-react";
+import { Smartphone, Users, Trophy } from "lucide-react";
 
 const STEPS = [
   {
     icon: Smartphone,
     title: "Réservez",
-    description: "Utilisez notre application pour réserver votre baie en quelques secondes. Disponibilité en temps réel au bout des doigts."
+    description: "Sélectionnez votre plage horaire de 4 heures en ligne. Disponibilité en temps réel pour nos 5 simulateurs."
   },
   {
-    icon: Key,
-    title: "Déverrouillez",
-    description: "Accédez au centre 24/7 avec votre clé numérique. Votre code d'entrée sécurisé est envoyé directement sur votre téléphone."
+    icon: Users,
+    title: "Rejoignez",
+    description: "Formez votre quatuor. Invitez jusqu'à 3 amis pour partager l'expérience dans notre ambiance lounge."
   },
   {
     icon: Trophy,
     title: "Jouez",
-    description: "Lancez votre parcours préféré sur Trackman et commencez à jouer. Analysez vos données instantanément."
+    description: "Disputez une ronde complète sur les plus beaux parcours du monde avec la précision Trackman 4."
   }
 ];
 
@@ -27,7 +27,7 @@ export default function HowItWorks() {
             Comment ça marche
           </h2>
           <p className="text-lg text-foreground/70 font-sans max-w-2xl mx-auto">
-            Fluide, autonome et conçu pour le golfeur moderne.
+            Une expérience de golf simplifiée, du début à la fin.
           </p>
         </div>
 
