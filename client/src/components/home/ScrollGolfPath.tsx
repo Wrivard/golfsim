@@ -39,8 +39,8 @@ export default function ScrollGolfPath() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: container,
-        start: "top bottom", // Start when top of section hits bottom of viewport
-        end: "bottom bottom", // End when bottom of section hits bottom of viewport
+        start: "top center", // Start later (when top hits center instead of bottom)
+        end: "bottom bottom", 
         scrub: 1,
       }
     });
