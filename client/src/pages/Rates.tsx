@@ -7,107 +7,133 @@ export default function Rates() {
   return (
     <Layout>
        {/* Header */}
-       <div className="bg-foreground text-background py-20">
+       <div className="bg-foreground text-background py-32 pt-40">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-serif font-medium mb-6">Tarifs & Forfaits</h1>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto">
-            Des options flexibles pour les joueurs occasionnels et les passionnés.
+          <h1 className="text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none">Rates & <span className="text-primary">Memberships</span></h1>
+          <p className="text-lg text-white/70 max-w-2xl mx-auto font-sans">
+            Flexible options for casual players and dedicated enthusiasts alike.
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="container mx-auto px-4 py-24">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           
           {/* Visitor Card */}
-          <div className="bg-card border border-border rounded-2xl p-8 flex flex-col relative overflow-hidden hover:border-primary/50 transition-colors">
-            <h3 className="font-serif text-2xl mb-2">Visiteur</h3>
-            <p className="text-muted-foreground mb-6">Pour une partie occasionnelle.</p>
-            <div className="mb-8">
-              <span className="text-4xl font-bold font-serif">45$</span>
-              <span className="text-muted-foreground"> / heure</span>
+          <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Visitor</h3>
+            <p className="text-muted-foreground mb-8 font-sans">For the occasional round.</p>
+            <div className="mb-8 pb-8 border-b border-foreground/10">
+              <span className="text-6xl font-heading font-bold">45$</span>
+              <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider"> / hour</span>
             </div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Accès aux simulateurs standards</span>
+            <ul className="space-y-4 mb-12 flex-grow">
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Standard Simulator Access</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Jusqu'à 4 joueurs par baie</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Up to 4 players per bay</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Prêt de matériel disponible</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Rental clubs available</span>
               </li>
             </ul>
             <Link href="/contact">
-              <Button className="w-full rounded-full" variant="outline">Réserver</Button>
+              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background">
+                Book Now
+              </Button>
             </Link>
           </div>
 
           {/* Member Card (Highlighted) */}
-          <div className="bg-primary text-primary-foreground rounded-2xl p-8 flex flex-col relative shadow-xl transform md:-translate-y-4">
-            <div className="absolute top-4 right-4 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">POPULAIRE</div>
-            <h3 className="font-serif text-2xl mb-2">Membre</h3>
-            <p className="text-primary-foreground/80 mb-6">L'expérience complète.</p>
-            <div className="mb-8">
-              <span className="text-4xl font-bold font-serif">120$</span>
-              <span className="text-primary-foreground/80"> / mois</span>
+          <div className="bg-foreground text-background p-10 flex flex-col relative shadow-2xl transform md:-translate-y-8 z-10">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-2">Most Popular</div>
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase text-white">Member</h3>
+            <p className="text-white/60 mb-8 font-sans">The complete experience.</p>
+            <div className="mb-8 pb-8 border-b border-white/10">
+              <span className="text-6xl font-heading font-bold text-white">120$</span>
+              <span className="text-white/60 font-sans font-bold text-sm uppercase tracking-wider"> / month</span>
             </div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex items-start gap-3 text-sm">
-                <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3" /></div>
-                <span>Tarif horaire réduit (25$/h)</span>
+            <ul className="space-y-4 mb-12 flex-grow">
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Reduced hourly rate (25$/h)</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3" /></div>
-                <span>Accès 24/7 au centre</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>24/7 Center Access</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3" /></div>
-                <span>Réservation prioritaire (14 jours)</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Priority Booking (14 days)</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3" /></div>
-                <span>Casier de rangement inclus</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium text-white/90">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Storage locker included</span>
               </li>
             </ul>
             <Link href="/contact">
-              <Button className="w-full rounded-full bg-white text-primary hover:bg-white/90 border-none">Devenir Membre</Button>
+              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary text-white hover:bg-white hover:text-foreground border-none">
+                Become a Member
+              </Button>
             </Link>
           </div>
 
           {/* Event Card */}
-          <div className="bg-card border border-border rounded-2xl p-8 flex flex-col hover:border-primary/50 transition-colors">
-            <h3 className="font-serif text-2xl mb-2">Événement</h3>
-            <p className="text-muted-foreground mb-6">Privatisation pour groupes.</p>
-            <div className="mb-8">
-              <span className="text-4xl font-bold font-serif">Sur devis</span>
+          <div className="bg-transparent border-2 border-foreground/10 p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Events</h3>
+            <p className="text-muted-foreground mb-8 font-sans">Private groups & parties.</p>
+            <div className="mb-8 pb-8 border-b border-foreground/10">
+              <span className="text-4xl font-heading font-bold">Custom</span>
             </div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Privatisation complète ou partielle</span>
+            <ul className="space-y-4 mb-12 flex-grow">
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Full or partial venue buyout</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Service traiteur disponible</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Catering services available</span>
               </li>
-              <li className="flex items-start gap-3 text-sm">
-                <Check className="w-5 h-5 text-primary shrink-0" />
-                <span>Tournois organisés</span>
+              <li className="flex items-center gap-4 text-sm font-sans font-medium">
+                <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span>Organized tournaments</span>
               </li>
             </ul>
             <Link href="/contact">
-              <Button className="w-full rounded-full" variant="outline">Nous contacter</Button>
+              <Button className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background">
+                Inquire Now
+              </Button>
             </Link>
           </div>
         </div>
 
-        <div className="mt-16 text-center">
-          <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-            * Les tarifs sont sujets à changement sans préavis. Les taxes ne sont pas incluses. L'annulation doit être faite 24h à l'avance.
+        <div className="mt-20 text-center">
+          <p className="text-muted-foreground text-xs font-sans max-w-2xl mx-auto uppercase tracking-wide">
+            * Rates subject to change without notice. Taxes not included. Cancellation required 24h in advance.
           </p>
         </div>
       </div>
