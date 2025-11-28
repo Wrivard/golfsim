@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import headerBg from "@assets/stock_images/indoor_golf_simulato_b1484a9b.jpg";
+import headerBg from "@assets/stock_images/golf_ball_on_tee_ind_0117f1a4.jpg";
 
 export default function Contact() {
   const { register, handleSubmit, reset } = useForm();

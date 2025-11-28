@@ -5,7 +5,7 @@ import { Link } from "wouter";
 
 // Images
 import loungeImage from "@assets/generated_images/luxury_golf_lounge_area.png";
-import headerBg from "@assets/stock_images/modern_indoor_golf_s_3c6fc92b.jpg";
+import headerBg from "@assets/stock_images/golf_balls_on_artifi_49b5b303.jpg";
 
 export default function About() {
   return (

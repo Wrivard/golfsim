@@ -7,7 +7,7 @@ import img3 from "@assets/generated_images/golfer_swinging_indoors.png";
 import img4 from "@assets/generated_images/golf_ball_on_turf_close_up.png";
 import img5 from "@assets/generated_images/golf_simulator_screen_display.png";
 import img6 from "@assets/generated_images/golf_clubs_detail_shot.png";
-import headerBg from "@assets/stock_images/indoor_golf_simulato_c42fce95.jpg";
+import headerBg from "@assets/stock_images/pile_of_golf_balls_o_6c3431a4.jpg";
 
 const images = [
   {
