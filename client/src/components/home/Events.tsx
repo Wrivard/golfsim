@@ -18,13 +18,13 @@ export default function Events() {
                    <CalendarDays className="w-6 h-6 text-[#2B5734]" />
                 </div>
                 <h3 className="text-4xl font-heading font-bold uppercase leading-none text-[#F7F3E8]">Soirée <br/>Corporative</h3>
-                <p className="text-[#F7F3E8]/80 font-sans leading-relaxed">
+                <p className="text-[#F7F3E8] font-sans leading-relaxed">
                   "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience."
                 </p>
-                <div className="w-full h-px bg-[#F7F3E8]/10" />
+                <div className="w-full h-px bg-[#F7F3E8]/20" />
                 <div className="flex justify-between w-full items-center">
-                   <p className="text-xs font-bold uppercase tracking-wider text-[#2B5734]">Disponible 7 jours / 7</p>
-                   <p className="text-xs font-bold uppercase tracking-wider text-[#F7F3E8]/40">Capacité 20+</p>
+                   <p className="text-xs font-bold uppercase tracking-wider text-[#2B5734] bg-white/10 px-2 py-1 rounded">Disponible 7 jours / 7</p>
+                   <p className="text-xs font-bold uppercase tracking-wider text-[#F7F3E8]/70">Capacité 20+</p>
                 </div>
              </div>
           </div>

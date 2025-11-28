@@ -42,25 +42,37 @@ export default function Testimonials() {
           {REVIEWS.map((review, idx) => (
             <Card 
               key={idx} 
-              className="border-none rounded-none shadow-lg hover:shadow-xl transition-all duration-300 bg-[#1B1A18] text-[#F7F3E8]"
+              className={`border-none rounded-none shadow-lg hover:shadow-xl transition-all duration-300 ${
+                review.theme === 'dark' 
+                  ? "bg-[#1B1A18] text-[#F7F3E8]" 
+                  : "bg-background text-foreground"
+              }`}
             >
               <CardContent className="p-10 flex flex-col h-full">
                 <div className="flex gap-1 mb-6">
                   {[...Array(review.rating)].map((_, i) => (
                     <Star 
                       key={i} 
-                      className="w-5 h-5 fill-[#2B5734] text-[#2B5734]" 
+                      className={`w-5 h-5 ${
+                        review.theme === 'dark' ? "fill-[#2B5734] text-[#2B5734]" : "fill-primary text-primary"
+                      }`} 
                     />
                   ))}
                 </div>
-                <p className="text-lg font-sans leading-relaxed italic mb-8 flex-grow text-[#F7F3E8]/90">
+                <p className={`text-lg font-sans leading-relaxed italic mb-8 flex-grow ${
+                  review.theme === 'dark' ? "text-[#F7F3E8]/90" : "text-foreground/80"
+                }`}>
                   "{review.text}"
                 </p>
                 <div className="mt-auto">
-                  <p className="font-heading font-bold text-xl uppercase text-[#F7F3E8]">
+                  <p className={`font-heading font-bold text-xl uppercase ${
+                    review.theme === 'dark' ? "text-[#F7F3E8]" : "text-foreground"
+                  }`}>
                     {review.name}
                   </p>
-                  <p className="text-sm font-bold uppercase tracking-wider text-[#2B5734]">
+                  <p className={`text-sm font-bold uppercase tracking-wider ${
+                    review.theme === 'dark' ? "text-[#2B5734]" : "text-primary"
+                  }`}>
                     {review.role}
                   </p>
                 </div>
