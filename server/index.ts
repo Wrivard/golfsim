@@ -23,14 +23,24 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret && process.env.NODE_ENV === 'production') {
+  throw new Error('SESSION_SECRET environment variable is required in production');
+}
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'golf-sim-sorel-tracy-secret-key-2024',
+  secret: sessionSecret || 'dev-only-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax',
   }
 }));
 

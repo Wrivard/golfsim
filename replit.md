@@ -43,10 +43,15 @@ Preferred communication style: Simple, everyday language.
 - Express.js with TypeScript running on Node.js
 - HTTP server created via Node's native `http` module
 - Custom middleware for JSON parsing, URL encoding, and raw body capture (for webhook support)
+- Session-based authentication using express-session with secure cookies
 
 **API Design**
 - RESTful API endpoints under `/api/*` namespace
 - POST `/api/book` - booking creation with conflict checking and Google Calendar integration
+- POST `/api/auth/login` - admin authentication with bcrypt password verification
+- POST `/api/auth/logout` - session destruction and logout
+- GET `/api/auth/session` - check current authentication status
+- GET/PUT `/api/admin/calendar-settings` - protected calendar configuration endpoints
 - Validation using Zod schemas shared with frontend via `@shared/schema`
 
 **Database Layer**
@@ -57,8 +62,16 @@ Preferred communication style: Simple, everyday language.
 
 **Database Schema**
 - `bookings` table with fields: id (UUID), name, email, phone, date, time, duration, bayType (standard/premium), players (1-4), notes, calendarEventId, createdAt
+- `admin_users` table with fields: id (UUID), username (unique), passwordHash, role, createdAt
+- `calendar_settings` table with fields: id (UUID), syncEmail, calendarId, updatedAt
 - Unique constraint on (bayType, date, time) to prevent double-booking
-- Timestamps stored as `Date` objects in JavaScript for consistent timezone handling
+
+**Admin Authentication System**
+- Hidden `/login` page accessible at `/login` (not linked in navigation)
+- Session-based authentication with bcrypt password hashing
+- Protected `/admin` dashboard for calendar settings management
+- Default admin credentials: username `admin`, password `golfsim2024`
+- SESSION_SECRET environment variable required in production
 
 **Booking Business Logic**
 - Conflict detection: checks existing bookings for same bay, date, and overlapping time windows
@@ -74,6 +87,7 @@ Preferred communication style: Simple, everyday language.
 - OAuth2 client credential management with automatic token refresh
 - Event creation with start/end datetime, summary, and description
 - Bidirectional sync: stores `calendarEventId` in database for future updates/deletions
+- Calendar sync email configurable via admin dashboard
 
 **Development & Deployment Tools**
 - Replit-specific plugins:
@@ -90,6 +104,7 @@ Preferred communication style: Simple, everyday language.
 
 **Environment Variables**
 - `DATABASE_URL` - PostgreSQL connection string (required)
+- `SESSION_SECRET` - Secret for session encryption (required in production)
 - `REPLIT_CONNECTORS_HOSTNAME` - Replit connectors API endpoint
 - `REPL_IDENTITY` or `WEB_REPL_RENEWAL` - Authentication tokens for Replit services
 - `NODE_ENV` - environment flag (development/production)
@@ -101,6 +116,6 @@ Preferred communication style: Simple, everyday language.
 - OpenGraph image detection and dynamic URL generation for social sharing
 
 **Session & Storage**
-- No authentication system currently implemented
+- Express-session for admin authentication with secure cookies
 - Storage abstraction layer (`IStorage` interface) in `server/storage.ts` for future flexibility
-- Database storage implementation handles CRUD operations for bookings
+- Database storage implementation handles CRUD operations for bookings, admin users, and calendar settings
