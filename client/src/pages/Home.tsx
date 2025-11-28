@@ -96,12 +96,12 @@ export default function Home() {
               </div>
 
               {/* Arrow Circle - Overlapping Bottom Left Corner */}
-              <div className="absolute -bottom-8 left-8 md:left-12 z-30">
+              <div className="absolute bottom-0 left-0 z-30">
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   className="w-20 h-20 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg border-4 border-background"
                 >
-                  <ArrowDown className="text-white w-8 h-8" />
+                  <ArrowDown className="text-background w-8 h-8" strokeWidth={4} />
                 </motion.div>
               </div>
             </motion.div>
