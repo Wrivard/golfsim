@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
-import { useLocation, useSearch } from "wouter";
+import { useEffect, useState, useMemo } from "react";
+import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2 } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
+import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
+import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
 
 async function fetchSession() {
   const response = await fetch("/api/auth/session");
@@ -100,6 +102,8 @@ async function logout() {
   return data;
 }
 
+const PRICE_PER_HOUR = 30;
+
 export default function Admin() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
@@ -107,6 +111,9 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [calendarId, setCalendarId] = useState("primary");
   const [isConnecting, setIsConnecting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterBay, setFilterBay] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("all");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -251,16 +258,92 @@ export default function Admin() {
   const isConfigured = connectionQuery.data?.configured !== false;
   const isConnected = connectionQuery.data?.connected;
   const calendars = calendarsQuery.data?.calendars || [];
+  const allBookings = bookingsQuery.data?.bookings || [];
+  
+  const getBookingDateTime = (booking: any): Date => {
+    try {
+      const dateString = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+      const datePart = dateString.split('T')[0];
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = (booking.time || '00:00').split(':').map(Number);
+      return new Date(year, month - 1, day, hours, minutes, 0);
+    } catch {
+      return new Date(booking.date);
+    }
+  };
+  
+  const stats = useMemo(() => {
+    const now = new Date();
+    const upcoming = allBookings.filter((b: any) => {
+      try {
+        const bookingDateTime = getBookingDateTime(b);
+        return isAfter(bookingDateTime, now);
+      } catch {
+        return false;
+      }
+    });
+    
+    const totalHours = allBookings.reduce((acc: number, b: any) => {
+      const hours = parseFloat(b.duration?.replace('h', '') || '0');
+      return acc + hours;
+    }, 0);
+    
+    const estimatedRevenue = totalHours * PRICE_PER_HOUR;
+    
+    return {
+      total: allBookings.length,
+      upcoming: upcoming.length,
+      totalHours,
+      estimatedRevenue,
+    };
+  }, [allBookings]);
+  
+  const filteredBookings = useMemo(() => {
+    const now = new Date();
+    return allBookings.filter((booking: any) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = booking.name?.toLowerCase().includes(query);
+        const matchesEmail = booking.email?.toLowerCase().includes(query);
+        if (!matchesName && !matchesEmail) return false;
+      }
+      
+      if (filterBay !== "all" && booking.bayType !== filterBay) {
+        return false;
+      }
+      
+      if (filterPeriod !== "all") {
+        const bookingDateTime = getBookingDateTime(booking);
+        
+        if (filterPeriod === "upcoming" && !isAfter(bookingDateTime, now)) return false;
+        if (filterPeriod === "past" && isAfter(bookingDateTime, now)) return false;
+      }
+      
+      return true;
+    });
+  }, [allBookings, searchQuery, filterBay, filterPeriod]);
 
   return (
     <div className="min-h-screen bg-[#F7F3E8]">
       <header className="bg-[#1B1A18] text-[#F7F3E8] py-4 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-          <h1 className="font-heading text-base md:text-xl uppercase tracking-wider flex items-center gap-2">
-            <Settings className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
-            <span className="truncate">Administration Golf SIM</span>
-          </h1>
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 md:w-12 md:h-12 filter invert brightness-0 saturate-100">
+              <img src={logo} alt="Golf SIM" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h1 className="font-heading text-lg md:text-xl uppercase tracking-wider">
+                Panneau d'administration
+              </h1>
+              <p className="text-xs text-white/60 hidden sm:block">Golf SIM Sorel-Tracy</p>
+            </div>
+          </div>
           <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+            <Link href="/" className="text-xs md:text-sm text-white/70 hover:text-white flex items-center gap-1 transition-colors">
+              <ExternalLink className="w-3 h-3" />
+              <span className="hidden sm:inline">Voir le site</span>
+            </Link>
+            <Separator orientation="vertical" className="h-4 bg-white/20 hidden sm:block" />
             <span className="text-xs md:text-sm opacity-70 truncate">
               {sessionQuery.data?.admin?.username}
             </span>
@@ -279,6 +362,64 @@ export default function Admin() {
       </header>
 
       <main className="max-w-6xl mx-auto py-6 md:py-8 px-4 md:px-6 space-y-6 md:space-y-8">
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="shadow-md border-none bg-white">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#2B5734]/10 flex items-center justify-center">
+                  <CalendarDays className="w-5 h-5 md:w-6 md:h-6 text-[#2B5734]" />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.total}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Réservations totales</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-md border-none bg-white">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.upcoming}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">À venir</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-md border-none bg-white">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 md:w-6 md:h-6 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.totalHours}h</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Heures réservées</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-md border-none bg-white">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.estimatedRevenue}$</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Revenus estimés</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         
         <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
@@ -438,17 +579,73 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0 bg-white">
+            <div className="p-4 border-b bg-gray-50/50">
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher par nom ou courriel..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-10"
+                    data-testid="input-search"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Select value={filterBay} onValueChange={setFilterBay}>
+                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-bay">
+                      <SelectValue placeholder="Baie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes les baies</SelectItem>
+                      <SelectItem value="1">Baie 1</SelectItem>
+                      <SelectItem value="2">Baie 2</SelectItem>
+                      <SelectItem value="3">Baie 3</SelectItem>
+                      <SelectItem value="4">Baie 4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-period">
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      <SelectItem value="upcoming">À venir</SelectItem>
+                      <SelectItem value="past">Passées</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {(searchQuery || filterBay !== "all" || filterPeriod !== "all") && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="w-4 h-4" />
+                  <span>{filteredBookings.length} résultat(s) sur {allBookings.length}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterBay("all");
+                      setFilterPeriod("all");
+                    }}
+                  >
+                    Effacer les filtres
+                  </Button>
+                </div>
+              )}
+            </div>
             {bookingsQuery.isLoading ? (
               <div className="p-8 text-center">
                 <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#2B5734]" />
               </div>
-            ) : bookingsQuery.data?.bookings?.length === 0 ? (
+            ) : filteredBookings.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 Aucune réservation pour le moment.
               </div>
             ) : (
-              <div className="divide-y">
-                {bookingsQuery.data?.bookings?.map((booking: any) => (
+              <div className="divide-y max-h-[600px] overflow-y-auto">
+                {filteredBookings.map((booking: any) => (
                   <div key={booking.id} className="p-3 md:p-4 hover:bg-gray-50">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="min-w-0">
