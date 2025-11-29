@@ -542,6 +542,212 @@ export async function registerRoutes(
     }
   });
 
+  const batchBookingSchema = z.object({
+    items: z.array(z.object({
+      date: z.string().transform((str) => new Date(str)),
+      time: z.string(),
+      duration: z.string(),
+      bayType: z.enum(["1", "2", "3", "4"]),
+    })).min(1),
+    name: z.string().min(2),
+    email: z.string().email(),
+    phone: z.string().optional(),
+    players: z.number().min(1).max(4),
+    notes: z.string().optional(),
+  });
+
+  app.post("/api/book/batch", async (req: Request, res: Response) => {
+    try {
+      const validatedData = batchBookingSchema.parse(req.body);
+      
+      for (const item of validatedData.items) {
+        const [startHour] = item.time.split(':').map(Number);
+        const durationHours = parseInt(item.duration.replace('h', ''), 10);
+        const endHour = startHour + durationHours;
+        
+        if (startHour < OPENING_HOUR) {
+          return res.status(400).json({
+            ok: false,
+            message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
+          });
+        }
+        
+        if (endHour > CLOSING_HOUR) {
+          return res.status(400).json({
+            ok: false,
+            message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
+          });
+        }
+        
+        if (durationHours < MIN_DURATION_HOURS) {
+          return res.status(400).json({
+            ok: false,
+            message: `La durée minimale est de ${MIN_DURATION_HOURS} heures.`,
+          });
+        }
+        
+        if (!BAY_NUMBERS.includes(item.bayType)) {
+          return res.status(400).json({
+            ok: false,
+            message: `Baie invalide. Choisissez parmi: ${BAY_NUMBERS.join(', ')}.`,
+          });
+        }
+      }
+      
+      const createdBookings: any[] = [];
+      const createdCalendarEvents: string[] = [];
+      
+      try {
+        for (const item of validatedData.items) {
+          const bookingData = {
+            name: validatedData.name,
+            email: validatedData.email,
+            phone: validatedData.phone || null,
+            date: item.date,
+            time: item.time,
+            duration: item.duration,
+            bayType: item.bayType,
+            players: validatedData.players,
+            notes: validatedData.notes || null,
+          };
+
+          const { booking, conflict } = await storage.createBookingWithConflictCheck(
+            bookingData,
+            (existingBookings: Booking[]) => {
+              const requestedBay = item.bayType;
+              const [newStartHour] = item.time.split(':').map(Number);
+              const newDurationHours = parseInt(item.duration.replace('h', ''), 10);
+              
+              const newHours = new Set<number>();
+              for (let h = newStartHour; h < newStartHour + newDurationHours && h < CLOSING_HOUR; h++) {
+                newHours.add(h);
+              }
+              
+              for (const existing of existingBookings) {
+                if (existing.bayType !== requestedBay) continue;
+                
+                const [existingStartHour] = existing.time.split(':').map(Number);
+                const existingDurationHours = parseInt(existing.duration.replace('h', ''), 10);
+                
+                for (let h = existingStartHour; h < existingStartHour + existingDurationHours && h < CLOSING_HOUR; h++) {
+                  if (newHours.has(h)) {
+                    return true;
+                  }
+                }
+              }
+              
+              for (const prevBooking of createdBookings) {
+                if (prevBooking.bayType !== requestedBay) continue;
+                
+                const prevDateStr = new Date(prevBooking.date).toISOString().split('T')[0];
+                const currentDateStr = item.date.toISOString().split('T')[0];
+                if (prevDateStr !== currentDateStr) continue;
+                
+                const [prevStartHour] = prevBooking.time.split(':').map(Number);
+                const prevDurationHours = parseInt(prevBooking.duration.replace('h', ''), 10);
+                
+                for (let h = prevStartHour; h < prevStartHour + prevDurationHours && h < CLOSING_HOUR; h++) {
+                  if (newHours.has(h)) {
+                    return true;
+                  }
+                }
+              }
+              
+              return false;
+            }
+          );
+
+          if (conflict || !booking) {
+            for (const prevBooking of createdBookings) {
+              await storage.deleteBooking(prevBooking.id);
+            }
+            for (const eventId of createdCalendarEvents) {
+              try {
+                await deleteCalendarEvent(eventId);
+              } catch (e) {
+                console.error("Failed to cleanup calendar event:", e);
+              }
+            }
+            
+            return res.status(409).json({
+              ok: false,
+              message: `Le créneau pour la Baie ${item.bayType} le ${item.date.toLocaleDateString('fr-CA')} à ${item.time} n'est pas disponible.`,
+            });
+          }
+
+          createdBookings.push(booking);
+
+          try {
+            const calendarEventId = await createCalendarEvent({
+              name: validatedData.name,
+              email: validatedData.email,
+              phone: validatedData.phone || null,
+              date: item.date,
+              time: item.time,
+              duration: item.duration,
+              bayType: item.bayType,
+              players: validatedData.players,
+              notes: validatedData.notes || null,
+            });
+
+            if (calendarEventId) {
+              createdCalendarEvents.push(calendarEventId);
+              await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+            }
+          } catch (calendarError) {
+            console.error("Failed to create calendar event:", calendarError);
+          }
+        }
+
+        return res.status(201).json({
+          ok: true,
+          count: createdBookings.length,
+          reservations: createdBookings.map(b => ({
+            id: b.id,
+            name: b.name,
+            email: b.email,
+            date: b.date,
+            time: b.time,
+            duration: b.duration,
+            bayType: b.bayType,
+            players: b.players,
+          })),
+        });
+      } catch (innerError) {
+        for (const prevBooking of createdBookings) {
+          try {
+            await storage.deleteBooking(prevBooking.id);
+          } catch (e) {
+            console.error("Failed to cleanup booking:", e);
+          }
+        }
+        for (const eventId of createdCalendarEvents) {
+          try {
+            await deleteCalendarEvent(eventId);
+          } catch (e) {
+            console.error("Failed to cleanup calendar event:", e);
+          }
+        }
+        throw innerError;
+      }
+    } catch (error) {
+      console.error("Batch booking error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          ok: false,
+          message: "Données de réservation invalides.",
+          errors: error.errors,
+        });
+      }
+
+      return res.status(500).json({
+        ok: false,
+        message: "Une erreur est survenue. Veuillez réessayer.",
+      });
+    }
+  });
+
   app.get("/api/reservations", async (_req: Request, res: Response) => {
     try {
       const bookings = await storage.getAllBookings();

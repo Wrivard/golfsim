@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Clock, Users, CheckCircle2, ChevronRight, ChevronLeft, Info, Loader2 } from "lucide-react";
+import { CalendarIcon, Clock, Users, CheckCircle2, ChevronRight, ChevronLeft, Info, Loader2, Plus, X, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -29,8 +29,17 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 
-const formSchema = z.object({
+type CartItem = {
+  id: string;
+  date: Date;
+  time: string;
+  duration: string;
+  bays: string[];
+};
+
+const contactFormSchema = z.object({
   name: z.string().min(2, {
     message: "Le nom doit contenir au moins 2 caractères.",
   }),
@@ -38,18 +47,6 @@ const formSchema = z.object({
     message: "Veuillez entrer une adresse courriel valide.",
   }),
   phone: z.string().optional(),
-  date: z.date({
-    required_error: "Une date est requise.",
-  }),
-  time: z.string({
-    required_error: "Une heure est requise.",
-  }),
-  duration: z.string({
-    required_error: "La durée est requise.",
-  }),
-  bayType: z.enum(["1", "2", "3", "4"], {
-    required_error: "La baie est requise.",
-  }),
   players: z.string({
     required_error: "Le nombre de joueurs est requis.",
   }),
@@ -69,17 +66,20 @@ async function fetchAvailability(start: Date, end: Date, duration: number): Prom
   return data.availability;
 }
 
-async function createBooking(data: z.infer<typeof formSchema>) {
-  const response = await fetch("/api/book", {
+async function createBatchBooking(data: {
+  items: { date: string; time: string; duration: string; bayType: string }[];
+  name: string;
+  email: string;
+  phone?: string;
+  players: number;
+  notes?: string;
+}) {
+  const response = await fetch("/api/book/batch", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      ...data,
-      date: data.date.toISOString(),
-      players: parseInt(data.players, 10),
-    }),
+    body: JSON.stringify(data),
   });
 
   const result = await response.json();
@@ -96,27 +96,25 @@ export default function BookingForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [step, setStep] = useState(1);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedDuration, setSelectedDuration] = useState<string>("4h");
+  const [selectedBays, setSelectedBays] = useState<string[]>([]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof contactFormSchema>>({
+    resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
       email: "",
       phone: "",
       notes: "",
-      duration: "4h",
-      bayType: undefined,
       players: "1"
     },
   });
 
-  const watchDate = form.watch("date");
-  const watchTime = form.watch("time");
-  const watchBayType = form.watch("bayType");
-  const watchDuration = form.watch("duration");
-  const watchPlayers = form.watch("players");
-
-  const durationHours = parseInt(watchDuration?.replace('h', '') || '4', 10);
+  const durationHours = parseInt(selectedDuration?.replace('h', '') || '4', 10);
 
   const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth]);
   const monthEnd = useMemo(() => endOfMonth(addMonths(currentMonth, 1)), [currentMonth]);
@@ -132,41 +130,43 @@ export default function BookingForm() {
   }, [durationHours, refetch]);
 
   useEffect(() => {
-    if (watchDate && availability) {
-      const dateStr = watchDate.toISOString().split('T')[0];
+    if (selectedDate && availability) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
       const dayAvail = availability[dateStr];
       if (dayAvail) {
         const availableTimes = dayAvail.slots.map(s => s.time);
-        if (watchTime && !availableTimes.includes(watchTime)) {
-          form.setValue("time", "");
-          form.setValue("bayType", undefined as any);
+        if (selectedTime && !availableTimes.includes(selectedTime)) {
+          setSelectedTime("");
+          setSelectedBays([]);
         }
       }
     }
-  }, [watchDate, watchDuration, availability, watchTime, form]);
+  }, [selectedDate, selectedDuration, availability, selectedTime]);
 
   useEffect(() => {
-    if (watchTime && watchDate && availability) {
-      const dateStr = watchDate.toISOString().split('T')[0];
-      const dayAvail = availability[dateStr];
-      const slot = dayAvail?.slots.find(s => s.time === watchTime);
-      if (slot && watchBayType && !slot.availableBays.includes(watchBayType)) {
-        form.setValue("bayType", undefined as any);
-      }
-    }
-  }, [watchTime, watchDate, availability, watchBayType, form]);
+    setSelectedBays([]);
+  }, [selectedTime, selectedDate]);
 
   const selectedDateSlots = useMemo(() => {
-    if (!watchDate || !availability) return [];
-    const dateStr = watchDate.toISOString().split('T')[0];
+    if (!selectedDate || !availability) return [];
+    const dateStr = selectedDate.toISOString().split('T')[0];
     return availability[dateStr]?.slots || [];
-  }, [watchDate, availability]);
+  }, [selectedDate, availability]);
 
   const availableBaysForSelectedTime = useMemo(() => {
-    if (!watchTime || !selectedDateSlots.length) return [];
-    const slot = selectedDateSlots.find(s => s.time === watchTime);
-    return slot?.availableBays || [];
-  }, [watchTime, selectedDateSlots]);
+    if (!selectedTime || !selectedDateSlots.length) return [];
+    const slot = selectedDateSlots.find(s => s.time === selectedTime);
+    const baseBays = slot?.availableBays || [];
+    
+    const cartItemsForSameSlot = cart.filter(item => 
+      item.date.toISOString().split('T')[0] === selectedDate?.toISOString().split('T')[0] &&
+      item.time === selectedTime &&
+      item.duration === selectedDuration
+    );
+    const reservedBaysInCart = cartItemsForSameSlot.flatMap(item => item.bays);
+    
+    return baseBays.filter(bay => !reservedBaysInCart.includes(bay));
+  }, [selectedTime, selectedDateSlots, cart, selectedDate, selectedDuration]);
 
   const isDateDisabled = (date: Date) => {
     if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
@@ -176,13 +176,45 @@ export default function BookingForm() {
     return dayAvail?.fullyBooked === true;
   };
 
+  const toggleBaySelection = (bay: string) => {
+    setSelectedBays(prev => 
+      prev.includes(bay) 
+        ? prev.filter(b => b !== bay)
+        : [...prev, bay]
+    );
+  };
+
+  const addToCart = () => {
+    if (!selectedDate || !selectedTime || selectedBays.length === 0) return;
+    
+    const newItem: CartItem = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      date: selectedDate,
+      time: selectedTime,
+      duration: selectedDuration,
+      bays: [...selectedBays],
+    };
+    
+    setCart(prev => [...prev, newItem]);
+    setSelectedBays([]);
+    
+    toast({
+      title: "Ajouté au panier",
+      description: `${selectedBays.length} baie(s) ajoutée(s) pour le ${format(selectedDate, "d MMMM", { locale: fr })} à ${selectedTime}`,
+    });
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
   const bookingMutation = useMutation({
-    mutationFn: createBooking,
+    mutationFn: createBatchBooking,
     onSuccess: () => {
       setIsSubmitted(true);
       toast({
-        title: "Réservation confirmée",
-        description: "Votre réservation a été enregistrée et ajoutée au calendrier.",
+        title: "Réservations confirmées",
+        description: `${cart.reduce((acc, item) => acc + item.bays.length, 0)} réservation(s) enregistrée(s) avec succès.`,
       });
       refetch();
     },
@@ -195,22 +227,41 @@ export default function BookingForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    bookingMutation.mutate(values);
+  function onSubmit(values: z.infer<typeof contactFormSchema>) {
+    const items = cart.flatMap(cartItem => 
+      cartItem.bays.map(bay => ({
+        date: cartItem.date.toISOString(),
+        time: cartItem.time,
+        duration: cartItem.duration,
+        bayType: bay,
+      }))
+    );
+
+    bookingMutation.mutate({
+      items,
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      players: parseInt(values.players, 10),
+      notes: values.notes,
+    });
   }
 
-  const nextStep = async () => {
-    let valid = false;
-    if (step === 1) {
-      valid = await form.trigger(["date", "time", "duration", "bayType"]);
-    } else {
-      valid = true;
+  const nextStep = () => {
+    if (cart.length === 0) {
+      toast({
+        title: "Panier vide",
+        description: "Veuillez ajouter au moins une réservation au panier.",
+        variant: "destructive",
+      });
+      return;
     }
-    
-    if (valid) setStep(step + 1);
+    setStep(2);
   };
 
-  const prevStep = () => setStep(step - 1);
+  const prevStep = () => setStep(1);
+
+  const totalReservations = cart.reduce((acc, item) => acc + item.bays.length, 0);
 
   if (isSubmitted) {
     return (
@@ -218,23 +269,30 @@ export default function BookingForm() {
         <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
           <CheckCircle2 className="w-10 h-10 text-white" />
         </div>
-        <h3 className="text-3xl font-heading font-bold uppercase mb-4 text-foreground">Réservation Confirmée !</h3>
+        <h3 className="text-3xl font-heading font-bold uppercase mb-4 text-foreground">Réservations Confirmées !</h3>
         <p className="text-foreground/70 font-sans mb-8 text-lg max-w-md mx-auto">
-          Votre réservation a été enregistrée avec succès. Vous recevrez une confirmation par courriel sous peu.
+          Vos {totalReservations} réservation(s) ont été enregistrées avec succès. Vous recevrez une confirmation par courriel sous peu.
         </p>
-        <div className="bg-background/50 p-6 rounded-lg mb-8 text-left max-w-sm mx-auto border border-foreground/5">
-             <h4 className="font-bold uppercase text-xs tracking-wider text-foreground/60 mb-4 border-b border-foreground/10 pb-2">Récapitulatif</h4>
-             <div className="space-y-2 text-sm font-sans">
-                <div className="flex justify-between"><span className="text-foreground/60">Date:</span> <span className="font-medium">{watchDate ? format(watchDate, "d MMMM yyyy", { locale: fr }) : "-"}</span></div>
-                <div className="flex justify-between"><span className="text-foreground/60">Heure:</span> <span className="font-medium">{watchTime || "-"}</span></div>
-                <div className="flex justify-between"><span className="text-foreground/60">Durée:</span> <span className="font-medium">{watchDuration}</span></div>
-                <div className="flex justify-between"><span className="text-foreground/60">Baie:</span> <span className="font-medium">Baie {watchBayType}</span></div>
-             </div>
+        <div className="bg-background/50 p-6 rounded-lg mb-8 text-left max-w-md mx-auto border border-foreground/5">
+          <h4 className="font-bold uppercase text-xs tracking-wider text-foreground/60 mb-4 border-b border-foreground/10 pb-2">Récapitulatif</h4>
+          <div className="space-y-3 text-sm font-sans max-h-[300px] overflow-y-auto">
+            {cart.map((item, idx) => (
+              <div key={item.id} className="pb-3 border-b border-foreground/10 last:border-0">
+                <div className="font-medium text-foreground">
+                  {format(item.date, "EEEE d MMMM", { locale: fr })}
+                </div>
+                <div className="text-foreground/60">
+                  {item.time} - {item.duration} • Baie(s): {item.bays.join(", ")}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <Button 
           onClick={() => {
             setIsSubmitted(false);
             setStep(1);
+            setCart([]);
             form.reset();
           }} 
           variant="outline" 
@@ -253,8 +311,8 @@ export default function BookingForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 bg-white/50 backdrop-blur-sm p-6 md:p-8 rounded-xl border border-foreground/5 shadow-xl">
             
             <div className="flex items-center gap-2 mb-6">
-                <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 1 ? "bg-primary" : "bg-foreground/10")} />
-                <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 2 ? "bg-primary" : "bg-foreground/10")} />
+              <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 1 ? "bg-primary" : "bg-foreground/10")} />
+              <div className={cn("h-2 flex-1 rounded-full transition-colors", step >= 2 ? "bg-primary" : "bg-foreground/10")} />
             </div>
 
             {step === 1 && (
@@ -262,179 +320,167 @@ export default function BookingForm() {
                 <div className="space-y-4">
                   <h3 className="text-xl font-heading font-bold uppercase flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-primary" /> 
-                    1. Date & Créneau
+                    1. Sélectionnez vos créneaux
                   </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Vous pouvez réserver plusieurs baies et/ou plusieurs créneaux en les ajoutant au panier.
+                  </p>
 
-                  <FormField
-                      control={form.control}
-                      name="duration"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                              <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
-                                  <SelectValue placeholder="Bloc de jeu" />
-                              </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                              <SelectItem value="4h">4 Heures (Standard)</SelectItem>
-                              <SelectItem value="8h">8 Heures (Double)</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                  />
+                  <div className="space-y-2">
+                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</label>
+                    <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                      <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
+                        <SelectValue placeholder="Bloc de jeu" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4h">4 Heures (Standard)</SelectItem>
+                        <SelectItem value="8h">8 Heures (Double)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">Sélectionner une date</FormLabel>
-                        <div className="border rounded-md p-4 bg-background/50 w-full relative">
-                            {isLoadingAvailability && (
-                              <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 rounded-md">
-                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                              </div>
-                            )}
-                            <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            onMonthChange={setCurrentMonth}
-                            disabled={isDateDisabled}
-                            initialFocus
-                            className="pointer-events-auto w-full"
-                            classNames={{
-                                head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider w-full",
-                                cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
-                                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                today: "bg-[#1B1A18] text-[#F7F3E8] rounded-md",
-                                day_disabled: "text-muted-foreground/40 opacity-50",
-                            }}
-                            />
+                  <div className="space-y-2">
+                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2 block">Sélectionner une date</label>
+                    <div className="border rounded-md p-4 bg-background/50 w-full relative">
+                      {isLoadingAvailability && (
+                        <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 rounded-md">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      )}
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        onMonthChange={setCurrentMonth}
+                        disabled={isDateDisabled}
+                        initialFocus
+                        className="pointer-events-auto w-full"
+                        classNames={{
+                          head_cell: "text-muted-foreground font-normal text-[0.8rem] uppercase tracking-wider w-full",
+                          cell: "h-9 w-full text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 mx-auto flex items-center justify-center rounded-md",
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                          today: "bg-[#1B1A18] text-[#F7F3E8] rounded-md",
+                          day_disabled: "text-muted-foreground/40 opacity-50",
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {watchDate && (
-                    <div className="space-y-6 animate-in fade-in duration-500">
-                        <FormField
-                            control={form.control}
-                            name="time"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">
-                                  Créneaux disponibles pour le {format(watchDate, "d MMMM", { locale: fr })}
-                                  {selectedDateSlots.length === 0 && !isLoadingAvailability && (
-                                    <span className="text-red-500 ml-2">(Aucun créneau disponible)</span>
-                                  )}
-                                </FormLabel>
-                                <FormControl>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                        {isLoadingAvailability ? (
-                                          <div className="col-span-full flex items-center justify-center py-4">
-                                            <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-                                            <span className="text-sm text-muted-foreground">Chargement...</span>
-                                          </div>
-                                        ) : selectedDateSlots.length > 0 ? (
-                                          selectedDateSlots.map((slot) => (
-                                            <Button
-                                                key={slot.time}
-                                                type="button"
-                                                variant={field.value === slot.time ? "default" : "outline"}
-                                                className={cn(
-                                                    "h-14 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
-                                                    field.value === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
-                                                )}
-                                                onClick={() => {
-                                                  field.onChange(slot.time);
-                                                  form.setValue("bayType", undefined as any);
-                                                }}
-                                                data-testid={`timeslot-${slot.time}`}
-                                            >
-                                                <span className="font-bold">{slot.time}</span>
-                                                <span className={cn(
-                                                  "text-[10px]",
-                                                  field.value === slot.time ? "text-white/80" : "text-muted-foreground"
-                                                )}>
-                                                  {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''} dispo
-                                                </span>
-                                            </Button>
-                                          ))
-                                        ) : (
-                                          <div className="col-span-full text-center py-4 text-muted-foreground">
-                                            Aucun créneau disponible pour cette date et durée.
-                                          </div>
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-
-                        {watchTime && availableBaysForSelectedTime.length > 0 && (
-                          <FormField
-                              control={form.control}
-                              name="bayType"
-                              render={({ field }) => (
-                              <FormItem className="animate-in fade-in duration-300">
-                                  <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2">
-                                    Choisir une baie
-                                  </FormLabel>
-                                  <FormControl>
-                                      <div className="grid grid-cols-4 gap-3">
-                                          {["1", "2", "3", "4"].map((bay) => {
-                                            const isAvailable = availableBaysForSelectedTime.includes(bay);
-                                            return (
-                                              <Button
-                                                  key={bay}
-                                                  type="button"
-                                                  variant={field.value === bay ? "default" : "outline"}
-                                                  className={cn(
-                                                      "h-16 text-lg font-bold transition-all flex flex-col items-center justify-center gap-1", 
-                                                      field.value === bay ? "bg-primary text-white border-primary" : "",
-                                                      !isAvailable ? "opacity-40 cursor-not-allowed" : "hover:border-primary hover:text-primary"
-                                                  )}
-                                                  onClick={() => isAvailable && field.onChange(bay)}
-                                                  disabled={!isAvailable}
-                                                  data-testid={`bay-${bay}`}
-                                              >
-                                                  <span>Baie {bay}</span>
-                                                  <span className={cn(
-                                                    "text-[10px] font-normal",
-                                                    field.value === bay ? "text-white/80" : "text-muted-foreground"
-                                                  )}>
-                                                    {isAvailable ? "Disponible" : "Réservée"}
-                                                  </span>
-                                              </Button>
-                                            );
-                                          })}
-                                      </div>
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                              )}
-                          />
+                {selectedDate && (
+                  <div className="space-y-6 animate-in fade-in duration-500">
+                    <div className="space-y-2">
+                      <label className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2 block">
+                        Créneaux disponibles pour le {format(selectedDate, "d MMMM", { locale: fr })}
+                        {selectedDateSlots.length === 0 && !isLoadingAvailability && (
+                          <span className="text-red-500 ml-2">(Aucun créneau disponible)</span>
                         )}
+                      </label>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        {isLoadingAvailability ? (
+                          <div className="col-span-full flex items-center justify-center py-4">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                            <span className="text-sm text-muted-foreground">Chargement...</span>
+                          </div>
+                        ) : selectedDateSlots.length > 0 ? (
+                          selectedDateSlots.map((slot) => (
+                            <Button
+                              key={slot.time}
+                              type="button"
+                              variant={selectedTime === slot.time ? "default" : "outline"}
+                              className={cn(
+                                "h-14 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
+                                selectedTime === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
+                              )}
+                              onClick={() => setSelectedTime(slot.time)}
+                              data-testid={`timeslot-${slot.time}`}
+                            >
+                              <span className="font-bold">{slot.time}</span>
+                              <span className={cn(
+                                "text-[10px]",
+                                selectedTime === slot.time ? "text-white/80" : "text-muted-foreground"
+                              )}>
+                                {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''} dispo
+                              </span>
+                            </Button>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center py-4 text-muted-foreground">
+                            Aucun créneau disponible pour cette date et durée.
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {selectedTime && availableBaysForSelectedTime.length > 0 && (
+                      <div className="space-y-3 animate-in fade-in duration-300">
+                        <label className="uppercase font-bold text-xs tracking-wider text-foreground/80 mb-2 block">
+                          Choisir une ou plusieurs baies
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {["1", "2", "3", "4"].map((bay) => {
+                            const isAvailable = availableBaysForSelectedTime.includes(bay);
+                            const isSelected = selectedBays.includes(bay);
+                            return (
+                              <Button
+                                key={bay}
+                                type="button"
+                                variant={isSelected ? "default" : "outline"}
+                                className={cn(
+                                  "h-16 text-lg font-bold transition-all flex flex-col items-center justify-center gap-1", 
+                                  isSelected ? "bg-primary text-white border-primary" : "",
+                                  !isAvailable ? "opacity-40 cursor-not-allowed" : "hover:border-primary hover:text-primary"
+                                )}
+                                onClick={() => isAvailable && toggleBaySelection(bay)}
+                                disabled={!isAvailable}
+                                data-testid={`bay-${bay}`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  {isSelected && <CheckCircle2 className="w-4 h-4" />}
+                                  Baie {bay}
+                                </span>
+                                <span className={cn(
+                                  "text-[10px] font-normal",
+                                  isSelected ? "text-white/80" : "text-muted-foreground"
+                                )}>
+                                  {isAvailable ? "Disponible" : "Réservée"}
+                                </span>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        
+                        {selectedBays.length > 0 && (
+                          <Button 
+                            type="button"
+                            onClick={addToCart}
+                            className="w-full h-12 mt-4 bg-foreground text-background hover:bg-primary rounded-full font-bold uppercase tracking-wider text-sm"
+                            data-testid="button-add-to-cart"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Ajouter {selectedBays.length} baie(s) au panier
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedTime && availableBaysForSelectedTime.length === 0 && (
+                      <div className="text-center py-4 text-amber-600 bg-amber-50 rounded-lg">
+                        Toutes les baies sont déjà dans votre panier pour ce créneau.
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <Button 
                   type="button" 
                   onClick={nextStep} 
                   className="w-full h-14 rounded-full font-bold uppercase tracking-wider text-sm mt-4" 
-                  disabled={!watchDate || !watchTime || !watchBayType}
+                  disabled={cart.length === 0}
                   data-testid="button-next"
                 >
-                    Suivant <ChevronRight className="ml-2 w-4 h-4" />
+                  Suivant ({totalReservations} réservation{totalReservations > 1 ? 's' : ''}) <ChevronRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
             )}
@@ -442,8 +488,8 @@ export default function BookingForm() {
             {step === 2 && (
               <div className="space-y-6 animate-in slide-in-from-right-5 duration-300">
                 <h3 className="text-xl font-heading font-bold uppercase flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" /> 
-                    2. Vos Coordonnées
+                  <Users className="w-5 h-5 text-primary" /> 
+                  2. Vos Coordonnées
                 </h3>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -496,7 +542,7 @@ export default function BookingForm() {
                     name="players"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Joueurs <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Joueurs par baie <span className="text-red-500">*</span></FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-players">
@@ -535,25 +581,25 @@ export default function BookingForm() {
                   )}
                 />
 
-                <div className="flex gap-4 pt-4">
-                    <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-full font-bold uppercase tracking-wider text-sm border-foreground/20" data-testid="button-back">
-                        <ChevronLeft className="mr-2 w-4 h-4" /> Retour
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      className="flex-[2] h-14 bg-primary text-white hover:bg-primary/90 rounded-full font-bold uppercase tracking-wider text-sm shadow-lg transition-all hover:scale-[1.01]"
-                      disabled={bookingMutation.isPending}
-                      data-testid="button-submit"
-                    >
-                        {bookingMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Réservation en cours...
-                          </>
-                        ) : (
-                          "Confirmer la réservation"
-                        )}
-                    </Button>
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <Button type="button" variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-full font-bold uppercase tracking-wider text-sm border-foreground/20" data-testid="button-back">
+                    <ChevronLeft className="mr-2 w-4 h-4" /> Retour
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-[2] h-14 bg-primary text-white hover:bg-primary/90 rounded-full font-bold uppercase tracking-wider text-sm shadow-lg transition-all hover:scale-[1.01]"
+                    disabled={bookingMutation.isPending}
+                    data-testid="button-submit"
+                  >
+                    {bookingMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Réservation en cours...
+                      </>
+                    ) : (
+                      `Confirmer ${totalReservations} réservation${totalReservations > 1 ? 's' : ''}`
+                    )}
+                  </Button>
                 </div>
               </div>
             )}
@@ -562,48 +608,68 @@ export default function BookingForm() {
       </div>
 
       <div className="md:col-span-1">
-         <div className="sticky top-32 space-y-6">
-            <Card className="bg-[#EAE6D9] border-none shadow-lg overflow-hidden">
-                <div className="bg-foreground p-4 text-background text-center">
-                    <h4 className="font-heading font-bold uppercase tracking-widest text-sm">Votre Réservation</h4>
-                </div>
-                <CardContent className="p-6 space-y-4">
-                    <div className="flex items-start gap-3">
-                        <CalendarIcon className="w-4 h-4 text-primary mt-1" />
-                        <div>
-                            <span className="text-xs uppercase text-foreground/60 font-bold tracking-wider block">Date</span>
-                            <span className="font-bold text-foreground">{watchDate ? format(watchDate, "EEEE d MMMM", { locale: fr }) : "Sélectionner..."}</span>
-                        </div>
-                    </div>
-                    <Separator className="bg-foreground/10" />
-                    
-                    <div className="flex items-start gap-3">
-                        <Clock className="w-4 h-4 text-primary mt-1" />
-                        <div>
-                            <span className="text-xs uppercase text-foreground/60 font-bold tracking-wider block">Heure & Durée</span>
-                            <span className="font-bold text-foreground">{watchTime || "--:--"} ({watchDuration})</span>
-                        </div>
-                    </div>
-                    <Separator className="bg-foreground/10" />
-
-                    <div className="flex items-start gap-3">
-                        <Info className="w-4 h-4 text-primary mt-1" />
-                        <div>
-                            <span className="text-xs uppercase text-foreground/60 font-bold tracking-wider block">Détails</span>
-                            <span className="font-bold text-foreground block">{watchBayType ? `Baie ${watchBayType}` : "Choisir une baie..."}</span>
-                            <span className="text-sm text-foreground/70 block">{watchPlayers} Joueur(s)</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed">
-                <p className="mb-2"><span className="font-bold text-foreground">Heures d'ouverture:</span> 8h à 22h</p>
-                <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 4 baies disponibles</p>
-                <p className="mb-2"><span className="font-bold text-foreground">Politique :</span> Annulation gratuite jusqu'à 24h avant.</p>
-                <p>Paiement requis sur place avant le début de la session.</p>
+        <div className="sticky top-32 space-y-6">
+          <Card className="bg-[#EAE6D9] border-none shadow-lg overflow-hidden">
+            <div className="bg-foreground p-4 text-background flex items-center justify-between">
+              <h4 className="font-heading font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Votre Panier
+              </h4>
+              {cart.length > 0 && (
+                <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+                  {totalReservations}
+                </span>
+              )}
             </div>
-         </div>
+            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+              {cart.length === 0 ? (
+                <div className="text-center py-8 text-foreground/50">
+                  <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Votre panier est vide</p>
+                  <p className="text-xs mt-1">Sélectionnez des créneaux et baies pour les ajouter</p>
+                </div>
+              ) : (
+                cart.map((item) => (
+                  <div key={item.id} className="bg-background/50 rounded-lg p-3 relative group">
+                    <button 
+                      type="button"
+                      onClick={() => removeFromCart(item.id)}
+                      className="absolute top-2 right-2 w-6 h-6 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      data-testid={`remove-cart-${item.id}`}
+                    >
+                      <X className="w-3 h-3 text-red-600" />
+                    </button>
+                    <div className="flex items-start gap-3">
+                      <CalendarIcon className="w-4 h-4 text-primary mt-1 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-bold text-foreground text-sm block truncate">
+                          {format(item.date, "EEE d MMM", { locale: fr })}
+                        </span>
+                        <span className="text-xs text-foreground/60 block">
+                          {item.time} • {item.duration}
+                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.bays.map(bay => (
+                            <span key={bay} className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded">
+                              Baie {bay}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed">
+            <p className="mb-2"><span className="font-bold text-foreground">Heures d'ouverture:</span> 8h à 22h</p>
+            <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 4 baies disponibles</p>
+            <p className="mb-2"><span className="font-bold text-foreground">Astuce:</span> Vous pouvez réserver plusieurs baies et dates en même temps!</p>
+            <p>Paiement requis sur place avant le début de la session.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
