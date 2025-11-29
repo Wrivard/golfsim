@@ -281,7 +281,18 @@ export async function registerRoutes(
   const BAY_NUMBERS = ["1", "2", "3", "4"];
   const OPENING_HOUR = 8;
   const CLOSING_HOUR = 22;
-  const MIN_DURATION_HOURS = 4;
+  const MIN_DURATION_HOURS = 1;
+  const PRICE_PER_HOUR = 30;
+  
+  function parseDurationToMinutes(duration: string): number {
+    const hours = parseFloat(duration.replace('h', ''));
+    return Math.round(hours * 60);
+  }
+  
+  function parseTimeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  }
 
   function getBayOccupancy(bookings: Booking[], targetDate: Date): Map<string, Set<number>> {
     const bayOccupancy = new Map<string, Set<number>>();
@@ -299,14 +310,15 @@ export async function registerRoutes(
       const bay = booking.bayType;
       if (!BAY_NUMBERS.includes(bay)) continue;
       
-      const [startHour] = booking.time.split(':').map(Number);
-      const durationHours = parseInt(booking.duration.replace('h', ''), 10);
+      const startMinutes = parseTimeToMinutes(booking.time);
+      const durationMinutes = parseDurationToMinutes(booking.duration);
+      const endMinutes = startMinutes + durationMinutes;
       
-      const occupiedHours = bayOccupancy.get(bay) || new Set<number>();
-      for (let h = startHour; h < startHour + durationHours && h < CLOSING_HOUR; h++) {
-        occupiedHours.add(h);
+      const occupiedSlots = bayOccupancy.get(bay) || new Set<number>();
+      for (let m = startMinutes; m < endMinutes && m < CLOSING_HOUR * 60; m += 30) {
+        occupiedSlots.add(m);
       }
-      bayOccupancy.set(bay, occupiedHours);
+      bayOccupancy.set(bay, occupiedSlots);
     }
     
     return bayOccupancy;
@@ -315,17 +327,18 @@ export async function registerRoutes(
   function getAvailableSlots(bayOccupancy: Map<string, Set<number>>, durationHours: number): Array<{ time: string; availableBays: string[] }> {
     const slots: Array<{ time: string; availableBays: string[] }> = [];
     
-    const lastValidStartHour = CLOSING_HOUR - durationHours;
+    const durationMinutes = Math.round(durationHours * 60);
+    const lastValidStartMinutes = CLOSING_HOUR * 60 - durationMinutes;
     
-    for (let hour = OPENING_HOUR; hour <= lastValidStartHour; hour++) {
+    for (let minutes = OPENING_HOUR * 60; minutes <= lastValidStartMinutes; minutes += 30) {
       const availableBays: string[] = [];
       
       for (const bay of BAY_NUMBERS) {
-        const occupiedHours = bayOccupancy.get(bay) || new Set<number>();
+        const occupiedSlots = bayOccupancy.get(bay) || new Set<number>();
         let bayAvailable = true;
         
-        for (let h = hour; h < hour + durationHours; h++) {
-          if (occupiedHours.has(h)) {
+        for (let m = minutes; m < minutes + durationMinutes; m += 30) {
+          if (occupiedSlots.has(m)) {
             bayAvailable = false;
             break;
           }
@@ -337,7 +350,9 @@ export async function registerRoutes(
       }
       
       if (availableBays.length > 0) {
-        const timeStr = hour.toString().padStart(2, '0') + ':00';
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const timeStr = hours.toString().padStart(2, '0') + ':' + mins.toString().padStart(2, '0');
         slots.push({ time: timeStr, availableBays });
       }
     }
@@ -359,7 +374,7 @@ export async function registerRoutes(
       const endDate = new Date(end as string);
       endDate.setHours(23, 59, 59, 999);
       
-      const durationHours = duration ? parseInt(duration as string, 10) : MIN_DURATION_HOURS;
+      const durationHours = duration ? parseFloat(duration as string) : MIN_DURATION_HOURS;
       
       const bookings = await storage.getBookingsByDateRange(startDate, endDate);
       
@@ -390,18 +405,19 @@ export async function registerRoutes(
     try {
       const validatedData = bookingRequestSchema.parse(req.body);
       
-      const [startHour] = validatedData.time.split(':').map(Number);
-      const durationHours = parseInt(validatedData.duration.replace('h', ''), 10);
-      const endHour = startHour + durationHours;
+      const startMinutes = parseTimeToMinutes(validatedData.time);
+      const durationMinutes = parseDurationToMinutes(validatedData.duration);
+      const endMinutes = startMinutes + durationMinutes;
+      const durationHours = parseFloat(validatedData.duration.replace('h', ''));
       
-      if (startHour < OPENING_HOUR) {
+      if (startMinutes < OPENING_HOUR * 60) {
         return res.status(400).json({
           ok: false,
           message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
         });
       }
       
-      if (endHour > CLOSING_HOUR) {
+      if (endMinutes > CLOSING_HOUR * 60) {
         return res.status(400).json({
           ok: false,
           message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
@@ -411,7 +427,7 @@ export async function registerRoutes(
       if (durationHours < MIN_DURATION_HOURS) {
         return res.status(400).json({
           ok: false,
-          message: `La durée minimale est de ${MIN_DURATION_HOURS} heures.`,
+          message: `La durée minimale est de ${MIN_DURATION_HOURS} heure.`,
         });
       }
       
@@ -438,22 +454,24 @@ export async function registerRoutes(
         bookingData,
         (existingBookings: Booking[]) => {
           const requestedBay = validatedData.bayType;
-          const [newStartHour] = validatedData.time.split(':').map(Number);
-          const newDurationHours = parseInt(validatedData.duration.replace('h', ''), 10);
+          const newStartMinutes = parseTimeToMinutes(validatedData.time);
+          const newDurationMinutes = parseDurationToMinutes(validatedData.duration);
+          const newEndMinutes = newStartMinutes + newDurationMinutes;
           
-          const newHours = new Set<number>();
-          for (let h = newStartHour; h < newStartHour + newDurationHours && h < CLOSING_HOUR; h++) {
-            newHours.add(h);
+          const newSlots = new Set<number>();
+          for (let m = newStartMinutes; m < newEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
+            newSlots.add(m);
           }
           
           for (const existing of existingBookings) {
             if (existing.bayType !== requestedBay) continue;
             
-            const [existingStartHour] = existing.time.split(':').map(Number);
-            const existingDurationHours = parseInt(existing.duration.replace('h', ''), 10);
+            const existingStartMinutes = parseTimeToMinutes(existing.time);
+            const existingDurationMinutes = parseDurationToMinutes(existing.duration);
+            const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
             
-            for (let h = existingStartHour; h < existingStartHour + existingDurationHours && h < CLOSING_HOUR; h++) {
-              if (newHours.has(h)) {
+            for (let m = existingStartMinutes; m < existingEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
+              if (newSlots.has(m)) {
                 return true;
               }
             }
@@ -561,18 +579,19 @@ export async function registerRoutes(
       const validatedData = batchBookingSchema.parse(req.body);
       
       for (const item of validatedData.items) {
-        const [startHour] = item.time.split(':').map(Number);
-        const durationHours = parseInt(item.duration.replace('h', ''), 10);
-        const endHour = startHour + durationHours;
+        const startMinutes = parseTimeToMinutes(item.time);
+        const durationMinutes = parseDurationToMinutes(item.duration);
+        const endMinutes = startMinutes + durationMinutes;
+        const durationHours = parseFloat(item.duration.replace('h', ''));
         
-        if (startHour < OPENING_HOUR) {
+        if (startMinutes < OPENING_HOUR * 60) {
           return res.status(400).json({
             ok: false,
             message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
           });
         }
         
-        if (endHour > CLOSING_HOUR) {
+        if (endMinutes > CLOSING_HOUR * 60) {
           return res.status(400).json({
             ok: false,
             message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
@@ -582,7 +601,7 @@ export async function registerRoutes(
         if (durationHours < MIN_DURATION_HOURS) {
           return res.status(400).json({
             ok: false,
-            message: `La durée minimale est de ${MIN_DURATION_HOURS} heures.`,
+            message: `La durée minimale est de ${MIN_DURATION_HOURS} heure.`,
           });
         }
         
@@ -615,22 +634,24 @@ export async function registerRoutes(
             bookingData,
             (existingBookings: Booking[]) => {
               const requestedBay = item.bayType;
-              const [newStartHour] = item.time.split(':').map(Number);
-              const newDurationHours = parseInt(item.duration.replace('h', ''), 10);
+              const newStartMinutes = parseTimeToMinutes(item.time);
+              const newDurationMinutes = parseDurationToMinutes(item.duration);
+              const newEndMinutes = newStartMinutes + newDurationMinutes;
               
-              const newHours = new Set<number>();
-              for (let h = newStartHour; h < newStartHour + newDurationHours && h < CLOSING_HOUR; h++) {
-                newHours.add(h);
+              const newSlots = new Set<number>();
+              for (let m = newStartMinutes; m < newEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
+                newSlots.add(m);
               }
               
               for (const existing of existingBookings) {
                 if (existing.bayType !== requestedBay) continue;
                 
-                const [existingStartHour] = existing.time.split(':').map(Number);
-                const existingDurationHours = parseInt(existing.duration.replace('h', ''), 10);
+                const existingStartMinutes = parseTimeToMinutes(existing.time);
+                const existingDurationMinutes = parseDurationToMinutes(existing.duration);
+                const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
                 
-                for (let h = existingStartHour; h < existingStartHour + existingDurationHours && h < CLOSING_HOUR; h++) {
-                  if (newHours.has(h)) {
+                for (let m = existingStartMinutes; m < existingEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
+                  if (newSlots.has(m)) {
                     return true;
                   }
                 }
@@ -643,11 +664,12 @@ export async function registerRoutes(
                 const currentDateStr = item.date.toISOString().split('T')[0];
                 if (prevDateStr !== currentDateStr) continue;
                 
-                const [prevStartHour] = prevBooking.time.split(':').map(Number);
-                const prevDurationHours = parseInt(prevBooking.duration.replace('h', ''), 10);
+                const prevStartMinutes = parseTimeToMinutes(prevBooking.time);
+                const prevDurationMinutes = parseDurationToMinutes(prevBooking.duration);
+                const prevEndMinutes = prevStartMinutes + prevDurationMinutes;
                 
-                for (let h = prevStartHour; h < prevStartHour + prevDurationHours && h < CLOSING_HOUR; h++) {
-                  if (newHours.has(h)) {
+                for (let m = prevStartMinutes; m < prevEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
+                  if (newSlots.has(m)) {
                     return true;
                   }
                 }

@@ -100,7 +100,7 @@ export default function BookingForm() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedDuration, setSelectedDuration] = useState<string>("4h");
+  const [selectedDuration, setSelectedDuration] = useState<string>("1h");
   const [selectedBays, setSelectedBays] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof contactFormSchema>>({
@@ -114,7 +114,7 @@ export default function BookingForm() {
     },
   });
 
-  const durationHours = parseInt(selectedDuration?.replace('h', '') || '4', 10);
+  const durationHours = parseFloat(selectedDuration?.replace('h', '') || '1');
 
   const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth]);
   const monthEnd = useMemo(() => endOfMonth(addMonths(currentMonth, 1)), [currentMonth]);
@@ -327,14 +327,21 @@ export default function BookingForm() {
                   </p>
 
                   <div className="space-y-2">
-                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</label>
+                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée <span className="text-primary font-normal">(30$/h par baie)</span></label>
                     <Select value={selectedDuration} onValueChange={setSelectedDuration}>
                       <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
-                        <SelectValue placeholder="Bloc de jeu" />
+                        <SelectValue placeholder="Choisir la durée" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="4h">4 Heures (Standard)</SelectItem>
-                        <SelectItem value="8h">8 Heures (Double)</SelectItem>
+                        <SelectItem value="1h">1 Heure - 30$</SelectItem>
+                        <SelectItem value="1.5h">1h30 - 45$</SelectItem>
+                        <SelectItem value="2h">2 Heures - 60$</SelectItem>
+                        <SelectItem value="2.5h">2h30 - 75$</SelectItem>
+                        <SelectItem value="3h">3 Heures - 90$</SelectItem>
+                        <SelectItem value="3.5h">3h30 - 105$</SelectItem>
+                        <SelectItem value="4h">4 Heures - 120$</SelectItem>
+                        <SelectItem value="4.5h">4h30 - 135$</SelectItem>
+                        <SelectItem value="5h">5 Heures - 150$</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -390,18 +397,20 @@ export default function BookingForm() {
                               type="button"
                               variant={selectedTime === slot.time ? "default" : "outline"}
                               className={cn(
-                                "h-14 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5", 
+                                "h-16 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5 px-2", 
                                 selectedTime === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
                               )}
                               onClick={() => setSelectedTime(slot.time)}
                               data-testid={`timeslot-${slot.time}`}
                             >
-                              <span className="font-bold">{slot.time}</span>
+                              <span className="font-bold flex items-center gap-1">
+                                {slot.time} <span className={cn("text-[10px] font-normal", selectedTime === slot.time ? "text-white/60" : "text-muted-foreground")}>30$/h</span>
+                              </span>
                               <span className={cn(
                                 "text-[10px]",
                                 selectedTime === slot.time ? "text-white/80" : "text-muted-foreground"
                               )}>
-                                {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''} dispo
+                                {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''}
                               </span>
                             </Button>
                           ))
