@@ -148,3 +148,22 @@ Preferred communication style: Simple, everyday language.
 - Email addresses validated with regex and lowercased
 - Phone numbers restricted to digits and common formatting characters
 - Field length limits enforced (1000 chars for text, 254 for email, 20 for phone)
+
+### Legal Pages
+
+**Privacy Policy** (`/politique-de-confidentialite`)
+- French-language privacy policy covering data collection, usage, protection, sharing, retention, and user rights
+- Contact information for data-related inquiries
+
+**Cookie Policy** (`/politique-de-cookies`)
+- French-language cookie policy explaining cookie types (essential, performance, functionality)
+- Third-party cookies disclosure (Google Calendar, Google Fonts)
+- Browser-specific instructions for cookie management
+
+### Cart-Based Booking System
+
+**Overlap Detection**
+- Cart system uses minute-based time slot conflict detection
+- Helper functions convert time strings and durations to minutes for precise overlap checking
+- Prevents users from selecting bays that would conflict with items already in their cart
+- Supports back-to-back bookings (adjacent slots don't conflict)
