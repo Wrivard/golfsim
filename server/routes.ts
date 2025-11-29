@@ -15,6 +15,7 @@ import {
 } from "./googleCalendar";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "./middleware/security";
 
 declare module "express-session" {
   interface SessionData {
@@ -75,12 +76,24 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
+});
+
+const bookingRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  maxRequests: 10,
+  message: 'Trop de réservations. Veuillez réessayer dans une minute.',
+});
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
 
-  app.post("/api/auth/login", async (req: Request, res: Response) => {
+  app.post("/api/auth/login", loginRateLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
       
@@ -111,7 +124,7 @@ export async function registerRoutes(
       if (err) {
         return res.status(500).json({ ok: false, message: "Erreur de déconnexion" });
       }
-      res.clearCookie("connect.sid");
+      res.clearCookie("gsim.sid");
       return res.json({ ok: true });
     });
   });
@@ -401,9 +414,10 @@ export async function registerRoutes(
     }
   });
   
-  app.post("/api/book", async (req: Request, res: Response) => {
+  app.post("/api/book", bookingRateLimiter, async (req: Request, res: Response) => {
     try {
-      const validatedData = bookingRequestSchema.parse(req.body);
+      const sanitizedBody = sanitizeBookingInput(req.body);
+      const validatedData = bookingRequestSchema.parse(sanitizedBody);
       
       const startMinutes = parseTimeToMinutes(validatedData.time);
       const durationMinutes = parseDurationToMinutes(validatedData.duration);
@@ -574,9 +588,21 @@ export async function registerRoutes(
     notes: z.string().optional(),
   });
 
-  app.post("/api/book/batch", async (req: Request, res: Response) => {
+  app.post("/api/book/batch", bookingRateLimiter, async (req: Request, res: Response) => {
     try {
       const validatedData = batchBookingSchema.parse(req.body);
+      
+      const sanitizedName = sanitizeString(validatedData.name);
+      const sanitizedEmail = sanitizeEmail(validatedData.email);
+      const sanitizedPhone = validatedData.phone ? sanitizePhone(validatedData.phone) : null;
+      const sanitizedNotes = validatedData.notes ? sanitizeString(validatedData.notes) : null;
+      
+      if (!sanitizedEmail) {
+        return res.status(400).json({
+          ok: false,
+          message: "Adresse courriel invalide.",
+        });
+      }
       
       for (const item of validatedData.items) {
         const startMinutes = parseTimeToMinutes(item.time);
@@ -619,15 +645,15 @@ export async function registerRoutes(
       try {
         for (const item of validatedData.items) {
           const bookingData = {
-            name: validatedData.name,
-            email: validatedData.email,
-            phone: validatedData.phone || null,
+            name: sanitizedName,
+            email: sanitizedEmail,
+            phone: sanitizedPhone,
             date: item.date,
             time: item.time,
             duration: item.duration,
             bayType: item.bayType,
             players: validatedData.players,
-            notes: validatedData.notes || null,
+            notes: sanitizedNotes,
           };
 
           const { booking, conflict } = await storage.createBookingWithConflictCheck(

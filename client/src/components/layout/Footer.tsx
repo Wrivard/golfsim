@@ -26,10 +26,10 @@ export default function Footer() {
           <div className="space-y-6">
             <h4 className="font-heading font-bold text-xl uppercase tracking-wider text-white">Navigation</h4>
             <ul className="space-y-3">
-              <li><Link href="/"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Accueil</a></Link></li>
-              <li><Link href="/about"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Le Club</a></Link></li>
-              <li><Link href="/rates"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Tarifs & Forfaits</a></Link></li>
-              <li><Link href="/gallery"><a className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Galerie</a></Link></li>
+              <li><Link href="/" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Accueil</Link></li>
+              <li><Link href="/about" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Le Club</Link></li>
+              <li><Link href="/rates" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Tarifs & Forfaits</Link></li>
+              <li><Link href="/gallery" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Galerie</Link></li>
             </ul>
           </div>
 
