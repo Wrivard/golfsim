@@ -119,3 +119,32 @@ Preferred communication style: Simple, everyday language.
 - Express-session for admin authentication with secure cookies
 - Storage abstraction layer (`IStorage` interface) in `server/storage.ts` for future flexibility
 - Database storage implementation handles CRUD operations for bookings, admin users, and calendar settings
+
+### Security Infrastructure
+
+**Security Middleware** (`server/middleware/security.ts`)
+- HTTP security headers: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy
+- Production-only headers: HSTS (Strict-Transport-Security), Content-Security-Policy
+- Rate limiting with isolated per-endpoint counters (prevents cross-route interference)
+- Input sanitization functions for strings, emails, and phone numbers
+- Generic error handler that redacts stack traces in production
+
+**Rate Limiting Configuration**
+- Login endpoint: 5 attempts per 15 minutes per IP address
+- Booking endpoints (single and batch): 10 requests per minute per IP address
+- Each limiter maintains isolated counters to prevent cross-endpoint interference
+- Automatic cleanup of expired rate limit records every 60 seconds
+
+**Session Security**
+- Custom session cookie name (`gsim.sid`) instead of default
+- HttpOnly cookies to prevent XSS access
+- Secure cookies in production (HTTPS only)
+- SameSite=lax to prevent CSRF attacks
+- 24-hour session expiration with rolling sessions
+
+**Input Sanitization**
+- All booking form data sanitized before validation and storage
+- HTML/script tags stripped from text fields
+- Email addresses validated with regex and lowercased
+- Phone numbers restricted to digits and common formatting characters
+- Field length limits enforced (1000 chars for text, 254 for email, 20 for phone)
