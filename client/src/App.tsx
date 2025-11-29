@@ -12,6 +12,8 @@ import Contact from "@/pages/Contact";
 import BookingPage from "@/pages/Booking";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import CookiePolicy from "@/pages/CookiePolicy";
 
 function Router() {
   return (
@@ -24,6 +26,8 @@ function Router() {
       <Route path="/booking" component={BookingPage} />
       <Route path="/login" component={Login} />
       <Route path="/admin" component={Admin} />
+      <Route path="/politique-de-confidentialite" component={PrivacyPolicy} />
+      <Route path="/politique-de-cookies" component={CookiePolicy} />
       <Route component={NotFound} />
     </Switch>
   );

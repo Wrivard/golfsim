@@ -57,6 +57,28 @@ type AvailabilitySlot = { time: string; availableBays: string[] };
 type DayAvailability = { slots: AvailabilitySlot[]; fullyBooked: boolean };
 type AvailabilityData = Record<string, DayAvailability>;
 
+function parseTimeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + (minutes || 0);
+}
+
+function parseDurationToMinutes(duration: string): number {
+  const hours = parseFloat(duration.replace('h', ''));
+  return hours * 60;
+}
+
+function doTimeSlotsOverlap(
+  time1: string, duration1: string,
+  time2: string, duration2: string
+): boolean {
+  const start1 = parseTimeToMinutes(time1);
+  const end1 = start1 + parseDurationToMinutes(duration1);
+  const start2 = parseTimeToMinutes(time2);
+  const end2 = start2 + parseDurationToMinutes(duration2);
+  
+  return start1 < end2 && end1 > start2;
+}
+
 async function fetchAvailability(start: Date, end: Date, duration: number): Promise<AvailabilityData> {
   const startStr = start.toISOString().split('T')[0];
   const endStr = end.toISOString().split('T')[0];
@@ -154,18 +176,23 @@ export default function BookingForm() {
   }, [selectedDate, availability]);
 
   const availableBaysForSelectedTime = useMemo(() => {
-    if (!selectedTime || !selectedDateSlots.length) return [];
+    if (!selectedTime || !selectedDateSlots.length || !selectedDate) return [];
     const slot = selectedDateSlots.find(s => s.time === selectedTime);
     const baseBays = slot?.availableBays || [];
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
     
-    const cartItemsForSameSlot = cart.filter(item => 
-      item.date.toISOString().split('T')[0] === selectedDate?.toISOString().split('T')[0] &&
-      item.time === selectedTime &&
-      item.duration === selectedDuration
+    const cartItemsForSameDate = cart.filter(item => 
+      item.date.toISOString().split('T')[0] === selectedDateStr
     );
-    const reservedBaysInCart = cartItemsForSameSlot.flatMap(item => item.bays);
     
-    return baseBays.filter(bay => !reservedBaysInCart.includes(bay));
+    const baysOccupiedByCart = new Set<string>();
+    for (const item of cartItemsForSameDate) {
+      if (doTimeSlotsOverlap(selectedTime, selectedDuration, item.time, item.duration)) {
+        item.bays.forEach(bay => baysOccupiedByCart.add(bay));
+      }
+    }
+    
+    return baseBays.filter(bay => !baysOccupiedByCart.has(bay));
   }, [selectedTime, selectedDateSlots, cart, selectedDate, selectedDuration]);
 
   const isDateDisabled = (date: Date) => {

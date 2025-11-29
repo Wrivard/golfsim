@@ -81,8 +81,8 @@ export default function Footer() {
           
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-12">
             <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-              <a href="#" className="hover:text-white transition-colors whitespace-nowrap">Politique de confidentialité</a>
-              <a href="#" className="hover:text-white transition-colors whitespace-nowrap">Conditions d'utilisation</a>
+              <Link href="/politique-de-confidentialite" className="hover:text-white transition-colors whitespace-nowrap">Politique de confidentialité</Link>
+              <Link href="/politique-de-cookies" className="hover:text-white transition-colors whitespace-nowrap">Politique de cookies</Link>
             </div>
             
             <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
