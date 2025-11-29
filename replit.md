@@ -160,6 +160,21 @@ Preferred communication style: Simple, everyday language.
 - Third-party cookies disclosure (Google Calendar, Google Fonts)
 - Browser-specific instructions for cookie management
 
+### Admin Dashboard
+
+**Dashboard Features**
+- Company logo in header with site navigation link
+- Statistics panel: total reservations, upcoming reservations, total hours booked, estimated revenue
+- Search functionality for filtering by name or email
+- Filter dropdowns for bay (1-4 or all) and period (all, upcoming, past)
+- Scrollable reservations list with delete functionality
+- Datetime comparison correctly classifies past/upcoming based on local time
+
+**Datetime Handling**
+- Bookings stored with UTC timestamp for date and text for time
+- Admin filters combine date (extracted from ISO string) with time for accurate classification
+- Local timezone used for all comparisons (designed for Quebec-based facility)
+
 ### Cart-Based Booking System
 
 **Overlap Detection**
