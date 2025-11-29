@@ -104,6 +104,18 @@ async function logout() {
 
 const PRICE_PER_HOUR = 30;
 
+function getBookingDateTime(booking: any): Date {
+  try {
+    const dateString = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+    const datePart = dateString.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = (booking.time || '00:00').split(':').map(Number);
+    return new Date(year, month - 1, day, hours, minutes, 0);
+  } catch {
+    return new Date(booking.date);
+  }
+}
+
 export default function Admin() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
@@ -243,34 +255,7 @@ export default function Admin() {
     updateMutation.mutate({ calendarId: newCalendarId });
   };
 
-  if (sessionQuery.isLoading) {
-    return (
-      <div className="min-h-screen bg-[#F7F3E8] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#2B5734]" />
-      </div>
-    );
-  }
-
-  if (!sessionQuery.data?.authenticated) {
-    return null;
-  }
-
-  const isConfigured = connectionQuery.data?.configured !== false;
-  const isConnected = connectionQuery.data?.connected;
-  const calendars = calendarsQuery.data?.calendars || [];
   const allBookings = bookingsQuery.data?.bookings || [];
-  
-  const getBookingDateTime = (booking: any): Date => {
-    try {
-      const dateString = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
-      const datePart = dateString.split('T')[0];
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hours, minutes] = (booking.time || '00:00').split(':').map(Number);
-      return new Date(year, month - 1, day, hours, minutes, 0);
-    } catch {
-      return new Date(booking.date);
-    }
-  };
   
   const stats = useMemo(() => {
     const now = new Date();
@@ -322,6 +307,22 @@ export default function Admin() {
       return true;
     });
   }, [allBookings, searchQuery, filterBay, filterPeriod]);
+
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F3E8] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#2B5734]" />
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.authenticated) {
+    return null;
+  }
+
+  const isConfigured = connectionQuery.data?.configured !== false;
+  const isConnected = connectionQuery.data?.connected;
+  const calendars = calendarsQuery.data?.calendars || [];
 
   return (
     <div className="min-h-screen bg-[#F7F3E8]">
