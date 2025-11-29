@@ -221,18 +221,46 @@ export async function createCalendarEvent(booking: {
   const calendar = await getGoogleCalendarClient();
   const calendarId = await getConfiguredCalendarId();
   
-  const [hours, minutes] = booking.time.split(':').map(Number);
-  const startDateTime = new Date(booking.date);
-  startDateTime.setHours(hours, minutes, 0, 0);
+  const dateStr = booking.date instanceof Date 
+    ? booking.date.toISOString().split('T')[0]
+    : new Date(booking.date).toISOString().split('T')[0];
   
-  const durationHours = parseInt(booking.duration.replace('h', ''), 10);
-  const endDateTime = new Date(startDateTime);
-  endDateTime.setHours(endDateTime.getHours() + durationHours);
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = booking.time.split(':').map(Number);
+  
+  const durationHours = parseFloat(booking.duration.replace('h', ''));
+  const durationMinutes = Math.round(durationHours * 60);
+  
+  const startTotalMinutes = hours * 60 + minutes;
+  const endTotalMinutes = startTotalMinutes + durationMinutes;
+  
+  let endDay = day;
+  let endMonth = month;
+  let endYear = year;
+  let endHour = Math.floor(endTotalMinutes / 60);
+  const endMinute = endTotalMinutes % 60;
+  
+  if (endHour >= 24) {
+    endHour -= 24;
+    endDay += 1;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (endDay > daysInMonth) {
+      endDay = 1;
+      endMonth += 1;
+      if (endMonth > 12) {
+        endMonth = 1;
+        endYear += 1;
+      }
+    }
+  }
 
-  const bayLabel = booking.bayType === 'premium' ? 'Premium' : 'Standard';
+  const startTimeStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+  const endTimeStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00`;
+
+  const bayLabel = `Baie ${booking.bayType}`;
   
   const event = {
-    summary: `Golf SIM - ${booking.name} - Bay ${bayLabel}`,
+    summary: `Golf SIM - ${booking.name} - ${bayLabel}`,
     description: `
 Réservation Golf SIM Sorel-Tracy
 
@@ -240,16 +268,16 @@ Nom: ${booking.name}
 Courriel: ${booking.email}
 Téléphone: ${booking.phone || 'Non fourni'}
 Joueurs: ${booking.players}
-Bay: ${bayLabel}
+${bayLabel}
 Durée: ${booking.duration}
 ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     `.trim(),
     start: {
-      dateTime: startDateTime.toISOString(),
+      dateTime: startTimeStr,
       timeZone: 'America/Toronto',
     },
     end: {
-      dateTime: endDateTime.toISOString(),
+      dateTime: endTimeStr,
       timeZone: 'America/Toronto',
     },
   };

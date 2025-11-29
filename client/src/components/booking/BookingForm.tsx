@@ -327,21 +327,21 @@ export default function BookingForm() {
                   </p>
 
                   <div className="space-y-2">
-                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée <span className="text-primary font-normal">(30$/h par baie)</span></label>
+                    <label className="uppercase font-bold text-xs tracking-wider text-foreground/80">Durée</label>
                     <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-                      <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="select-duration">
+                      <SelectTrigger className="bg-background/80 border-foreground/20 focus:border-primary h-11" data-testid="select-duration">
                         <SelectValue placeholder="Choisir la durée" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1h">1 Heure - 30$</SelectItem>
-                        <SelectItem value="1.5h">1h30 - 45$</SelectItem>
-                        <SelectItem value="2h">2 Heures - 60$</SelectItem>
-                        <SelectItem value="2.5h">2h30 - 75$</SelectItem>
-                        <SelectItem value="3h">3 Heures - 90$</SelectItem>
-                        <SelectItem value="3.5h">3h30 - 105$</SelectItem>
-                        <SelectItem value="4h">4 Heures - 120$</SelectItem>
-                        <SelectItem value="4.5h">4h30 - 135$</SelectItem>
-                        <SelectItem value="5h">5 Heures - 150$</SelectItem>
+                        <SelectItem value="1h">1h</SelectItem>
+                        <SelectItem value="1.5h">1h30</SelectItem>
+                        <SelectItem value="2h">2h</SelectItem>
+                        <SelectItem value="2.5h">2h30</SelectItem>
+                        <SelectItem value="3h">3h</SelectItem>
+                        <SelectItem value="3.5h">3h30</SelectItem>
+                        <SelectItem value="4h">4h</SelectItem>
+                        <SelectItem value="4.5h">4h30</SelectItem>
+                        <SelectItem value="5h">5h</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -397,21 +397,13 @@ export default function BookingForm() {
                               type="button"
                               variant={selectedTime === slot.time ? "default" : "outline"}
                               className={cn(
-                                "h-16 text-sm font-sans transition-all flex flex-col items-center justify-center gap-0.5 px-2", 
+                                "h-12 text-sm font-sans transition-all", 
                                 selectedTime === slot.time ? "bg-primary text-white border-primary" : "hover:border-primary hover:text-primary"
                               )}
                               onClick={() => setSelectedTime(slot.time)}
                               data-testid={`timeslot-${slot.time}`}
                             >
-                              <span className="font-bold flex items-center gap-1">
-                                {slot.time} <span className={cn("text-[10px] font-normal", selectedTime === slot.time ? "text-white/60" : "text-muted-foreground")}>30$/h</span>
-                              </span>
-                              <span className={cn(
-                                "text-[10px]",
-                                selectedTime === slot.time ? "text-white/80" : "text-muted-foreground"
-                              )}>
-                                {slot.availableBays.length} baie{slot.availableBays.length > 1 ? 's' : ''}
-                              </span>
+                              <span className="font-bold">{slot.time}</span>
                             </Button>
                           ))
                         ) : (
@@ -630,53 +622,75 @@ export default function BookingForm() {
                 </span>
               )}
             </div>
-            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+            <CardContent className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
               {cart.length === 0 ? (
                 <div className="text-center py-8 text-foreground/50">
                   <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p className="text-sm">Votre panier est vide</p>
-                  <p className="text-xs mt-1">Sélectionnez des créneaux et baies pour les ajouter</p>
+                  <p className="text-xs mt-1">Sélectionnez des créneaux et baies</p>
                 </div>
               ) : (
-                cart.map((item) => (
-                  <div key={item.id} className="bg-background/50 rounded-lg p-3 relative group">
-                    <button 
-                      type="button"
-                      onClick={() => removeFromCart(item.id)}
-                      className="absolute top-2 right-2 w-6 h-6 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      data-testid={`remove-cart-${item.id}`}
-                    >
-                      <X className="w-3 h-3 text-red-600" />
-                    </button>
-                    <div className="flex items-start gap-3">
-                      <CalendarIcon className="w-4 h-4 text-primary mt-1 shrink-0" />
-                      <div className="min-w-0">
-                        <span className="font-bold text-foreground text-sm block truncate">
-                          {format(item.date, "EEE d MMM", { locale: fr })}
-                        </span>
-                        <span className="text-xs text-foreground/60 block">
-                          {item.time} • {item.duration}
-                        </span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {item.bays.map(bay => (
-                            <span key={bay} className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded">
-                              Baie {bay}
+                cart.map((item) => {
+                  const itemDuration = parseFloat(item.duration.replace('h', ''));
+                  const itemPrice = Math.round(itemDuration * 30 * item.bays.length);
+                  return (
+                    <div key={item.id} className="bg-background/50 rounded-lg p-3 relative group">
+                      <button 
+                        type="button"
+                        onClick={() => removeFromCart(item.id)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        data-testid={`remove-cart-${item.id}`}
+                      >
+                        <X className="w-3 h-3 text-red-600" />
+                      </button>
+                      <div className="flex items-start gap-3">
+                        <CalendarIcon className="w-4 h-4 text-primary mt-1 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-foreground text-sm block truncate">
+                              {format(item.date, "EEE d MMM", { locale: fr })}
                             </span>
-                          ))}
+                            <span className="font-bold text-primary text-sm">{itemPrice}$</span>
+                          </div>
+                          <span className="text-xs text-foreground/60 block">
+                            {item.time} • {item.duration}
+                          </span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.bays.map(bay => (
+                              <span key={bay} className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded">
+                                Baie {bay}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
+            {cart.length > 0 && (
+              <div className="px-4 pb-4">
+                <div className="border-t border-foreground/10 pt-3 flex justify-between items-center">
+                  <span className="text-sm font-bold uppercase tracking-wider text-foreground/70">Total</span>
+                  <span className="text-xl font-bold text-primary">
+                    {cart.reduce((total, item) => {
+                      const duration = parseFloat(item.duration.replace('h', ''));
+                      return total + Math.round(duration * 30 * item.bays.length);
+                    }, 0)}$
+                  </span>
+                </div>
+              </div>
+            )}
           </Card>
 
-          <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed">
-            <p className="mb-2"><span className="font-bold text-foreground">Heures d'ouverture:</span> 8h à 22h</p>
-            <p className="mb-2"><span className="font-bold text-foreground">Capacité:</span> 4 baies disponibles</p>
-            <p className="mb-2"><span className="font-bold text-foreground">Astuce:</span> Vous pouvez réserver plusieurs baies et dates en même temps!</p>
-            <p>Paiement requis sur place avant le début de la session.</p>
+          <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed space-y-2">
+            <p><span className="font-bold text-primary text-sm">30$ / heure</span> <span className="text-foreground/50">par baie</span></p>
+            <div className="border-t border-foreground/10 pt-2 mt-2">
+              <p><span className="font-bold text-foreground">Ouvert:</span> 8h - 22h</p>
+              <p><span className="font-bold text-foreground">Baies:</span> 4 simulateurs</p>
+            </div>
+            <p className="text-foreground/50 pt-1">Paiement sur place</p>
           </div>
         </div>
       </div>
