@@ -39,7 +39,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl sm:text-5xl md:text-8xl font-heading font-bold text-foreground leading-[0.9] tracking-tighter mb-6">
+              <h1 className="text-4xl sm:text-5xl md:text-8xl font-heading font-bold text-foreground leading-[1.15] tracking-tighter mb-6">
                 AMENEZ LE <br />
                 PARCOURS <br />
                 À L'INTÉRIEUR <br />
