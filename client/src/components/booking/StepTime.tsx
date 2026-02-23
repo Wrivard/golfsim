@@ -68,10 +68,13 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
     setStep(3);
   };
 
-  const sortedByTime = useMemo(() =>
-    [...optimizedSlots].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()),
-    [optimizedSlots]
-  );
+  const sortedSlots = useMemo(() => {
+    const bestScore = Math.max(...optimizedSlots.map(s => s.score), -Infinity);
+    const best = optimizedSlots.filter(s => s.score === bestScore && s.label);
+    const rest = optimizedSlots.filter(s => !best.includes(s));
+    rest.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    return [...best, ...rest];
+  }, [optimizedSlots]);
 
   return (
     <div className="space-y-6">
@@ -125,14 +128,14 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
             <p className="text-sm text-muted-foreground">Chargement des disponibilités...</p>
           </div>
-        ) : sortedByTime.length === 0 ? (
+        ) : sortedSlots.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed border-foreground/10 rounded-xl bg-background/50">
             <p className="text-lg font-medium text-muted-foreground mb-2">Aucun créneau disponible</p>
             <p className="text-sm text-muted-foreground/60">Essayez une autre date ou durée.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {sortedByTime.map((slot) => (
+            {sortedSlots.map((slot) => (
               <button
                 key={`${slot.time}-${slot.assignedBayId}`} 
                 onClick={() => handleTimeSelect(slot)}
