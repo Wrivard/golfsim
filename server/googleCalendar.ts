@@ -300,4 +300,196 @@ export async function deleteCalendarEvent(eventId: string) {
   });
 }
 
+export interface CalendarSyncResult {
+  imported: number;
+  skipped: number;
+  errors: number;
+}
+
+export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
+  const calendar = await getGoogleCalendarClient();
+  const calendarId = await getConfiguredCalendarId();
+  
+  const now = new Date();
+  const timeMin = new Date(now);
+  timeMin.setDate(timeMin.getDate() - 1);
+  
+  const timeMax = new Date(now);
+  timeMax.setMonth(timeMax.getMonth() + 3);
+  
+  const result: CalendarSyncResult = { imported: 0, skipped: 0, errors: 0 };
+  
+  try {
+    const response = await calendar.events.list({
+      calendarId: calendarId,
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString(),
+      singleEvents: true,
+      orderBy: 'startTime',
+      maxResults: 500,
+    });
+    
+    const events = response.data.items || [];
+    const existingBookings = await storage.getAllBookings();
+    const existingCalendarEventIds = new Set(
+      existingBookings.filter(b => b.calendarEventId).map(b => b.calendarEventId)
+    );
+    
+    for (const event of events) {
+      if (!event.id || !event.start?.dateTime || !event.end?.dateTime) {
+        result.skipped++;
+        continue;
+      }
+      
+      if (existingCalendarEventIds.has(event.id)) {
+        result.skipped++;
+        continue;
+      }
+      
+      const summary = event.summary || '';
+      if (!summary.toLowerCase().includes('golf sim')) {
+        result.skipped++;
+        continue;
+      }
+      
+      try {
+        const parsed = parseCalendarEvent(event);
+        if (!parsed) {
+          result.skipped++;
+          continue;
+        }
+        
+        const { booking: created, conflict } = await storage.createBookingWithConflictCheck(
+          parsed,
+          (existingBookings) => {
+            const startMinutes = parseTimeStr(parsed.time);
+            const durationMinutes = parseDurationStr(parsed.duration);
+            const endMinutes = startMinutes + durationMinutes;
+            
+            for (const existing of existingBookings) {
+              if (existing.bayType !== parsed.bayType) continue;
+              
+              const existingStart = parseTimeStr(existing.time);
+              const existingDuration = parseDurationStr(existing.duration);
+              const existingEnd = existingStart + existingDuration;
+              
+              if (startMinutes < existingEnd && endMinutes > existingStart) {
+                return true;
+              }
+            }
+            return false;
+          }
+        );
+        
+        if (conflict || !created) {
+          result.skipped++;
+          continue;
+        }
+        
+        await storage.updateBookingCalendarEventId(created.id, event.id);
+        result.imported++;
+      } catch (err) {
+        console.error('Error importing calendar event:', event.id, err);
+        result.errors++;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching calendar events for sync:', error);
+    throw error;
+  }
+  
+  return result;
+}
+
+function parseTimeStr(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + (minutes || 0);
+}
+
+function parseDurationStr(duration: string): number {
+  const hours = parseFloat(duration.replace('h', ''));
+  return Math.round(hours * 60);
+}
+
+function parseCalendarEvent(event: any): {
+  name: string;
+  email: string;
+  phone: string | null;
+  date: Date;
+  time: string;
+  duration: string;
+  bayType: string;
+  players: number;
+  notes: string | null;
+} | null {
+  try {
+    const startDateTime = new Date(event.start.dateTime);
+    const endDateTime = new Date(event.end.dateTime);
+    
+    const durationMs = endDateTime.getTime() - startDateTime.getTime();
+    const durationHours = durationMs / (1000 * 60 * 60);
+    
+    if (durationHours <= 0 || durationHours > 14) return null;
+    
+    const durationStr = durationHours % 1 === 0 
+      ? `${durationHours}h` 
+      : `${durationHours}h`;
+    
+    const hours = startDateTime.getHours();
+    const minutes = startDateTime.getMinutes();
+    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    
+    const dateOnly = new Date(startDateTime);
+    dateOnly.setHours(0, 0, 0, 0);
+    
+    let bayType = '1';
+    const summary = event.summary || '';
+    const description = event.description || '';
+    
+    const bayMatch = summary.match(/Baie\s*(\d)/i) || description.match(/Baie\s*(\d)/i);
+    if (bayMatch && ['1', '2', '3', '4'].includes(bayMatch[1])) {
+      bayType = bayMatch[1];
+    }
+    
+    let name = 'Réservation Calendrier';
+    const nameMatchSummary = summary.match(/Golf SIM\s*[-–]\s*(.+?)\s*[-–]/i);
+    if (nameMatchSummary) {
+      name = nameMatchSummary[1].trim();
+    }
+    
+    let email = 'calendrier@golfsim.ca';
+    const emailMatch = description.match(/Courriel:\s*(.+)/i);
+    if (emailMatch) {
+      email = emailMatch[1].trim();
+    }
+    
+    let phone: string | null = null;
+    const phoneMatch = description.match(/T[ée]l[ée]phone:\s*(.+)/i);
+    if (phoneMatch && phoneMatch[1].trim() !== 'Non fourni') {
+      phone = phoneMatch[1].trim();
+    }
+    
+    let players = 1;
+    const playersMatch = description.match(/Joueurs:\s*(\d+)/i);
+    if (playersMatch) {
+      players = parseInt(playersMatch[1], 10);
+    }
+    
+    return {
+      name,
+      email,
+      phone,
+      date: dateOnly,
+      time: timeStr,
+      duration: durationStr,
+      bayType,
+      players: Math.min(Math.max(players, 1), 4),
+      notes: `Importé depuis Google Calendar (${event.id})`,
+    };
+  } catch (error) {
+    console.error('Error parsing calendar event:', error);
+    return null;
+  }
+}
+
 export { getRedirectUri };

@@ -175,7 +175,29 @@ Preferred communication style: Simple, everyday language.
 - Admin filters combine date (extracted from ISO string) with time for accurate classification
 - Local timezone used for all comparisons (designed for Quebec-based facility)
 
-### Cart-Based Booking System
+### Multi-Step Booking Flow
+
+**Architecture** (Adapted from Wrivard/golf-logic repository)
+- 4-step React booking flow: Duration → Time → Details → Confirmation
+- State management via Zustand store (`client/src/lib/booking-store.ts`)
+- Smart bay optimization algorithm (`client/src/lib/booking-logic.ts`) that scores time slots based on:
+  - Gap efficiency (minimizing unusable gaps between bookings)
+  - Bay clustering (consolidating bookings on fewer bays)
+  - Peak hour preference (17h-21h)
+  - Inefficient gap penalties
+- Components: StepDuration, StepTime, StepDetails, StepConfirmation in `client/src/components/booking/`
+- Real-time availability fetched via GET `/api/availability/bookings?date=YYYY-MM-DD`
+- Bay automatically assigned to the optimal simulator for each time slot
+
+**Bidirectional Google Calendar Sync**
+- Website → Calendar: Bookings created on website are pushed to Google Calendar (existing)
+- Calendar → Website: Events in Google Calendar with "Golf SIM" in summary are pulled into database
+- Manual sync via admin dashboard button (POST `/api/admin/calendar/sync`)
+- Automatic background sync every 10 minutes
+- Duplicate prevention via calendarEventId tracking
+- Conflict detection prevents importing overlapping bookings
+
+### Cart-Based Booking System (Legacy)
 
 **Overlap Detection**
 - Cart system uses minute-based time slot conflict detection

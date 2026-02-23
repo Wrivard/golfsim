@@ -11,7 +11,8 @@ import {
   exchangeCodeForTokens,
   revokeGoogleAccess,
   getRedirectUri,
-  listCalendars
+  listCalendars,
+  syncCalendarToDatabase
 } from "./googleCalendar";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -291,6 +292,19 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/calendar/sync", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const result = await syncCalendarToDatabase();
+      return res.json({ ok: true, ...result });
+    } catch (error: any) {
+      console.error("Error syncing calendar:", error);
+      return res.status(500).json({ 
+        ok: false, 
+        message: error.message || "Erreur lors de la synchronisation du calendrier" 
+      });
+    }
+  });
+
   const BAY_NUMBERS = ["1", "2", "3", "4"];
   const OPENING_HOUR = 8;
   const CLOSING_HOUR = 22;
@@ -372,6 +386,50 @@ export async function registerRoutes(
     
     return slots;
   }
+
+  app.get("/api/availability/bookings", async (req: Request, res: Response) => {
+    try {
+      const { date } = req.query;
+      
+      if (!date || typeof date !== 'string') {
+        return res.status(400).json({ ok: false, message: "Le paramètre date est requis" });
+      }
+      
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const dayBookings = await storage.getBookingsByDateRange(targetDate, endDate);
+      
+      const requestedDate = date as string;
+      
+      const formattedBookings = dayBookings.map(booking => {
+        const [hours, minutes] = booking.time.split(':').map(Number);
+        const durationMinutes = parseDurationToMinutes(booking.duration);
+        
+        const startHour = String(hours).padStart(2, '0');
+        const startMin = String(minutes || 0).padStart(2, '0');
+        const endTotalMinutes = hours * 60 + (minutes || 0) + durationMinutes;
+        const endHour = String(Math.floor(endTotalMinutes / 60)).padStart(2, '0');
+        const endMin = String(endTotalMinutes % 60).padStart(2, '0');
+        
+        return {
+          id: booking.id,
+          simulatorId: booking.bayType,
+          startTime: `${requestedDate}T${startHour}:${startMin}:00`,
+          endTime: `${requestedDate}T${endHour}:${endMin}:00`,
+          customerName: booking.name,
+        };
+      });
+      
+      return res.json({ ok: true, bookings: formattedBookings });
+    } catch (error) {
+      console.error("Error fetching day bookings:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des réservations" });
+    }
+  });
 
   app.get("/api/availability", async (req: Request, res: Response) => {
     try {
@@ -828,6 +886,22 @@ export async function registerRoutes(
       });
     }
   });
+
+  const SYNC_INTERVAL_MS = 10 * 60 * 1000;
+  
+  async function runBackgroundSync() {
+    try {
+      const result = await syncCalendarToDatabase();
+      if (result.imported > 0) {
+        console.log(`[Calendar Sync] Imported ${result.imported} booking(s) from Google Calendar`);
+      }
+    } catch (error) {
+      // Silently fail - calendar may not be connected
+    }
+  }
+  
+  setTimeout(runBackgroundSync, 30000);
+  setInterval(runBackgroundSync, SYNC_INTERVAL_MS);
 
   return httpServer;
 }

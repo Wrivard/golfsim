@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -177,6 +177,26 @@ export default function Admin() {
     },
     onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const calendarSyncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/admin/calendar/sync", { method: "POST" });
+      if (response.status === 401) throw new Error("Non autorisé");
+      const data = await response.json();
+      if (!data.ok) throw new Error(data.message);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Synchronisation terminée", 
+        description: `${data.imported} importée(s), ${data.skipped} ignorée(s)${data.errors > 0 ? `, ${data.errors} erreur(s)` : ''}` 
+      });
+      queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur de synchronisation", description: error.message, variant: "destructive" });
     },
   });
 
@@ -497,6 +517,20 @@ export default function Admin() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => calendarSyncMutation.mutate()}
+                    disabled={calendarSyncMutation.isPending}
+                    className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto"
+                    data-testid="button-sync-calendar"
+                  >
+                    {calendarSyncMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Synchroniser depuis le calendrier
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={handleConnectGoogle}
