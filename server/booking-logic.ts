@@ -58,7 +58,7 @@ export interface TimeSlot {
 
 const OPERATING_START_HOUR = 8;
 const OPERATING_END_HOUR = 22;
-const SLOT_GRANULARITY = 30;
+const SLOT_GRANULARITY = 60;
 
 const DEFAULT_SIMULATORS: Simulator[] = [
   { id: "1", name: "Baie 1" },

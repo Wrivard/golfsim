@@ -14,7 +14,7 @@ import { Booking, TimeSlot, Simulator, BayEvaluation, ScoreBreakdown } from './b
 
 const OPERATING_START_HOUR = 8;
 const OPERATING_END_HOUR = 22;
-const SLOT_GRANULARITY = 30;
+const SLOT_GRANULARITY = 60;
 
 export function getOptimizedStartTimes(
   date: Date, 

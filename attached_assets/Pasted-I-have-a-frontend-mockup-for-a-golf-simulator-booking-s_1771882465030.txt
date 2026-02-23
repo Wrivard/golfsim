@@ -1,0 +1,113 @@
+I have a frontend mockup for a golf simulator booking system, and I need you to implement its core booking allocation and scoring logic into our live backend. 
+The goal of this algorithm is to evaluate all available bays (simulators) for a requested time slot, reject bays that would create unusable schedule gaps, and assign the booking to the most optimal bay based on a weighted scoring system.
+Please review the detailed rules below, and then adapt the provided TypeScript reference code into our backend API (e.g., when a user requests available slots or confirms a booking).
+### 1. Core Rules & Constraints
+- **Operating Hours:** 08:00 to 22:00.
+- **Granularity:** Slots are evaluated in 60-minute increments.
+- **Overlap Prevention:** A booking cannot overlap with any existing booking in the same bay.
+- **Strict Hard Rejection (The "Unusable Gap" Rule):** If placing a booking leaves a gap of 1 to 29 minutes *after* the booking before the next one starts, that bay is strictly INVALID for that time slot. (Note: A 0-minute gap is perfectly fine).
+### 2. The Scoring Weights
+When multiple bays are valid for a time slot, we score them to find the "Best Fit":
+- **Perfect Fit End (+5 points):** The proposed booking ends exactly when the next booking starts, or exactly at closing time (gapAfter === 0).
+- **Perfect Fit Start (+3 points):** The proposed booking starts exactly when the previous booking ends, or exactly at opening time (gapBefore === 0).
+- **Inefficient Gap (-3 points):** The proposed booking leaves a gap between 30 and 60 minutes after it ends. (This is allowed, but discouraged).
+- **Bay Clustering (+2 points):** The bay already has at least one other booking on that same day. (We want to pack active bays before opening empty ones).
+- **Peak Hours (+1 point):** The proposed time slot starts between 17:00 and 21:00.
+### 3. Reference Implementation
+Here is the exact working logic from the frontend mockup. Please use this as the blueprint for our backend logic. It takes a date, duration, all bookings for that day, and all simulators, and returns an array of optimized time slots with the `assignedBayId`.
+```typescript
+import { 
+  addMinutes, areIntervalsOverlapping, isBefore, isAfter, 
+  setHours, setMinutes, differenceInMinutes, startOfDay, isSameDay, parseISO
+} from 'date-fns';
+const OPERATING_START_HOUR = 8;
+const OPERATING_END_HOUR = 22;
+const SLOT_GRANULARITY = 60; // minutes
+export function getOptimizedStartTimes(
+  date: Date, 
+  durationMinutes: number, 
+  bookings: any[], // Replace with DB Booking type
+  simulators: any[] // Replace with DB Simulator/Bay type
+) {
+  const slots = [];
+  let currentSlot = setMinutes(setHours(startOfDay(date), OPERATING_START_HOUR), 0);
+  const endOfDay = setMinutes(setHours(startOfDay(date), OPERATING_END_HOUR), 0);
+  
+  const dayBookings = bookings.filter(b => isSameDay(parseISO(b.startTime), date));
+  while (isBefore(currentSlot, endOfDay)) {
+    const potentialEnd = addMinutes(currentSlot, durationMinutes);
+    if (isAfter(potentialEnd, endOfDay)) {
+       currentSlot = addMinutes(currentSlot, SLOT_GRANULARITY);
+       continue;
+    }
+    let bestBaySlot = null;
+    for (const bay of simulators) {
+        const bayBookings = dayBookings.filter(b => b.simulatorId === bay.id);
+        
+        let isValid = true;
+        let nextBookingStart = null;
+        let previousBookingEnd = null;
+        // 1. Check overlaps and find adjacent bookings
+        for (const booking of bayBookings) {
+            const bStart = parseISO(booking.startTime);
+            const bEnd = parseISO(booking.endTime);
+            if (areIntervalsOverlapping(
+                { start: currentSlot, end: potentialEnd },
+                { start: bStart, end: bEnd }
+            )) {
+                isValid = false;
+                break;
+            }
+            if (isAfter(bStart, currentSlot) && (!nextBookingStart || isBefore(bStart, nextBookingStart))) {
+                nextBookingStart = bStart;
+            }
+            if (isBefore(bEnd, potentialEnd) && (!previousBookingEnd || isAfter(bEnd, previousBookingEnd))) {
+                previousBookingEnd = bEnd;
+            }
+        }
+        // 2. Calculate Gaps
+        let remainingGapAfter = nextBookingStart 
+            ? differenceInMinutes(nextBookingStart, potentialEnd) 
+            : differenceInMinutes(endOfDay, potentialEnd);
+        let remainingGapBefore = previousBookingEnd 
+            ? differenceInMinutes(currentSlot, previousBookingEnd) 
+            : differenceInMinutes(currentSlot, setMinutes(setHours(startOfDay(date), OPERATING_START_HOUR), 0));
+        // 3. Hard Rejection for small gaps
+        if (isValid && remainingGapAfter > 0 && remainingGapAfter < 30) {
+            isValid = false;
+        }
+        let score = 0;
+        // 4. Scoring
+        if (isValid) {
+            if (remainingGapAfter === 0) score += 5;
+            if (remainingGapBefore === 0) score += 3;
+            if (remainingGapAfter >= 30 && remainingGapAfter <= 60) score -= 3;
+            if (bayBookings.length > 0) score += 2;
+            
+            const hour = currentSlot.getHours();
+            if (hour >= 17 && hour < 21) score += 1;
+        }
+        // 5. Track the best bay for this specific time slot
+        if (isValid) {
+            if (!bestBaySlot || score > bestBaySlot.score) {
+                bestBaySlot = { bayId: bay.id, score };
+            }
+        }
+    }
+    // 6. Add the best bay to the available slots for the user to pick from
+    if (bestBaySlot) {
+        slots.push({
+            time: currentSlot.toISOString(),
+            score: bestBaySlot.score,
+            assignedBayId: bestBaySlot.bayId,
+            isBestFit: bestBaySlot.score >= 5
+        });
+    }
+    currentSlot = addMinutes(currentSlot, SLOT_GRANULARITY);
+  }
+  return slots.sort((a, b) => b.score - a.score);
+}
+Your Tasks:
+Review this logic and implement an equivalent service function on the backend.
+Create an API endpoint (e.g., GET /api/bookings/available-slots) that accepts a date and durationMinutes, fetches the day's bookings from the database, runs this algorithm, and returns the optimized slots.
+Ensure that when a booking is finalized (POST /api/bookings), the backend double-checks this logic to ensure the assignedBayId is still valid and hasn't been taken in the meantime.
