@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useBookingStore } from "@/lib/booking-store";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -69,11 +69,15 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
     setIsLoadingBookings(isLoading);
   }, [data, isLoading, setBookings, setIsLoadingBookings]);
 
-  const slots = data?.slots ?? [];
+  const slots = useMemo(() => data?.slots ?? [], [data]);
 
+  const prevSlotsRef = useRef(slots);
   useEffect(() => {
-    onSlotsReady?.(slots);
-  }, [slots]);
+    if (slots !== prevSlotsRef.current) {
+      prevSlotsRef.current = slots;
+      onSlotsReady?.(slots);
+    }
+  }, [slots, onSlotsReady]);
 
   const handleTimeSelect = (slot: TimeSlot) => {
     setTimeSlot(slot.time, slot.assignedBayId);
