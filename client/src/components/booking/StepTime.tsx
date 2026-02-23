@@ -127,7 +127,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
               initialFocus
               locale={fr}
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              className="scale-125 origin-top-right m-2"
+              className="p-3"
             />
           </PopoverContent>
         </Popover>

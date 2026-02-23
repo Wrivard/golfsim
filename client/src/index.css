@@ -103,30 +103,6 @@
   }
 }
 
-/* Calendar size overrides */
-.rdp-root {
-  --rdp-day-height: 48px;
-  --rdp-day-width: 48px;
-  --rdp-day_button-height: 44px;
-  --rdp-day_button-width: 44px;
-  --rdp-nav_button-height: 2.5rem;
-  --rdp-nav_button-width: 2.5rem;
-  --rdp-nav-height: 3rem;
-}
-
-.rdp-root .rdp-day_button {
-  font-size: 0.95rem;
-}
-
-.rdp-root .rdp-weekday {
-  font-size: 0.85rem;
-  padding: 0.5rem 0;
-}
-
-.rdp-root .rdp-month_caption {
-  font-size: 1rem;
-  font-weight: 600;
-}
 
 /* Utilities */
 .no-scrollbar::-webkit-scrollbar {
