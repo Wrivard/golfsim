@@ -113,7 +113,7 @@ export function getOptimizedStartTimes(
             };
 
             if (remainingGapAfter === 0) breakdown.gapAfter += 5;
-            if (remainingGapBefore === 0) breakdown.gapBefore += 3;
+            if (remainingGapBefore === 0) breakdown.gapBefore += 5;
             if (remainingGapAfter >= 30 && remainingGapAfter <= 60) breakdown.inefficientGap -= 3;
 
             if (bayBookings.length > 0) breakdown.bayClustering += 2;
