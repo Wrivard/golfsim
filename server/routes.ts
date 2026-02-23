@@ -14,6 +14,11 @@ import {
   listCalendars,
   syncCalendarToDatabase
 } from "./googleCalendar";
+import { 
+  getOptimizedStartTimes, 
+  validateBayAssignment, 
+  type BookingRecord 
+} from "./booking-logic";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "./middleware/security";
@@ -431,6 +436,72 @@ export async function registerRoutes(
     }
   });
 
+  function formatBookingsForLogic(dayBookings: Booking[], dateStr: string): BookingRecord[] {
+    return dayBookings.map(booking => {
+      const [hours, minutes] = booking.time.split(':').map(Number);
+      const durationMinutes = parseDurationToMinutes(booking.duration);
+
+      const startHour = String(hours).padStart(2, '0');
+      const startMin = String(minutes || 0).padStart(2, '0');
+      const endTotalMinutes = hours * 60 + (minutes || 0) + durationMinutes;
+      const endHour = String(Math.floor(endTotalMinutes / 60)).padStart(2, '0');
+      const endMin = String(endTotalMinutes % 60).padStart(2, '0');
+
+      return {
+        id: booking.id,
+        simulatorId: booking.bayType,
+        startTime: `${dateStr}T${startHour}:${startMin}:00`,
+        endTime: `${dateStr}T${endHour}:${endMin}:00`,
+        customerName: booking.name,
+      };
+    });
+  }
+
+  app.get("/api/availability/optimized", async (req: Request, res: Response) => {
+    try {
+      const { date, duration } = req.query;
+
+      if (!date || typeof date !== 'string') {
+        return res.status(400).json({ ok: false, message: "Le paramètre date est requis" });
+      }
+
+      if (!duration || typeof duration !== 'string') {
+        return res.status(400).json({ ok: false, message: "Le paramètre duration est requis (en minutes)" });
+      }
+
+      const durationMinutes = parseInt(duration, 10);
+      if (isNaN(durationMinutes) || durationMinutes < 60) {
+        return res.status(400).json({ ok: false, message: "Durée invalide (minimum 60 minutes)" });
+      }
+
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+
+      const dayBookings = await storage.getBookingsByDateRange(targetDate, endDate);
+      const formattedBookings = formatBookingsForLogic(dayBookings, date);
+
+      const slots = getOptimizedStartTimes(targetDate, durationMinutes, formattedBookings);
+
+      return res.json({
+        ok: true,
+        slots,
+        bookings: formattedBookings,
+        meta: {
+          date,
+          durationMinutes,
+          totalSlots: slots.length,
+          bestScore: slots.length > 0 ? slots[0].score : 0,
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching optimized availability:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors du calcul des disponibilités" });
+    }
+  });
+
   app.get("/api/availability", async (req: Request, res: Response) => {
     try {
       const { start, end, duration } = req.query;
@@ -507,6 +578,29 @@ export async function registerRoutes(
         return res.status(400).json({
           ok: false,
           message: `Baie invalide. Choisissez parmi: ${BAY_NUMBERS.join(', ')}.`,
+        });
+      }
+
+      const bookingDateStr = validatedData.date.toISOString().split('T')[0];
+      const existingBookings = await storage.getBookingsByDateRange(
+        new Date(new Date(bookingDateStr).setHours(0, 0, 0, 0)),
+        new Date(new Date(bookingDateStr).setHours(23, 59, 59, 999))
+      );
+      const formattedForLogic = formatBookingsForLogic(existingBookings, bookingDateStr);
+
+      const bayValidation = validateBayAssignment(
+        validatedData.date,
+        validatedData.time,
+        durationMinutes,
+        validatedData.bayType,
+        formattedForLogic
+      );
+
+      if (!bayValidation.valid) {
+        return res.status(409).json({
+          ok: false,
+          message: bayValidation.reason || "Ce créneau n'est pas disponible.",
+          suggestedBayId: bayValidation.suggestedBayId,
         });
       }
       

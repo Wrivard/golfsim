@@ -1,6 +1,5 @@
 import { useMemo, useEffect } from "react";
 import { useBookingStore } from "@/lib/booking-store";
-import { getOptimizedStartTimes } from "@/lib/booking-logic";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -9,14 +8,31 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot } from "@/lib/booking-types";
-import { Booking } from "@/lib/booking-types";
 import { useQuery } from "@tanstack/react-query";
 
-async function fetchBookingsForDate(dateStr: string): Promise<Booking[]> {
-  const response = await fetch(`/api/availability/bookings?date=${dateStr}`);
+interface OptimizedResponse {
+  ok: boolean;
+  slots: TimeSlot[];
+  bookings: Array<{
+    id: string;
+    simulatorId: string;
+    startTime: string;
+    endTime: string;
+    customerName: string;
+  }>;
+  meta: {
+    date: string;
+    durationMinutes: number;
+    totalSlots: number;
+    bestScore: number;
+  };
+}
+
+async function fetchOptimizedSlots(dateStr: string, durationMinutes: number): Promise<OptimizedResponse> {
+  const response = await fetch(`/api/availability/optimized?date=${dateStr}&duration=${durationMinutes}`);
   const data = await response.json();
   if (!data.ok) throw new Error(data.message);
-  return data.bookings;
+  return data;
 }
 
 interface StepTimeProps {
@@ -28,12 +44,10 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
   const { 
     selectedDate, 
     selectedDuration, 
-    simulators,
     setStep,
     setDate,
     setTimeSlot,
     setBookings,
-    bookings,
     setIsLoadingBookings
   } = useBookingStore();
 
@@ -41,27 +55,25 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
     return selectedDate.toISOString().split('T')[0];
   }, [selectedDate]);
 
-  const { data: fetchedBookings, isLoading } = useQuery({
-    queryKey: ['day-bookings', dateStr],
-    queryFn: () => fetchBookingsForDate(dateStr),
+  const { data, isLoading } = useQuery({
+    queryKey: ['optimized-slots', dateStr, selectedDuration],
+    queryFn: () => fetchOptimizedSlots(dateStr, selectedDuration || 60),
     staleTime: 15000,
+    enabled: !!selectedDuration,
   });
 
   useEffect(() => {
-    if (fetchedBookings) {
-      setBookings(fetchedBookings);
+    if (data) {
+      setBookings(data.bookings);
     }
     setIsLoadingBookings(isLoading);
-  }, [fetchedBookings, isLoading, setBookings, setIsLoadingBookings]);
+  }, [data, isLoading, setBookings, setIsLoadingBookings]);
 
-  const optimizedSlots = useMemo(() => {
-    if (!selectedDuration) return [];
-    return getOptimizedStartTimes(selectedDate, selectedDuration, bookings, simulators);
-  }, [selectedDate, selectedDuration, bookings, simulators]);
+  const slots = data?.slots ?? [];
 
   useEffect(() => {
-    onSlotsReady?.(optimizedSlots);
-  }, [optimizedSlots]);
+    onSlotsReady?.(slots);
+  }, [slots]);
 
   const handleTimeSelect = (slot: TimeSlot) => {
     setTimeSlot(slot.time, slot.assignedBayId);
@@ -69,12 +81,12 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
   };
 
   const sortedSlots = useMemo(() => {
-    const bestScore = Math.max(...optimizedSlots.map(s => s.score), -Infinity);
-    const best = optimizedSlots.filter(s => s.score === bestScore && s.label);
-    const rest = optimizedSlots.filter(s => !best.includes(s));
+    const bestScore = Math.max(...slots.map(s => s.score), -Infinity);
+    const best = slots.filter(s => s.score === bestScore && s.label);
+    const rest = slots.filter(s => !best.includes(s));
     rest.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     return [...best, ...rest];
-  }, [optimizedSlots]);
+  }, [slots]);
 
   return (
     <div className="space-y-6">
