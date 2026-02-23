@@ -69,7 +69,7 @@ export function getOptimizedStartTimes(
                 }
             }
 
-            if (!isAfter(bEnd, currentSlot)) {
+            if (isBefore(bEnd, potentialEnd)) {
                 if (!previousBookingEnd || isAfter(bEnd, previousBookingEnd)) {
                 previousBookingEnd = bEnd;
                 }
