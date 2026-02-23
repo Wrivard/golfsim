@@ -5,14 +5,10 @@ export function StepDuration() {
   const { setDuration, setStep } = useBookingStore();
 
   const durations = [
-    { value: 60, label: "1 Heure", price: "30$" },
-    { value: 90, label: "1h30", price: "45$" },
-    { value: 120, label: "2 Heures", price: "60$" },
-    { value: 150, label: "2h30", price: "75$" },
-    { value: 180, label: "3 Heures", price: "90$" },
-    { value: 210, label: "3h30", price: "105$" },
-    { value: 240, label: "4 Heures", price: "120$" },
-    { value: 300, label: "5 Heures", price: "150$" },
+    { value: 60, label: "1 Heure", sub: "Session Standard", badge: null },
+    { value: 120, label: "2 Heures", sub: "Session Standard", badge: null },
+    { value: 180, label: "3 Heures", sub: "Session Standard", badge: null },
+    { value: 240, label: "4 Heures", sub: "Session Standard", badge: null },
   ];
 
   const handleSelect = (minutes: number) => {
@@ -23,25 +19,30 @@ export function StepDuration() {
   return (
     <div className="flex flex-col items-center w-full">
       <p className="text-sm text-muted-foreground text-center mb-8">
-        Choisissez la durée de votre session de golf simulé. Tarif : 30$/heure.
+        Les offres s'appliquent automatiquement à la réservation.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+      <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
         {durations.map((d) => (
           <button
             key={d.value}
             onClick={() => handleSelect(d.value)}
-            className="group relative flex flex-col items-center justify-center p-6 rounded-lg border border-foreground/10 bg-background hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98] transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="group relative flex flex-col items-center justify-center py-8 px-6 rounded-xl border-2 border-foreground/10 bg-white hover:border-primary hover:shadow-lg active:scale-[0.98] transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             data-testid={`duration-${d.value}`}
           >
-            <div className="mb-2 text-primary/80 group-hover:text-primary transition-colors">
-              <Clock className="w-6 h-6" />
+            {d.badge && (
+              <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                {d.badge}
+              </span>
+            )}
+            <div className="mb-3 text-primary/70 group-hover:text-primary transition-colors">
+              <Clock className="w-7 h-7" strokeWidth={1.5} />
             </div>
-            <span className="text-lg font-heading font-semibold text-foreground group-hover:text-primary transition-colors">
+            <span className="text-xl font-heading font-bold text-foreground group-hover:text-primary transition-colors tracking-tight">
               {d.label}
             </span>
             <span className="text-sm text-muted-foreground mt-1">
-              {d.price}
+              {d.sub}
             </span>
           </button>
         ))}
