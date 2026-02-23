@@ -119,7 +119,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
               {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : <span>Choisir une date</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center" sideOffset={8}>
+          <PopoverContent className="w-auto p-0 rounded-2xl border-border/50 shadow-lg" align="center" sideOffset={8}>
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -127,7 +127,11 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
               initialFocus
               locale={fr}
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              className="p-4 min-w-[350px]"
+              className="p-5 min-w-[350px]"
+              classNames={{
+                today: "ring-2 ring-primary/30 rounded-lg",
+                day: "group/day relative aspect-square h-full w-full select-none p-0 text-center",
+              }}
             />
           </PopoverContent>
         </Popover>
