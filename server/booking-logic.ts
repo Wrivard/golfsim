@@ -211,7 +211,7 @@ export function getOptimizedStartTimes(
         score: bestBaySlot.score,
         assignedBayId: bestBaySlot.bayId,
         breakdown: bestBaySlot.breakdown,
-        label: bestBaySlot.score >= 5 ? "Meilleur choix" : undefined,
+        label: undefined,
         allBays: allBaysEvaluation
       });
     }
@@ -219,7 +219,18 @@ export function getOptimizedStartTimes(
     currentSlot = addMinutes(currentSlot, SLOT_GRANULARITY);
   }
 
-  return slots.sort((a, b) => b.score - a.score);
+  slots.sort((a, b) => a.time.localeCompare(b.time));
+
+  if (slots.length > 0) {
+    const bestScore = Math.max(...slots.map(s => s.score));
+    if (bestScore >= 3) {
+      for (const slot of slots) {
+        slot.label = slot.score === bestScore ? "Meilleur choix" : undefined;
+      }
+    }
+  }
+
+  return slots;
 }
 
 export function validateBayAssignment(

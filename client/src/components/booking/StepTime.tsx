@@ -85,11 +85,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
   };
 
   const sortedSlots = useMemo(() => {
-    const bestScore = Math.max(...slots.map(s => s.score), -Infinity);
-    const best = slots.filter(s => s.score === bestScore && s.label);
-    const rest = slots.filter(s => !best.includes(s));
-    rest.sort((a, b) => a.time.localeCompare(b.time));
-    return [...best, ...rest];
+    return [...slots].sort((a, b) => a.time.localeCompare(b.time));
   }, [slots]);
 
   return (
