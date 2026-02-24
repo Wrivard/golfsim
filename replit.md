@@ -61,7 +61,7 @@ Preferred communication style: Simple, everyday language.
 - Connection pooling for efficient database access
 
 **Database Schema**
-- `bookings` table with fields: id (UUID), name, email, phone, date, time, duration, bayType (standard/premium), players (1-4), notes, calendarEventId, createdAt
+- `bookings` table with fields: id (UUID), name, email, phone, date, time, duration, bayType (bay 1-4), players (1-4), notes, calendarEventId, createdAt
 - `admin_users` table with fields: id (UUID), username (unique), passwordHash, role, createdAt
 - `calendar_settings` table with fields: id (UUID), syncEmail, calendarId, updatedAt
 - Unique constraint on (bayType, date, time) to prevent double-booking
@@ -76,6 +76,7 @@ Preferred communication style: Simple, everyday language.
 **Booking Business Logic**
 - Conflict detection: checks existing bookings for same bay, date, and overlapping time windows
 - Time overlap calculation converts time strings and duration to minutes for precise comparison
+- Pricing: 25$/hour per bay for all durations
 - Atomic operations: booking creation fails if calendar sync fails (prevents orphaned bookings)
 
 ### External Dependencies

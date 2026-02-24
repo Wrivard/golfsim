@@ -102,7 +102,7 @@ async function logout() {
   return data;
 }
 
-const PRICE_PER_HOUR = 30;
+const PRICE_PER_HOUR = 25;
 
 function getBookingDateTime(booking: any): Date {
   try {
@@ -693,7 +693,11 @@ export default function Admin() {
                       <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                         <div className="text-left sm:text-right">
                           <p className="font-bold text-[#2B5734] text-sm md:text-base">
-                            {format(new Date(booking.date), "d MMM yyyy", { locale: fr })}
+                            {(() => {
+                              const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+                              const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
+                              return format(new Date(y, mo - 1, dy), "d MMM yyyy", { locale: fr });
+                            })()}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground">
                             {booking.time} - {booking.duration}
@@ -714,7 +718,11 @@ export default function Admin() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Supprimer cette réservation?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                La réservation de {booking.name} pour le {format(new Date(booking.date), "d MMMM yyyy", { locale: fr })} à {booking.time} sera supprimée définitivement.
+                                La réservation de {booking.name} pour le {(() => {
+                                  const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+                                  const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
+                                  return format(new Date(y, mo - 1, dy), "d MMMM yyyy", { locale: fr });
+                                })()} à {booking.time} sera supprimée définitivement.
                                 {booking.calendarEventId && " L'événement sera également retiré du calendrier Google."}
                               </AlertDialogDescription>
                             </AlertDialogHeader>

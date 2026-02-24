@@ -659,7 +659,7 @@ export default function BookingForm() {
               ) : (
                 cart.map((item) => {
                   const itemDuration = parseFloat(item.duration.replace('h', ''));
-                  const itemPrice = Math.round(itemDuration * 30 * item.bays.length);
+                  const itemPrice = Math.round(itemDuration * 25 * item.bays.length);
                   return (
                     <div key={item.id} className="bg-background/50 rounded-lg p-3 relative group">
                       <button 
@@ -712,7 +712,7 @@ export default function BookingForm() {
           </Card>
 
           <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed space-y-2">
-            <p><span className="font-bold text-primary text-sm">30$ / heure</span> <span className="text-foreground/50">par baie</span></p>
+            <p><span className="font-bold text-primary text-sm">25$ / heure</span> <span className="text-foreground/50">par baie</span></p>
             <div className="border-t border-foreground/10 pt-2 mt-2">
               <p><span className="font-bold text-foreground">Ouvert:</span> 8h - 22h</p>
               <p><span className="font-bold text-foreground">Baies:</span> 4 simulateurs</p>

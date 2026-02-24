@@ -6,7 +6,7 @@ import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucid
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-const PRICE_PER_HOUR = 30;
+const PRICE_PER_HOUR = 25;
 
 async function createBooking(data: {
   name: string;

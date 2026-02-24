@@ -112,7 +112,7 @@ export default function BookingPage() {
 
         <div className="mt-12 text-center text-sm text-muted-foreground font-sans max-w-2xl mx-auto">
           <p className="mb-2">
-            <span className="font-bold text-foreground">Note :</span> Le paiement s'effectue sur place. Tarif : 30$/heure.
+            <span className="font-bold text-foreground">Note :</span> Le paiement s'effectue sur place. Tarif : 25$/heure.
           </p>
           <p>
             Pour les annulations, veuillez nous contacter au moins 24 heures à l'avance. 

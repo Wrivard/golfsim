@@ -314,7 +314,7 @@ export async function registerRoutes(
   const OPENING_HOUR = 8;
   const CLOSING_HOUR = 22;
   const MIN_DURATION_HOURS = 1;
-  const PRICE_PER_HOUR = 30;
+  const PRICE_PER_HOUR = 25;
   
   function parseDurationToMinutes(duration: string): number {
     const hours = parseFloat(duration.replace('h', ''));
