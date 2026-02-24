@@ -88,7 +88,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
     const bestScore = Math.max(...slots.map(s => s.score), -Infinity);
     const best = slots.filter(s => s.score === bestScore && s.label);
     const rest = slots.filter(s => !best.includes(s));
-    rest.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    rest.sort((a, b) => a.time.localeCompare(b.time));
     return [...best, ...rest];
   }, [slots]);
 
@@ -166,7 +166,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
                   "relative group flex flex-col items-center justify-center py-4 px-2 rounded-lg border transition-all duration-200",
                   "bg-background border-foreground/10 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/5 text-foreground"
                 )}
-                data-testid={`timeslot-${format(new Date(slot.time), "HH:mm")}`}
+                data-testid={`timeslot-${slot.time.slice(11, 16)}`}
               >
                 {slot.label && (
                   <span className="absolute -top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide bg-primary text-white">
@@ -174,7 +174,7 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
                   </span>
                 )}
                 <span className="text-lg font-semibold group-hover:text-primary transition-colors">
-                  {format(new Date(slot.time), "HH:mm")}
+                  {slot.time.slice(11, 16)}
                 </span>
                 <span className="text-[11px] text-muted-foreground mt-0.5">
                   Baie {slot.assignedBayId}

@@ -100,7 +100,7 @@ function DetailedInspector({ slot }: { slot: TimeSlot | null }) {
     );
   }
 
-  const timeLabel = format(new Date(slot.time), "HH:mm");
+  const timeLabel = slot.time.slice(11, 16);
   const bd = slot.breakdown;
 
   return (
@@ -189,7 +189,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
   const { simulators, selectedDate } = useBookingStore();
 
   const sortedByTime = useMemo(() =>
-    [...slots].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()),
+    [...slots].sort((a, b) => a.time.localeCompare(b.time)),
     [slots]
   );
 
@@ -264,7 +264,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
                         isHovered ? "bg-green-900/20 text-green-400" : "hover:bg-gray-800/50"
                       )}>
                         <td className="py-1.5 px-3 font-mono font-bold">
-                          {format(new Date(slot.time), "HH:mm")}
+                          {slot.time.slice(11, 16)}
                         </td>
                         <td className="py-1.5 px-3">
                           Baie {slot.assignedBayId}
