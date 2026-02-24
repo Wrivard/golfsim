@@ -43,10 +43,13 @@ export function StepDetails() {
         <div>
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Votre session</p>
           <p className="font-medium text-foreground text-sm">
-            {selectedTimeSlot && format(new Date(selectedTimeSlot), "EEEE d MMMM yyyy", { locale: fr })}
+            {selectedTimeSlot && (() => {
+              const [y, mo, d] = selectedTimeSlot.split('T')[0].split('-').map(Number);
+              return format(new Date(y, mo - 1, d), "EEEE d MMMM yyyy", { locale: fr });
+            })()}
           </p>
           <p className="text-sm text-muted-foreground">
-            {selectedTimeSlot && format(new Date(selectedTimeSlot), "HH:mm")} • {selectedDuration ? selectedDuration / 60 : 0}h • Baie {assignedBayId}
+            {selectedTimeSlot && selectedTimeSlot.slice(11, 16)} • {selectedDuration ? selectedDuration / 60 : 0}h • Baie {assignedBayId}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setStep(2)} data-testid="button-modify-time">

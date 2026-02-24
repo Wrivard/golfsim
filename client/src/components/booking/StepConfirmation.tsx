@@ -1,6 +1,6 @@
 import { useBookingStore } from "@/lib/booking-store";
 import { Button } from "@/components/ui/button";
-import { format, addMinutes } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -72,9 +72,8 @@ export function StepConfirmation() {
     
     setIsSubmitting(true);
     
-    const startDate = new Date(selectedTimeSlot);
-    const dateStr = startDate.toISOString().split('T')[0];
-    const timeStr = format(startDate, "HH:mm");
+    const dateStr = selectedTimeSlot.split('T')[0];
+    const timeStr = selectedTimeSlot.slice(11, 16);
 
     bookingMutation.mutate({
       name: userDetails.name,
@@ -113,9 +112,12 @@ export function StepConfirmation() {
     );
   }
 
-  const endTime = selectedTimeSlot && selectedDuration 
-    ? addMinutes(new Date(selectedTimeSlot), selectedDuration) 
-    : null;
+  const startTimeStr = selectedTimeSlot ? selectedTimeSlot.slice(11, 16) : null;
+  const endTimeStr = selectedTimeSlot && selectedDuration ? (() => {
+    const [h, m] = selectedTimeSlot.slice(11, 16).split(':').map(Number);
+    const totalMin = h * 60 + m + selectedDuration;
+    return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+  })() : null;
     
   const bayName = simulators.find(s => s.id === assignedBayId)?.name || `Baie ${assignedBayId}`;
 
@@ -129,7 +131,10 @@ export function StepConfirmation() {
           <div>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Date</p>
             <p className="text-base font-semibold text-foreground">
-              {selectedTimeSlot && format(new Date(selectedTimeSlot), "EEEE d MMMM yyyy", { locale: fr })}
+              {selectedTimeSlot && (() => {
+                const [y, mo, d] = selectedTimeSlot.split('T')[0].split('-').map(Number);
+                return format(new Date(y, mo - 1, d), "EEEE d MMMM yyyy", { locale: fr });
+              })()}
             </p>
           </div>
         </div>
@@ -141,7 +146,7 @@ export function StepConfirmation() {
           <div>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Heure</p>
             <p className="text-base font-semibold text-foreground">
-              {selectedTimeSlot && format(new Date(selectedTimeSlot), "HH:mm")} — {endTime && format(endTime, "HH:mm")}
+              {startTimeStr} — {endTimeStr}
             </p>
             <p className="text-sm text-primary font-medium">
               Session de {durationHours}h • {price}$
