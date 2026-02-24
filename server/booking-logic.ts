@@ -170,9 +170,10 @@ function evaluateBayAtTime(
       if (gap === 0) return 2;
       if (gap > 0 && gap < 30) return -5;
       if (gap >= 30 && gap < 60) return -2;
+      if (gap === 60) return -1;
       if (gap === 240 || gap === MAX_BOOKING_DURATION) return 4;
-      if (gap >= 60 && gap <= 120 && gap % 60 === 0) return 3;
-      if (gap >= 30 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
+      if (gap === 120 || gap === 90) return 3;
+      if (gap >= 150 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
       return 0;
     }
 
