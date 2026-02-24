@@ -156,11 +156,20 @@ function evaluateBayAtTime(
       total: 0
     };
 
-    if (remainingGapAfter === 0) breakdown.gapAfter += 5;
-    if (remainingGapBefore === 0) breakdown.gapBefore += 5;
+    const touchesBookingBefore = previousBookingEnd !== null && remainingGapBefore === 0;
+    const touchesBookingAfter = nextBookingStart !== null && remainingGapAfter === 0;
+    const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
+    const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
+
+    if (touchesBookingAfter) breakdown.gapAfter += 5;
+    else if (touchesDayEnd) breakdown.gapAfter += 3;
+
+    if (touchesBookingBefore) breakdown.gapBefore += 5;
+    else if (touchesDayStart) breakdown.gapBefore += 3;
+
     if (remainingGapAfter >= 30 && remainingGapAfter <= 60) breakdown.inefficientGap -= 3;
 
-    if (remainingGapAfter === 0 && remainingGapBefore === 0) {
+    if (touchesBookingBefore && touchesBookingAfter) {
       breakdown.perfectFit += 3;
     }
 
@@ -169,11 +178,12 @@ function evaluateBayAtTime(
     const hour = currentSlot.getHours();
     if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
 
-    const maxDuration = 300;
-    if (durationMinutes < maxDuration) {
-      const totalFreeSpace = remainingGapBefore + durationMinutes + remainingGapAfter;
-      if (totalFreeSpace > durationMinutes * 3) {
-        breakdown.openStretchPenalty -= 4;
+    if (durationMinutes <= 120) {
+      const availableStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
+      if (availableStretch > durationMinutes * 4) {
+        breakdown.openStretchPenalty -= 5;
+      } else if (availableStretch > durationMinutes * 2.5) {
+        breakdown.openStretchPenalty -= 3;
       }
     }
 
