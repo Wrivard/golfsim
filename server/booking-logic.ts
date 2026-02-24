@@ -222,11 +222,9 @@ export function getOptimizedStartTimes(
   slots.sort((a, b) => a.time.localeCompare(b.time));
 
   if (slots.length > 0) {
-    const bestScore = Math.max(...slots.map(s => s.score));
-    if (bestScore >= 3) {
-      for (const slot of slots) {
-        slot.label = slot.score === bestScore ? "Meilleur choix" : undefined;
-      }
+    const BEST_CHOICE_THRESHOLD = 5;
+    for (const slot of slots) {
+      slot.label = slot.score >= BEST_CHOICE_THRESHOLD ? "Meilleur choix" : undefined;
     }
   }
 
