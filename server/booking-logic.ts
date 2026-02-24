@@ -179,11 +179,13 @@ function evaluateBayAtTime(
     if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
 
     if (durationMinutes <= 120) {
-      const availableStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
-      if (availableStretch > durationMinutes * 4) {
-        breakdown.openStretchPenalty -= 5;
-      } else if (availableStretch > durationMinutes * 2.5) {
-        breakdown.openStretchPenalty -= 3;
+      const totalGap = remainingGapBefore + durationMinutes + remainingGapAfter;
+      const isTightFit = totalGap <= durationMinutes * 1.5;
+
+      if (!touchesBookingBefore && !touchesBookingAfter) {
+        breakdown.openStretchPenalty -= 6;
+      } else if ((touchesBookingBefore || touchesBookingAfter) && !isTightFit) {
+        breakdown.openStretchPenalty -= 4;
       }
     }
 

@@ -296,7 +296,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
 
       <div className="p-3 border-t border-gray-800 text-center">
         <p className="text-[10px] text-gray-600">
-          Booking→+5 | Jour→+3 | PerfectFit→+3 | Cluster→+2 | Peak→+1 | Ineff.→-3 | Open→-3/-5
+          Booking→+5 | Jour→+3 | PerfectFit→+3 | Cluster→+2 | Peak→+1 | Ineff.→-3 | Open→-4/-6
         </p>
       </div>
     </div>
