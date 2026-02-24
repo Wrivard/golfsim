@@ -28,9 +28,11 @@ export interface ScoreBreakdown {
   base: number;
   gapAfter: number;
   gapBefore: number;
+  perfectFit: number;
   bayClustering: number;
   peakHour: number;
   inefficientGap: number;
+  openStretchPenalty: number;
   total: number;
 }
 
@@ -78,7 +80,8 @@ function evaluateBayAtTime(
   potentialEnd: Date,
   endOfDay: Date,
   dayBookings: BookingRecord[],
-  date: Date
+  date: Date,
+  durationMinutes: number
 ): BayEvaluation {
   const bayBookings = dayBookings.filter(b => b.simulatorId === bay.id);
 
@@ -145,9 +148,11 @@ function evaluateBayAtTime(
       base: 0,
       gapAfter: 0,
       gapBefore: 0,
+      perfectFit: 0,
       bayClustering: 0,
       peakHour: 0,
       inefficientGap: 0,
+      openStretchPenalty: 0,
       total: 0
     };
 
@@ -155,18 +160,32 @@ function evaluateBayAtTime(
     if (remainingGapBefore === 0) breakdown.gapBefore += 5;
     if (remainingGapAfter >= 30 && remainingGapAfter <= 60) breakdown.inefficientGap -= 3;
 
+    if (remainingGapAfter === 0 && remainingGapBefore === 0) {
+      breakdown.perfectFit += 3;
+    }
+
     if (bayBookings.length > 0) breakdown.bayClustering += 2;
 
     const hour = currentSlot.getHours();
     if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
 
+    const maxDuration = 300;
+    if (durationMinutes < maxDuration) {
+      const totalFreeSpace = remainingGapBefore + durationMinutes + remainingGapAfter;
+      if (totalFreeSpace > durationMinutes * 3) {
+        breakdown.openStretchPenalty -= 4;
+      }
+    }
+
     breakdown.total =
       breakdown.base +
       breakdown.gapAfter +
       breakdown.gapBefore +
+      breakdown.perfectFit +
       breakdown.bayClustering +
       breakdown.peakHour +
-      breakdown.inefficientGap;
+      breakdown.inefficientGap +
+      breakdown.openStretchPenalty;
 
     score = breakdown.total;
   }
@@ -225,7 +244,7 @@ export function getOptimizedStartTimes(
     const allBaysEvaluation: BayEvaluation[] = [];
 
     for (const bay of eligibleBays) {
-      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, endOfDay, dayBookings, date);
+      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, endOfDay, dayBookings, date, durationMinutes);
       allBaysEvaluation.push(evaluation);
 
       if (evaluation.isValid) {

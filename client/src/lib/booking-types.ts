@@ -15,9 +15,11 @@ export interface ScoreBreakdown {
   base: number;
   gapAfter: number;
   gapBefore: number;
+  perfectFit: number;
   bayClustering: number;
   peakHour: number;
   inefficientGap: number;
+  openStretchPenalty: number;
   total: number;
 }
 

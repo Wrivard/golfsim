@@ -123,10 +123,12 @@ function DetailedInspector({ slot }: { slot: TimeSlot | null }) {
         <div className="space-y-2">
           <ScoreRow label="Base" value={bd.base} />
           <ScoreRow label="Gap après (=0 → +5)" value={bd.gapAfter} positive />
-          <ScoreRow label="Gap avant (=0 → +3)" value={bd.gapBefore} positive />
+          <ScoreRow label="Gap avant (=0 → +5)" value={bd.gapBefore} positive />
+          <ScoreRow label="Fit parfait (avant+après=0)" value={bd.perfectFit} positive />
           <ScoreRow label="Clustering baie" value={bd.bayClustering} positive />
           <ScoreRow label="Heure de pointe (17-21h)" value={bd.peakHour} positive />
           <ScoreRow label="Gap inefficace (30-60m)" value={bd.inefficientGap} negative />
+          <ScoreRow label="Espace ouvert (préserver)" value={bd.openStretchPenalty} negative />
           <div className="border-t border-gray-700 pt-2 flex justify-between text-sm font-bold">
             <span className="text-gray-400">Total</span>
             <span className="text-green-400">{bd.total}</span>
@@ -294,7 +296,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
 
       <div className="p-3 border-t border-gray-800 text-center">
         <p className="text-[10px] text-gray-600">
-          Gap=0 → +5/+3 | Cluster → +2 | Peak → +1 | Ineff. → -3
+          Gap=0 → +5 | PerfectFit → +3 | Cluster → +2 | Peak → +1 | Ineff. → -3 | OpenStretch → -4
         </p>
       </div>
     </div>

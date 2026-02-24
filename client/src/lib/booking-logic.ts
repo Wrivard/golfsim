@@ -106,15 +106,21 @@ export function getOptimizedStartTimes(
               base: 0,
               gapAfter: 0,
               gapBefore: 0,
+              perfectFit: 0,
               bayClustering: 0,
               peakHour: 0,
               inefficientGap: 0,
+              openStretchPenalty: 0,
               total: 0
             };
 
             if (remainingGapAfter === 0) breakdown.gapAfter += 5;
             if (remainingGapBefore === 0) breakdown.gapBefore += 5;
             if (remainingGapAfter >= 30 && remainingGapAfter <= 60) breakdown.inefficientGap -= 3;
+
+            if (remainingGapAfter === 0 && remainingGapBefore === 0) {
+              breakdown.perfectFit += 3;
+            }
 
             if (bayBookings.length > 0) breakdown.bayClustering += 2;
 
@@ -125,9 +131,11 @@ export function getOptimizedStartTimes(
               breakdown.base + 
               breakdown.gapAfter + 
               breakdown.gapBefore + 
+              breakdown.perfectFit +
               breakdown.bayClustering + 
               breakdown.peakHour + 
-              breakdown.inefficientGap;
+              breakdown.inefficientGap +
+              breakdown.openStretchPenalty;
             
             score = breakdown.total;
         }
