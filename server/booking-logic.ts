@@ -163,13 +163,16 @@ function evaluateBayAtTime(
     const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
     const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
 
+    const POPULAR_DURATIONS = [180, 240];
+
     function rateRemainingGap(gap: number, touchesBooking: boolean): number {
       if (gap === 0 && touchesBooking) return 5;
       if (gap === 0) return 2;
-      if (gap >= 60 && gap <= MAX_BOOKING_DURATION && gap % 60 === 0) return 3;
-      if (gap >= 30 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
       if (gap > 0 && gap < 30) return -5;
       if (gap >= 30 && gap < 60) return -2;
+      if (gap === 240 || gap === MAX_BOOKING_DURATION) return 4;
+      if (gap >= 60 && gap <= 120 && gap % 60 === 0) return 3;
+      if (gap >= 30 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
       return 0;
     }
 
@@ -187,8 +190,16 @@ function evaluateBayAtTime(
     const hour = currentSlot.getHours();
     if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
 
+    const totalStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
+
     if (durationMinutes <= 120) {
-      const totalStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
+      const couldFitPopular = POPULAR_DURATIONS.some(pd => totalStretch >= pd && totalStretch <= pd + 30);
+      const isNotPerfectFit = remainingGapAfter > 0 || remainingGapBefore > 0;
+
+      if (couldFitPopular && isNotPerfectFit) {
+        breakdown.openStretchPenalty -= 7;
+      }
+      
       if (!touchesBookingBefore && !touchesBookingAfter) {
         breakdown.openStretchPenalty -= 6;
       } else if (totalStretch > MAX_BOOKING_DURATION + durationMinutes) {
