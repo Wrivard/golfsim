@@ -156,21 +156,30 @@ function evaluateBayAtTime(
       total: 0
     };
 
+    const MAX_BOOKING_DURATION = 300;
+
     const touchesBookingBefore = previousBookingEnd !== null && remainingGapBefore === 0;
     const touchesBookingAfter = nextBookingStart !== null && remainingGapAfter === 0;
     const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
     const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
 
-    if (touchesBookingAfter) breakdown.gapAfter += 5;
-    else if (touchesDayEnd) breakdown.gapAfter += 3;
+    function rateRemainingGap(gap: number, touchesBooking: boolean): number {
+      if (gap === 0 && touchesBooking) return 5;
+      if (gap === 0) return 2;
+      if (gap >= 60 && gap <= MAX_BOOKING_DURATION && gap % 60 === 0) return 3;
+      if (gap >= 30 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
+      if (gap > 0 && gap < 30) return -5;
+      if (gap >= 30 && gap < 60) return -2;
+      return 0;
+    }
 
-    if (touchesBookingBefore) breakdown.gapBefore += 5;
-    else if (touchesDayStart) breakdown.gapBefore += 3;
+    breakdown.gapAfter = rateRemainingGap(remainingGapAfter, touchesBookingAfter);
+    breakdown.gapBefore = rateRemainingGap(remainingGapBefore, touchesBookingBefore);
 
-    if (remainingGapAfter >= 30 && remainingGapAfter <= 60) breakdown.inefficientGap -= 3;
-
-    if (touchesBookingBefore && touchesBookingAfter) {
-      breakdown.perfectFit += 3;
+    if (touchesBookingBefore && touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore === 0) {
+      breakdown.perfectFit += 5;
+    } else if (touchesBookingBefore && touchesBookingAfter) {
+      breakdown.perfectFit += 2;
     }
 
     if (bayBookings.length > 0) breakdown.bayClustering += 2;
@@ -179,13 +188,11 @@ function evaluateBayAtTime(
     if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
 
     if (durationMinutes <= 120) {
-      const totalGap = remainingGapBefore + durationMinutes + remainingGapAfter;
-      const isTightFit = totalGap <= durationMinutes * 1.5;
-
+      const totalStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
       if (!touchesBookingBefore && !touchesBookingAfter) {
         breakdown.openStretchPenalty -= 6;
-      } else if ((touchesBookingBefore || touchesBookingAfter) && !isTightFit) {
-        breakdown.openStretchPenalty -= 4;
+      } else if (totalStretch > MAX_BOOKING_DURATION + durationMinutes) {
+        breakdown.openStretchPenalty -= 3;
       }
     }
 

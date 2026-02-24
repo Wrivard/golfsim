@@ -122,8 +122,8 @@ function DetailedInspector({ slot }: { slot: TimeSlot | null }) {
       {bd && (
         <div className="space-y-2">
           <ScoreRow label="Base" value={bd.base} />
-          <ScoreRow label="Gap après (booking→+5, jour→+3)" value={bd.gapAfter} positive />
-          <ScoreRow label="Gap avant (booking→+5, jour→+3)" value={bd.gapBefore} positive />
+          <ScoreRow label="Reste après (0→+5, bookable→+2/3)" value={bd.gapAfter} />
+          <ScoreRow label="Reste avant (0→+5, bookable→+2/3)" value={bd.gapBefore} />
           <ScoreRow label="Fit parfait (avant+après=0)" value={bd.perfectFit} positive />
           <ScoreRow label="Clustering baie" value={bd.bayClustering} positive />
           <ScoreRow label="Heure de pointe (17-21h)" value={bd.peakHour} positive />
@@ -296,7 +296,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
 
       <div className="p-3 border-t border-gray-800 text-center">
         <p className="text-[10px] text-gray-600">
-          Booking→+5 | Jour→+3 | PerfectFit→+3 | Cluster→+2 | Peak→+1 | Ineff.→-3 | Open→-4/-6
+          Reste: 0→+5 | 1-5h→+2/3 | &lt;30m→-5 | PerfFit→+3/5 | Cluster→+2 | Peak→+1 | Open→-3/-6
         </p>
       </div>
     </div>
