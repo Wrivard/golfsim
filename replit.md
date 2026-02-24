@@ -181,13 +181,17 @@ Preferred communication style: Simple, everyday language.
 **Architecture** (Adapted from Wrivard/golf-logic repository)
 - 4-step React booking flow: Duration → Time → Details → Confirmation
 - State management via Zustand store (`client/src/lib/booking-store.ts`)
-- Smart bay optimization algorithm (`client/src/lib/booking-logic.ts`) that scores time slots based on:
+- Smart bay optimization algorithm (`server/booking-logic.ts`) that scores time slots based on:
   - Gap efficiency (minimizing unusable gaps between bookings)
   - Bay clustering (consolidating bookings on fewer bays)
   - Peak hour preference (17h-21h)
   - Inefficient gap penalties
+- Per-bay time slot granularity:
+  - Bays 1-2: 60-minute granularity (8:00, 9:00, 10:00...)
+  - Bays 3-4: 30-minute granularity (8:00, 8:30, 9:00, 9:30...)
+- "Meilleur choix" label on slots with score >= 5, displayed first in the grid
 - Components: StepDuration, StepTime, StepDetails, StepConfirmation in `client/src/components/booking/`
-- Real-time availability fetched via GET `/api/availability/bookings?date=YYYY-MM-DD`
+- Real-time availability fetched via GET `/api/availability/optimized?date=YYYY-MM-DD&duration=N`
 - Bay automatically assigned to the optimal simulator for each time slot
 
 **Bidirectional Google Calendar Sync**
