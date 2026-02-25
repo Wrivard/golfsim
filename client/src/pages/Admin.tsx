@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -127,6 +127,7 @@ export default function Admin() {
   const [filterBay, setFilterBay] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [debugMode, setDebugMode] = useState(false);
+  const [showAdminSection, setShowAdminSection] = useState(false);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -471,6 +472,186 @@ export default function Admin() {
         </div>
         
         <Card className="shadow-lg border-none">
+          <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
+              <Calendar className="w-5 h-5" />
+              Réservations
+            </CardTitle>
+            <CardDescription className="text-white/80">
+              Liste des réservations enregistrées
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 bg-white">
+            <div className="p-4 border-b bg-gray-50/50">
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher par nom ou courriel..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-10"
+                    data-testid="input-search"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Select value={filterBay} onValueChange={setFilterBay}>
+                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-bay">
+                      <SelectValue placeholder="Baie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes les baies</SelectItem>
+                      <SelectItem value="1">Baie 1</SelectItem>
+                      <SelectItem value="2">Baie 2</SelectItem>
+                      <SelectItem value="3">Baie 3</SelectItem>
+                      <SelectItem value="4">Baie 4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-period">
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      <SelectItem value="upcoming">À venir</SelectItem>
+                      <SelectItem value="past">Passées</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {(searchQuery || filterBay !== "all" || filterPeriod !== "all") && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="w-4 h-4" />
+                  <span>{filteredBookings.length} résultat(s) sur {allBookings.length}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterBay("all");
+                      setFilterPeriod("all");
+                    }}
+                  >
+                    Effacer les filtres
+                  </Button>
+                </div>
+              )}
+            </div>
+            {bookingsQuery.isLoading ? (
+              <div className="p-8 text-center">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#2B5734]" />
+              </div>
+            ) : filteredBookings.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                Aucune réservation pour le moment.
+              </div>
+            ) : (
+              <div className="divide-y max-h-[600px] overflow-y-auto">
+                {filteredBookings.map((booking: any) => (
+                  <div key={booking.id} className="p-3 md:p-4 hover:bg-gray-50">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground truncate">{booking.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{booking.email}</p>
+                        {booking.phone && (
+                          <p className="text-xs sm:text-sm text-muted-foreground">{booking.phone}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                        <div className="text-left sm:text-right">
+                          <p className="font-bold text-[#2B5734] text-sm md:text-base">
+                            {(() => {
+                              const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+                              const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
+                              return format(new Date(y, mo - 1, dy), "d MMM yyyy", { locale: fr });
+                            })()}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {booking.time} - {booking.duration}
+                          </p>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-${booking.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette réservation?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                La réservation de {booking.name} pour le {(() => {
+                                  const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
+                                  const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
+                                  return format(new Date(y, mo - 1, dy), "d MMMM yyyy", { locale: fr });
+                                })()} à {booking.time} sera supprimée définitivement.
+                                {booking.calendarEventId && " L'événement sera également retiré du calendrier Google."}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteMutation.mutate(booking.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deleteMutation.isPending}
+                              >
+                                {deleteMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : null}
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Baie {booking.bayType}</span>
+                      <Separator orientation="vertical" className="h-4" />
+                      <span>{booking.players} joueur(s)</span>
+                      {booking.calendarEventId && (
+                        <>
+                          <Separator orientation="vertical" className="h-4" />
+                          <span className="text-[#2B5734] flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Synchronisé
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {booking.notes && (
+                      <p className="mt-2 text-xs text-muted-foreground italic">Note: {booking.notes}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="border border-foreground/10 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setShowAdminSection(!showAdminSection)}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+            data-testid="button-toggle-admin-section"
+          >
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-muted-foreground" />
+              <span className="font-heading font-bold text-sm uppercase tracking-wider text-muted-foreground">Administration</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showAdminSection ? "rotate-180" : ""}`} />
+          </button>
+
+          {showAdminSection && (
+            <div className="space-y-6 p-4 md:p-6 bg-gray-50/50">
+
+        <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -700,169 +881,9 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-none">
-          <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
-              <Calendar className="w-5 h-5" />
-              Réservations
-            </CardTitle>
-            <CardDescription className="text-white/80">
-              Liste des réservations enregistrées
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 bg-white">
-            <div className="p-4 border-b bg-gray-50/50">
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Rechercher par nom ou courriel..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-10"
-                    data-testid="input-search"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Select value={filterBay} onValueChange={setFilterBay}>
-                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-bay">
-                      <SelectValue placeholder="Baie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes les baies</SelectItem>
-                      <SelectItem value="1">Baie 1</SelectItem>
-                      <SelectItem value="2">Baie 2</SelectItem>
-                      <SelectItem value="3">Baie 3</SelectItem>
-                      <SelectItem value="4">Baie 4</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-period">
-                      <SelectValue placeholder="Période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes</SelectItem>
-                      <SelectItem value="upcoming">À venir</SelectItem>
-                      <SelectItem value="past">Passées</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {(searchQuery || filterBay !== "all" || filterPeriod !== "all") && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Filter className="w-4 h-4" />
-                  <span>{filteredBookings.length} résultat(s) sur {allBookings.length}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 px-2 text-xs"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setFilterBay("all");
-                      setFilterPeriod("all");
-                    }}
-                  >
-                    Effacer les filtres
-                  </Button>
-                </div>
-              )}
             </div>
-            {bookingsQuery.isLoading ? (
-              <div className="p-8 text-center">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#2B5734]" />
-              </div>
-            ) : filteredBookings.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                Aucune réservation pour le moment.
-              </div>
-            ) : (
-              <div className="divide-y max-h-[600px] overflow-y-auto">
-                {filteredBookings.map((booking: any) => (
-                  <div key={booking.id} className="p-3 md:p-4 hover:bg-gray-50">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-bold text-foreground truncate">{booking.name}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{booking.email}</p>
-                        {booking.phone && (
-                          <p className="text-xs sm:text-sm text-muted-foreground">{booking.phone}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                        <div className="text-left sm:text-right">
-                          <p className="font-bold text-[#2B5734] text-sm md:text-base">
-                            {(() => {
-                              const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
-                              const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
-                              return format(new Date(y, mo - 1, dy), "d MMM yyyy", { locale: fr });
-                            })()}
-                          </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {booking.time} - {booking.duration}
-                          </p>
-                        </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                              data-testid={`button-delete-${booking.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Supprimer cette réservation?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                La réservation de {booking.name} pour le {(() => {
-                                  const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
-                                  const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
-                                  return format(new Date(y, mo - 1, dy), "d MMMM yyyy", { locale: fr });
-                                })()} à {booking.time} sera supprimée définitivement.
-                                {booking.calendarEventId && " L'événement sera également retiré du calendrier Google."}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteMutation.mutate(booking.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                                disabled={deleteMutation.isPending}
-                              >
-                                {deleteMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                ) : null}
-                                Supprimer
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Baie {booking.bayType}</span>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span>{booking.players} joueur(s)</span>
-                      {booking.calendarEventId && (
-                        <>
-                          <Separator orientation="vertical" className="h-4" />
-                          <span className="text-[#2B5734] flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Synchronisé
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    {booking.notes && (
-                      <p className="mt-2 text-xs text-muted-foreground italic">Note: {booking.notes}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </div>
       </main>
     </div>
   );
