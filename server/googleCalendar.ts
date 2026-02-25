@@ -258,6 +258,13 @@ export async function createCalendarEvent(booking: {
   const endTimeStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00`;
 
   const bayLabel = `Baie ${booking.bayType}`;
+
+  const BAY_COLORS: Record<string, string> = {
+    "1": "10",
+    "2": "7",
+    "3": "9",
+    "4": "6",
+  };
   
   const event = {
     summary: `Golf SIM - ${booking.name} - ${bayLabel}`,
@@ -272,6 +279,7 @@ ${bayLabel}
 Durée: ${booking.duration}
 ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     `.trim(),
+    colorId: BAY_COLORS[booking.bayType] || "10",
     start: {
       dateTime: startTimeStr,
       timeZone: 'America/Toronto',
