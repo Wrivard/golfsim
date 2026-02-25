@@ -152,10 +152,30 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/settings/debug-mode", async (_req: Request, res: Response) => {
+    try {
+      const settings = await storage.getCalendarSettings();
+      return res.json({ debugMode: settings?.debugMode ?? false });
+    } catch {
+      return res.json({ debugMode: false });
+    }
+  });
+
+  app.put("/api/admin/debug-mode", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { debugMode } = req.body;
+      await storage.updateCalendarSettings({ debugMode: !!debugMode });
+      return res.json({ ok: true, debugMode: !!debugMode });
+    } catch (error) {
+      console.error("Error toggling debug mode:", error);
+      return res.status(500).json({ ok: false, message: "Erreur" });
+    }
+  });
+
   app.get("/api/admin/calendar-settings", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const settings = await storage.getCalendarSettings();
-      return res.json({ ok: true, settings: settings || { syncEmail: null, calendarId: "primary" } });
+      return res.json({ ok: true, settings: settings || { syncEmail: null, calendarId: "primary", debugMode: false } });
     } catch (error) {
       console.error("Error fetching calendar settings:", error);
       return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des paramètres" });

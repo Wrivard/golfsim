@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -32,6 +32,7 @@ export const calendarSettings = pgTable("calendar_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   syncEmail: text("sync_email"),
   calendarId: text("calendar_id").default("primary"),
+  debugMode: boolean("debug_mode").default(false),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
 });
 

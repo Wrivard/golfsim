@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { BookingLayout } from "@/components/booking/BookingLayout";
 import { StepDuration } from "@/components/booking/StepDuration";
@@ -25,7 +25,15 @@ export default function BookingPage() {
   const selectedDuration = useBookingStore((s) => s.selectedDuration);
   const bookings = useBookingStore((s) => s.bookings);
 
+  const [debugEnabled, setDebugEnabled] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings/debug-mode")
+      .then(r => r.json())
+      .then(data => setDebugEnabled(data.debugMode ?? false))
+      .catch(() => setDebugEnabled(false));
+  }, []);
   const [hoveredSlot, setHoveredSlot] = useState<TimeSlot | null>(null);
   const [computedSlots, setComputedSlots] = useState<TimeSlot[]>([]);
 
@@ -58,21 +66,23 @@ export default function BookingPage() {
       </div>
 
       <div className="container mx-auto px-4 py-16">
-        <div className="flex items-center justify-end mb-4 max-w-7xl mx-auto">
-          <button
-            onClick={() => setDebugMode(!debugMode)}
-            className={cn(
-              "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all",
-              debugMode
-                ? "bg-[#1a1f2e] text-green-400 border-green-700 hover:bg-[#1a1f2e]/90"
-                : "bg-transparent text-muted-foreground border-foreground/10 hover:border-foreground/30 hover:text-foreground"
-            )}
-            data-testid="button-toggle-debug"
-          >
-            <Bug className="w-3.5 h-3.5" />
-            Debug
-          </button>
-        </div>
+        {debugEnabled && (
+          <div className="flex items-center justify-end mb-4 max-w-7xl mx-auto">
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className={cn(
+                "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all",
+                debugMode
+                  ? "bg-[#1a1f2e] text-green-400 border-green-700 hover:bg-[#1a1f2e]/90"
+                  : "bg-transparent text-muted-foreground border-foreground/10 hover:border-foreground/30 hover:text-foreground"
+              )}
+              data-testid="button-toggle-debug"
+            >
+              <Bug className="w-3.5 h-3.5" />
+              Debug
+            </button>
+          </div>
+        )}
 
         <div className={cn(
           "flex gap-6 max-w-7xl mx-auto transition-all duration-300",

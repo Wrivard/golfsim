@@ -126,6 +126,7 @@ export default function Admin() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBay, setFilterBay] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
+  const [debugMode, setDebugMode] = useState(false);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -252,8 +253,35 @@ export default function Admin() {
   useEffect(() => {
     if (settingsQuery.data?.settings) {
       setCalendarId(settingsQuery.data.settings.calendarId || "primary");
+      setDebugMode(settingsQuery.data.settings.debugMode ?? false);
     }
   }, [settingsQuery.data]);
+
+  const debugModeMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const response = await fetch("/api/admin/debug-mode", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ debugMode: enabled }),
+      });
+      if (!response.ok) throw new Error("Erreur");
+      return response.json();
+    },
+    onSuccess: (_data, enabled) => {
+      toast({ title: enabled ? "Mode debug activé" : "Mode debug désactivé" });
+      queryClient.invalidateQueries({ queryKey: ["calendarSettings"] });
+    },
+    onError: () => {
+      toast({ title: "Erreur", variant: "destructive" });
+      setDebugMode(!debugMode);
+    },
+  });
+
+  const handleDebugToggle = () => {
+    const newValue = !debugMode;
+    setDebugMode(newValue);
+    debugModeMutation.mutate(newValue);
+  };
 
   const handleConnectGoogle = async () => {
     try {
@@ -600,6 +628,42 @@ export default function Admin() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg border-none">
+          <CardHeader className="bg-[#2B5734] text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
+              <Settings className="w-5 h-5" />
+              Outils
+            </CardTitle>
+            <CardDescription className="text-white/80">
+              Paramètres de développement
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 bg-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-sm">Mode debug (page réservation)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Affiche le bouton debug et le panneau d'analyse des créneaux sur la page de réservation
+                </p>
+              </div>
+              <button
+                onClick={handleDebugToggle}
+                disabled={debugModeMutation.isPending}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  debugMode ? "bg-[#2B5734]" : "bg-gray-300"
+                }`}
+                data-testid="toggle-debug-mode"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    debugMode ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
           </CardContent>
         </Card>
 
