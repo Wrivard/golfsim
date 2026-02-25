@@ -593,6 +593,34 @@ export default function Admin() {
                     Déconnecter
                   </Button>
                 </div>
+
+                <Separator className="my-4" />
+
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="font-bold text-sm text-blue-900 mb-2">Ajouter une réservation via Google Calendar</p>
+                  <p className="text-xs text-blue-800 mb-3">
+                    Créez un événement dans Google Calendar avec le format suivant pour qu'il soit synchronisé automatiquement :
+                  </p>
+                  <div className="bg-white rounded-md border border-blue-200 p-3 font-mono text-xs space-y-2">
+                    <div>
+                      <span className="text-blue-600 font-bold">Titre :</span>
+                      <span className="ml-2 text-gray-800">Golf SIM - Nom du client - Baie 2</span>
+                    </div>
+                    <div className="border-t border-blue-100 pt-2">
+                      <span className="text-blue-600 font-bold">Heure :</span>
+                      <span className="ml-2 text-gray-800">Définir l'heure de début et de fin (la durée est calculée automatiquement)</span>
+                    </div>
+                    <div className="border-t border-blue-100 pt-2">
+                      <span className="text-blue-600 font-bold">Description (optionnel) :</span>
+                      <pre className="mt-1 text-gray-800 whitespace-pre-wrap">{`Courriel: client@email.com\nTéléphone: 450-555-1234\nJoueurs: 3`}</pre>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <p className="text-[11px] text-blue-700"><strong>Important :</strong> Le titre doit contenir « Golf SIM » pour être détecté.</p>
+                    <p className="text-[11px] text-blue-700">Baie valide : Baie 1, Baie 2, Baie 3 ou Baie 4 (par défaut Baie 1 si absent).</p>
+                    <p className="text-[11px] text-blue-700">La synchronisation se fait automatiquement aux 10 minutes ou manuellement avec le bouton ci-dessus.</p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
