@@ -607,8 +607,13 @@ export default function Admin() {
                       <span className="ml-2 text-gray-800">Golf SIM - Nom du client - Baie 2</span>
                     </div>
                     <div className="border-t border-blue-100 pt-2">
-                      <span className="text-blue-600 font-bold">Heure :</span>
-                      <span className="ml-2 text-gray-800">Définir l'heure de début et de fin (la durée est calculée automatiquement)</span>
+                      <span className="text-blue-600 font-bold">Heure de début :</span>
+                      <span className="ml-2 text-gray-800">14:00</span>
+                    </div>
+                    <div className="border-t border-blue-100 pt-2">
+                      <span className="text-blue-600 font-bold">Heure de fin :</span>
+                      <span className="ml-2 text-gray-800">17:00</span>
+                      <span className="ml-2 text-gray-500 italic">(= 3h de réservation)</span>
                     </div>
                     <div className="border-t border-blue-100 pt-2">
                       <span className="text-blue-600 font-bold">Description (optionnel) :</span>
