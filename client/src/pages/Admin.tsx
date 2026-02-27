@@ -689,6 +689,47 @@ export default function Admin() {
           </CardContent>
         </Card>
 
+        <Card className="shadow-lg border-none" data-testid="card-calendar-template">
+          <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
+              <Calendar className="w-5 h-5" />
+              Ajouter une réservation via Google Calendar
+            </CardTitle>
+            <CardDescription className="text-white/80">
+              Format à suivre pour créer un événement dans Google Calendar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 bg-white">
+            <p className="text-sm text-gray-700 mb-4">
+              Créez un événement dans Google Calendar avec le format suivant pour qu'il soit synchronisé automatiquement :
+            </p>
+            <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 font-mono text-sm space-y-3">
+              <div>
+                <span className="text-blue-600 font-bold">Titre :</span>
+                <span className="ml-2 text-gray-800">Golf SIM - Nom du client - Baie 2</span>
+              </div>
+              <div className="border-t border-blue-100 pt-3">
+                <span className="text-blue-600 font-bold">Heure de début :</span>
+                <span className="ml-2 text-gray-800">14:00</span>
+              </div>
+              <div className="border-t border-blue-100 pt-3">
+                <span className="text-blue-600 font-bold">Heure de fin :</span>
+                <span className="ml-2 text-gray-800">17:00</span>
+                <span className="ml-2 text-gray-500 italic">(= 3h de réservation)</span>
+              </div>
+              <div className="border-t border-blue-100 pt-3">
+                <span className="text-blue-600 font-bold">Description (optionnel) :</span>
+                <pre className="mt-1 text-gray-800 whitespace-pre-wrap">{`Courriel: client@email.com\nTéléphone: 450-555-1234\nJoueurs: 3`}</pre>
+              </div>
+            </div>
+            <div className="mt-4 space-y-1.5">
+              <p className="text-xs text-gray-600"><strong>Important :</strong> Le titre doit contenir « Golf SIM » pour être détecté.</p>
+              <p className="text-xs text-gray-600">Baie valide : Baie 1, Baie 2, Baie 3 ou Baie 4 (par défaut Baie 1 si absent).</p>
+              <p className="text-xs text-gray-600">La synchronisation se fait automatiquement aux 10 minutes.</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="border border-foreground/10 rounded-lg overflow-hidden">
           <button
             onClick={() => setShowAdminSection(!showAdminSection)}
@@ -994,38 +1035,6 @@ export default function Admin() {
                   </Button>
                 </div>
 
-                <Separator className="my-4" />
-
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="font-bold text-sm text-blue-900 mb-2">Ajouter une réservation via Google Calendar</p>
-                  <p className="text-xs text-blue-800 mb-3">
-                    Créez un événement dans Google Calendar avec le format suivant pour qu'il soit synchronisé automatiquement :
-                  </p>
-                  <div className="bg-white rounded-md border border-blue-200 p-3 font-mono text-xs space-y-2">
-                    <div>
-                      <span className="text-blue-600 font-bold">Titre :</span>
-                      <span className="ml-2 text-gray-800">Golf SIM - Nom du client - Baie 2</span>
-                    </div>
-                    <div className="border-t border-blue-100 pt-2">
-                      <span className="text-blue-600 font-bold">Heure de début :</span>
-                      <span className="ml-2 text-gray-800">14:00</span>
-                    </div>
-                    <div className="border-t border-blue-100 pt-2">
-                      <span className="text-blue-600 font-bold">Heure de fin :</span>
-                      <span className="ml-2 text-gray-800">17:00</span>
-                      <span className="ml-2 text-gray-500 italic">(= 3h de réservation)</span>
-                    </div>
-                    <div className="border-t border-blue-100 pt-2">
-                      <span className="text-blue-600 font-bold">Description (optionnel) :</span>
-                      <pre className="mt-1 text-gray-800 whitespace-pre-wrap">{`Courriel: client@email.com\nTéléphone: 450-555-1234\nJoueurs: 3`}</pre>
-                    </div>
-                  </div>
-                  <div className="mt-3 space-y-1">
-                    <p className="text-[11px] text-blue-700"><strong>Important :</strong> Le titre doit contenir « Golf SIM » pour être détecté.</p>
-                    <p className="text-[11px] text-blue-700">Baie valide : Baie 1, Baie 2, Baie 3 ou Baie 4 (par défaut Baie 1 si absent).</p>
-                    <p className="text-[11px] text-blue-700">La synchronisation se fait automatiquement aux 10 minutes ou manuellement avec le bouton ci-dessus.</p>
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="space-y-4">
