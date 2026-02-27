@@ -195,11 +195,11 @@ Preferred communication style: Simple, everyday language.
 - Smart bay optimization algorithm (`server/booking-logic.ts`) with duration-specific scoring:
   - ScoreBreakdown: base, gapAfter, gapBefore, perfectFit, bayClustering, peakHour, inefficientGap, durationBonus, durationStrategy, total
   - Two gap rating functions:
-    - rateRemainingGap(gap, touchesBooking) — used when gap is to a REAL booking (0→+5 adjacent, <30m→-5 unusable, 90-120m→+3, 240-300m→+4)
+    - rateRemainingGap(gap, touchesBooking) — used when gap is to a REAL booking (0→+5 adjacent, <30m→-5 unusable, 30-60m→-2, 60m→-1, >60m→0)
     - rateGapToBoundary(gap) — used when gap is to day open/close boundary (0→+3 edge, <30m→-5, 30-60m→-1, 61-120m→0, >120m→-1)
-  - Bay clustering: +2 if bay already has bookings
+  - Bay clustering: +1 if bay already has bookings
   - Duration profiles via applyDurationStrategy():
-    - 1h "Filler": no peak bonus, -4 on empty bay with others, +7 perfect gap fill, +3 edge on empty day
+    - 1h "Filler": no peak bonus, -4 on empty bay with others, +7 perfect gap fill, +3 edge on empty day, -3 if adjacent to booking but gap > 120min on other side
     - 2h "Standard": +1 peak, -2 empty bay, -3 if occupying gap that fits 3-4h
     - 3h "Popular": +1 bonus, +2 peak, +2 edge on empty bay
     - 4h "Premium": +2 bonus, +1 peak, +3 edge on empty bay

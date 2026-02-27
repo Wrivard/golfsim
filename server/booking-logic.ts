@@ -109,10 +109,6 @@ function rateRemainingGap(gap: number, touchesBooking: boolean): number {
   if (gap > 0 && gap < 30) return -5;
   if (gap >= 30 && gap < 60) return -2;
   if (gap === 60) return -1;
-  if (gap === 240 || gap === 300) return 4;
-  if (gap === 120 || gap === 90) return 3;
-  if (gap >= 150 && gap <= 300 && gap % 30 === 0) return 2;
-  if (gap > 300) return 1;
   return 0;
 }
 
@@ -171,6 +167,12 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
 
     if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 2;
     if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 2;
+
+    if (touchesBookingBefore && remainingGapBefore === 0 && remainingGapAfter > 120) {
+      durationStrategy -= 3;
+    } else if (touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore > 120) {
+      durationStrategy -= 3;
+    }
 
   } else if (durationMinutes === 120) {
     if (hour >= 17 && hour < 21) peakHour = 1;
@@ -342,7 +344,7 @@ function evaluateBayAtTime(
       breakdown.perfectFit = 2;
     }
 
-    if (bayBookings.length > 0) breakdown.bayClustering = 2;
+    if (bayBookings.length > 0) breakdown.bayClustering = 1;
 
     const emptyBay = bayBookings.length === 0;
     const otherBaysHaveBookings = allDayBookings.some(b => b.simulatorId !== bay.id);
