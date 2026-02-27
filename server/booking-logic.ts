@@ -174,11 +174,31 @@ function evaluateBayAtTime(
       if (gap === 240 || gap === MAX_BOOKING_DURATION) return 4;
       if (gap === 120 || gap === 90) return 3;
       if (gap >= 150 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
+      if (gap > MAX_BOOKING_DURATION) return 1;
       return 0;
     }
 
     breakdown.gapAfter = rateRemainingGap(remainingGapAfter, touchesBookingAfter);
     breakdown.gapBefore = rateRemainingGap(remainingGapBefore, touchesBookingBefore);
+
+    const emptyBay = bayBookings.length === 0;
+
+    if (emptyBay) {
+      if (touchesDayStart) {
+        breakdown.gapBefore = 4;
+      } else if (touchesDayEnd) {
+        breakdown.gapAfter = 4;
+      } else {
+        const smaller = Math.min(remainingGapBefore, remainingGapAfter);
+        const larger = Math.max(remainingGapBefore, remainingGapAfter);
+        if (smaller > 0 && larger > 0) {
+          const ratio = smaller / larger;
+          if (ratio > 0.4) {
+            breakdown.openStretchPenalty -= Math.round(ratio * 6);
+          }
+        }
+      }
+    }
 
     if (touchesBookingBefore && touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore === 0) {
       breakdown.perfectFit += 5;
