@@ -123,7 +123,7 @@ export function validateContentType(req: Request, res: Response, next: NextFunct
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
     const contentType = req.headers['content-type'];
     if (!contentType || !contentType.includes('application/json')) {
-      if (req.path.startsWith('/api/') && !req.path.includes('/oauth')) {
+      if (req.path.startsWith('/api/') && !req.path.includes('/oauth') && !req.path.includes('/calendar/webhook')) {
         return res.status(415).json({ 
           ok: false, 
           message: 'Content-Type must be application/json' 

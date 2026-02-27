@@ -501,4 +501,93 @@ function parseCalendarEvent(event: any): {
   }
 }
 
+let activeWatchChannelId: string | null = null;
+let activeWatchResourceId: string | null = null;
+let watchRenewalTimer: ReturnType<typeof setTimeout> | null = null;
+const watchToken = crypto.randomBytes(32).toString('hex');
+
+export function getActiveWatchChannelId(): string | null {
+  return activeWatchChannelId;
+}
+
+export function getActiveWatchResourceId(): string | null {
+  return activeWatchResourceId;
+}
+
+export function getWatchToken(): string {
+  return watchToken;
+}
+
+export async function setupCalendarWatch(webhookUrl: string): Promise<boolean> {
+  try {
+    const calendar = await getGoogleCalendarClient();
+    const settings = await storage.getCalendarSettings();
+    const calendarId = settings?.calendarId || 'primary';
+
+    if (activeWatchChannelId && activeWatchResourceId) {
+      try {
+        await calendar.channels.stop({
+          requestBody: {
+            id: activeWatchChannelId,
+            resourceId: activeWatchResourceId,
+          },
+        });
+      } catch (e) {
+      }
+    }
+
+    const channelId = crypto.randomUUID();
+    const expiration = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+    const response = await calendar.events.watch({
+      calendarId: calendarId,
+      requestBody: {
+        id: channelId,
+        type: 'web_hook',
+        address: webhookUrl,
+        token: watchToken,
+        expiration: expiration.toString(),
+      },
+    });
+
+    activeWatchChannelId = channelId;
+    activeWatchResourceId = response.data.resourceId || null;
+
+    const renewIn = Math.max((expiration - Date.now()) - 10 * 60 * 1000, 60 * 1000);
+    if (watchRenewalTimer) clearTimeout(watchRenewalTimer);
+    watchRenewalTimer = setTimeout(() => {
+      setupCalendarWatch(webhookUrl).catch(err => {
+        console.error('[Calendar Watch] Failed to renew watch channel:', err);
+      });
+    }, renewIn);
+
+    console.log(`[Calendar Watch] Watching calendar "${calendarId}" (channel ${channelId}, renews in ${Math.round(renewIn / 60000)}min)`);
+    return true;
+  } catch (error: any) {
+    console.error('[Calendar Watch] Failed to set up push notifications:', error.message || error);
+    return false;
+  }
+}
+
+export async function stopCalendarWatch(): Promise<void> {
+  if (watchRenewalTimer) {
+    clearTimeout(watchRenewalTimer);
+    watchRenewalTimer = null;
+  }
+  if (activeWatchChannelId && activeWatchResourceId) {
+    try {
+      const calendar = await getGoogleCalendarClient();
+      await calendar.channels.stop({
+        requestBody: {
+          id: activeWatchChannelId,
+          resourceId: activeWatchResourceId,
+        },
+      });
+    } catch (e) {
+    }
+    activeWatchChannelId = null;
+    activeWatchResourceId = null;
+  }
+}
+
 export { getRedirectUri };

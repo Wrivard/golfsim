@@ -12,7 +12,10 @@ import {
   revokeGoogleAccess,
   getRedirectUri,
   listCalendars,
-  syncCalendarToDatabase
+  syncCalendarToDatabase,
+  setupCalendarWatch,
+  getActiveWatchChannelId,
+  getWatchToken
 } from "./googleCalendar";
 import { 
   getOptimizedStartTimes, 
@@ -1088,7 +1091,34 @@ export async function registerRoutes(
     }
   });
 
-  const SYNC_INTERVAL_MS = 10 * 60 * 1000;
+  let lastWebhookSync = 0;
+  const WEBHOOK_DEBOUNCE_MS = 5000;
+
+  app.post("/api/calendar/webhook", async (req: Request, res: Response) => {
+    res.status(200).end();
+
+    const channelId = req.headers['x-goog-channel-id'] as string | undefined;
+    const token = req.headers['x-goog-channel-token'] as string | undefined;
+    const resourceState = req.headers['x-goog-resource-state'] as string | undefined;
+
+    if (!channelId || !token || token !== getWatchToken()) return;
+    if (channelId !== getActiveWatchChannelId()) return;
+    if (resourceState === 'sync') return;
+
+    const now = Date.now();
+    if (now - lastWebhookSync < WEBHOOK_DEBOUNCE_MS) return;
+    lastWebhookSync = now;
+
+    try {
+      const result = await syncCalendarToDatabase();
+      if (result.imported > 0) {
+        console.log(`[Calendar Watch] Webhook sync: imported ${result.imported} booking(s)`);
+      }
+    } catch (error) {
+    }
+  });
+
+  const SYNC_INTERVAL_MS = 5 * 60 * 1000;
   
   async function runBackgroundSync() {
     try {
@@ -1097,12 +1127,30 @@ export async function registerRoutes(
         console.log(`[Calendar Sync] Imported ${result.imported} booking(s) from Google Calendar`);
       }
     } catch (error) {
-      // Silently fail - calendar may not be connected
+    }
+  }
+
+  async function initCalendarWatch() {
+    try {
+      const status = await getCalendarConnectionStatus();
+      if (!status.connected) return;
+
+      const host = process.env.REPLIT_DEV_DOMAIN || process.env.REPL_SLUG;
+      if (!host) return;
+
+      const protocol = 'https';
+      const webhookUrl = `${protocol}://${host}/api/calendar/webhook`;
+      const success = await setupCalendarWatch(webhookUrl);
+      if (success) {
+        console.log(`[Calendar Watch] Real-time notifications active → ${webhookUrl}`);
+      }
+    } catch (error) {
     }
   }
   
   setTimeout(runBackgroundSync, 30000);
   setInterval(runBackgroundSync, SYNC_INTERVAL_MS);
+  setTimeout(initCalendarWatch, 35000);
 
   return httpServer;
 }

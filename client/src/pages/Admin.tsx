@@ -725,7 +725,7 @@ export default function Admin() {
             <div className="mt-4 space-y-1.5">
               <p className="text-xs text-gray-600"><strong>Important :</strong> Le titre doit contenir « Golf SIM » pour être détecté.</p>
               <p className="text-xs text-gray-600">Baie valide : Baie 1, Baie 2, Baie 3 ou Baie 4 (par défaut Baie 1 si absent).</p>
-              <p className="text-xs text-gray-600">La synchronisation se fait automatiquement aux 10 minutes.</p>
+              <p className="text-xs text-gray-600">La synchronisation se fait en temps réel ou aux 5 minutes.</p>
             </div>
           </CardContent>
         </Card>
