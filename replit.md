@@ -194,13 +194,16 @@ Preferred communication style: Simple, everyday language.
 - State management via Zustand store (`client/src/lib/booking-store.ts`)
 - Smart bay optimization algorithm (`server/booking-logic.ts`) with duration-specific scoring:
   - ScoreBreakdown: base, gapAfter, gapBefore, perfectFit, bayClustering, peakHour, inefficientGap, durationBonus, durationStrategy, total
-  - Gap efficiency: rateRemainingGap() scores gaps (0→+5 adjacent, <30m→-5 unusable, bookable→+2/3)
+  - Two gap rating functions:
+    - rateRemainingGap(gap, touchesBooking) — used when gap is to a REAL booking (0→+5 adjacent, <30m→-5 unusable, 90-120m→+3, 240-300m→+4)
+    - rateGapToBoundary(gap) — used when gap is to day open/close boundary (0→+3 edge, <30m→-5, 30-60m→-1, 61-120m→0, >120m→-1)
   - Bay clustering: +2 if bay already has bookings
   - Duration profiles via applyDurationStrategy():
     - 1h "Filler": no peak bonus, -4 on empty bay with others, +7 perfect gap fill, +3 edge on empty day
     - 2h "Standard": +1 peak, -2 empty bay, -3 if occupying gap that fits 3-4h
     - 3h "Popular": +1 bonus, +2 peak, +2 edge on empty bay
     - 4h "Premium": +2 bonus, +1 peak, +3 edge on empty bay
+  - 60min gap penalties in applyDurationStrategy only apply when the gap is to a real booking (not to a day boundary)
   - Schedule-aware: reads operating schedule from DB per request (open/lastBooking/close times)
 - Per-bay time slot granularity:
   - Bays 1-2: 60-minute granularity (8:00, 9:00, 10:00...)

@@ -116,6 +116,14 @@ function rateRemainingGap(gap: number, touchesBooking: boolean): number {
   return 0;
 }
 
+function rateGapToBoundary(gap: number): number {
+  if (gap === 0) return 3;
+  if (gap > 0 && gap < 30) return -5;
+  if (gap >= 30 && gap <= 60) return -1;
+  if (gap > 60 && gap <= 120) return 0;
+  return -1;
+}
+
 interface DurationContext {
   durationMinutes: number;
   emptyBay: boolean;
@@ -126,13 +134,16 @@ interface DurationContext {
   touchesDayEnd: boolean;
   touchesBookingBefore: boolean;
   touchesBookingAfter: boolean;
+  gapBeforeIsToBooking: boolean;
+  gapAfterIsToBooking: boolean;
   hour: number;
   totalStretch: number;
 }
 
 function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; peakHour: number; durationStrategy: number; perfectFitOverride?: number } {
   const { durationMinutes, emptyBay, otherBaysHaveBookings, remainingGapBefore, remainingGapAfter,
-    touchesDayStart, touchesDayEnd, touchesBookingBefore, touchesBookingAfter, hour, totalStretch } = ctx;
+    touchesDayStart, touchesDayEnd, touchesBookingBefore, touchesBookingAfter,
+    gapBeforeIsToBooking, gapAfterIsToBooking, hour, totalStretch } = ctx;
 
   let durationBonus = 0;
   let peakHour = 0;
@@ -158,8 +169,8 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
       }
     }
 
-    if (remainingGapAfter === 60) durationStrategy -= 2;
-    if (remainingGapBefore === 60) durationStrategy -= 2;
+    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 2;
+    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 2;
 
   } else if (durationMinutes === 120) {
     if (hour >= 17 && hour < 21) peakHour = 1;
@@ -174,8 +185,8 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
       }
     }
 
-    if (remainingGapAfter === 60) durationStrategy -= 1;
-    if (remainingGapBefore === 60) durationStrategy -= 1;
+    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
+    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
 
     if (!emptyBay) {
       const popularDurations = [180, 240];
@@ -197,8 +208,8 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
       }
     }
 
-    if (remainingGapAfter === 60) durationStrategy -= 1;
-    if (remainingGapBefore === 60) durationStrategy -= 1;
+    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
+    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
 
   } else if (durationMinutes === 240) {
     durationBonus = 2;
@@ -210,8 +221,8 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
       }
     }
 
-    if (remainingGapAfter === 60) durationStrategy -= 2;
-    if (remainingGapBefore === 60) durationStrategy -= 2;
+    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 2;
+    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 2;
 
   } else {
     if (hour >= 17 && hour < 21) peakHour = 1;
@@ -219,8 +230,8 @@ function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; p
     if (emptyBay && (touchesDayStart || touchesDayEnd)) {
       durationStrategy += 2;
     }
-    if (remainingGapAfter === 60) durationStrategy -= 1;
-    if (remainingGapBefore === 60) durationStrategy -= 1;
+    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
+    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
   }
 
   return { durationBonus, peakHour, durationStrategy, perfectFitOverride };
@@ -315,8 +326,15 @@ function evaluateBayAtTime(
     const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
     const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
 
-    breakdown.gapAfter = rateRemainingGap(remainingGapAfter, touchesBookingAfter);
-    breakdown.gapBefore = rateRemainingGap(remainingGapBefore, touchesBookingBefore);
+    const gapBeforeIsToBooking = previousBookingEnd !== null;
+    const gapAfterIsToBooking = nextBookingStart !== null;
+
+    breakdown.gapAfter = gapAfterIsToBooking
+      ? rateRemainingGap(remainingGapAfter, touchesBookingAfter)
+      : rateGapToBoundary(remainingGapAfter);
+    breakdown.gapBefore = gapBeforeIsToBooking
+      ? rateRemainingGap(remainingGapBefore, touchesBookingBefore)
+      : rateGapToBoundary(remainingGapBefore);
 
     if (touchesBookingBefore && touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore === 0) {
       breakdown.perfectFit = 5;
@@ -341,6 +359,8 @@ function evaluateBayAtTime(
       touchesDayEnd,
       touchesBookingBefore,
       touchesBookingAfter,
+      gapBeforeIsToBooking,
+      gapAfterIsToBooking,
       hour,
       totalStretch
     });
