@@ -443,11 +443,12 @@ function parseCalendarEvent(event: any): {
       ? `${durationHours}h` 
       : `${durationHours}h`;
     
-    const hours = startDateTime.getHours();
-    const minutes = startDateTime.getMinutes();
+    const localStart = new Date(startDateTime.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+    const hours = localStart.getHours();
+    const minutes = localStart.getMinutes();
     const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     
-    const dateOnly = new Date(startDateTime);
+    const dateOnly = new Date(localStart);
     dateOnly.setHours(0, 0, 0, 0);
     
     let bayType = '1';
