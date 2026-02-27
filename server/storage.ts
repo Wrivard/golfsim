@@ -2,7 +2,8 @@ import {
   type Booking, type InsertBooking, bookings,
   type AdminUser, type InsertAdminUser, adminUsers,
   type CalendarSettings, type InsertCalendarSettings, calendarSettings,
-  type OAuthToken, type InsertOAuthToken, oauthTokens
+  type OAuthToken, type InsertOAuthToken, oauthTokens,
+  type OperatingSchedule, type InsertOperatingSchedule, operatingSchedule
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
@@ -32,6 +33,11 @@ export interface IStorage {
   deleteOAuthToken(provider: string): Promise<void>;
   
   getBookingsByDateRange(startDate: Date, endDate: Date): Promise<Booking[]>;
+  
+  getSchedule(): Promise<OperatingSchedule[]>;
+  getScheduleForDay(dayOfWeek: number): Promise<OperatingSchedule | undefined>;
+  updateScheduleForDay(dayOfWeek: number, data: Partial<InsertOperatingSchedule>): Promise<OperatingSchedule>;
+  initializeDefaultSchedule(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -175,6 +181,53 @@ export class DatabaseStorage implements IStorage {
         lt(bookings.date, endDate)
       )
     );
+  }
+
+  async getSchedule(): Promise<OperatingSchedule[]> {
+    return db.select().from(operatingSchedule).orderBy(operatingSchedule.dayOfWeek);
+  }
+
+  async getScheduleForDay(dayOfWeek: number): Promise<OperatingSchedule | undefined> {
+    const [schedule] = await db.select().from(operatingSchedule).where(eq(operatingSchedule.dayOfWeek, dayOfWeek));
+    return schedule;
+  }
+
+  async updateScheduleForDay(dayOfWeek: number, data: Partial<InsertOperatingSchedule>): Promise<OperatingSchedule> {
+    const existing = await this.getScheduleForDay(dayOfWeek);
+    if (existing) {
+      const [updated] = await db.update(operatingSchedule)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(operatingSchedule.dayOfWeek, dayOfWeek))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(operatingSchedule)
+        .values({ ...data, dayOfWeek })
+        .returning();
+      return created;
+    }
+  }
+
+  async initializeDefaultSchedule(): Promise<void> {
+    const existing = await this.getSchedule();
+    if (existing.length >= 7) return;
+
+    const defaults: Array<{ dayOfWeek: number; openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }> = [
+      { dayOfWeek: 0, openHour: 8, openMinute: 0, lastBookingHour: 21, lastBookingMinute: 0, closeHour: 22, closeMinute: 0 },
+      { dayOfWeek: 1, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 23, closeMinute: 0 },
+      { dayOfWeek: 2, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 23, closeMinute: 0 },
+      { dayOfWeek: 3, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 23, closeMinute: 0 },
+      { dayOfWeek: 4, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 24, closeMinute: 0 },
+      { dayOfWeek: 5, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 25, closeMinute: 0 },
+      { dayOfWeek: 6, openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 25, closeMinute: 0 },
+    ];
+
+    for (const d of defaults) {
+      const exists = existing.find(e => e.dayOfWeek === d.dayOfWeek);
+      if (!exists) {
+        await db.insert(operatingSchedule).values(d);
+      }
+    }
   }
 }
 

@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -87,6 +87,24 @@ async function revokeGoogleAccess() {
   return data;
 }
 
+async function fetchSchedule() {
+  const response = await fetch("/api/schedule");
+  const data = await response.json();
+  if (!data.ok) throw new Error("Erreur");
+  return data.schedule;
+}
+
+async function updateScheduleDay(dayOfWeek: number, schedule: { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }) {
+  const response = await fetch(`/api/admin/schedule/${dayOfWeek}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(schedule),
+  });
+  const data = await response.json();
+  if (!response.ok || !data.ok) throw new Error(data.message || "Erreur");
+  return data.schedule;
+}
+
 async function deleteBooking(id: string) {
   const response = await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
   const data = await response.json();
@@ -128,6 +146,7 @@ export default function Admin() {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [debugMode, setDebugMode] = useState(false);
   const [showAdminSection, setShowAdminSection] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<Record<number, { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }>>({});
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -157,6 +176,41 @@ export default function Admin() {
     queryKey: ["adminBookings"],
     queryFn: fetchBookings,
     enabled: sessionQuery.data?.authenticated,
+  });
+
+  const scheduleQuery = useQuery({
+    queryKey: ["operatingSchedule"],
+    queryFn: fetchSchedule,
+    enabled: sessionQuery.data?.authenticated,
+  });
+
+  useEffect(() => {
+    if (scheduleQuery.data) {
+      const map: Record<number, { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }> = {};
+      for (const s of scheduleQuery.data) {
+        map[s.dayOfWeek] = {
+          openHour: s.openHour,
+          openMinute: s.openMinute,
+          lastBookingHour: s.lastBookingHour,
+          lastBookingMinute: s.lastBookingMinute,
+          closeHour: s.closeHour,
+          closeMinute: s.closeMinute,
+        };
+      }
+      setEditingSchedule(map);
+    }
+  }, [scheduleQuery.data]);
+
+  const scheduleMutation = useMutation({
+    mutationFn: ({ dayOfWeek, schedule }: { dayOfWeek: number; schedule: { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number } }) =>
+      updateScheduleDay(dayOfWeek, schedule),
+    onSuccess: () => {
+      toast({ title: "Horaire mis à jour" });
+      queryClient.invalidateQueries({ queryKey: ["operatingSchedule"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    },
   });
 
   const updateMutation = useMutation({
@@ -650,6 +704,171 @@ export default function Admin() {
 
           {showAdminSection && (
             <div className="space-y-6 p-4 md:p-6 bg-gray-50/50">
+
+        <Card className="shadow-lg border-none">
+          <CardHeader className="bg-[#2B5734] text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
+              <Clock className="w-5 h-5" />
+              Horaire d'ouverture
+            </CardTitle>
+            <CardDescription className="text-white/80">
+              Gérez les heures d'ouverture et de fermeture pour chaque jour
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 bg-white">
+            {scheduleQuery.isLoading ? (
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Chargement...
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="py-2 px-2 font-bold text-xs uppercase tracking-wider text-muted-foreground">Jour</th>
+                      <th className="py-2 px-2 font-bold text-xs uppercase tracking-wider text-muted-foreground">Ouverture</th>
+                      <th className="py-2 px-2 font-bold text-xs uppercase tracking-wider text-muted-foreground">Dern. réservation</th>
+                      <th className="py-2 px-2 font-bold text-xs uppercase tracking-wider text-muted-foreground">Fermeture</th>
+                      <th className="py-2 px-2 font-bold text-xs uppercase tracking-wider text-muted-foreground">Max durée</th>
+                      <th className="py-2 px-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { day: 0, name: "Dimanche" },
+                      { day: 1, name: "Lundi" },
+                      { day: 2, name: "Mardi" },
+                      { day: 3, name: "Mercredi" },
+                      { day: 4, name: "Jeudi" },
+                      { day: 5, name: "Vendredi" },
+                      { day: 6, name: "Samedi" },
+                    ].map(({ day, name }) => {
+                      const sched = editingSchedule[day];
+                      if (!sched) return null;
+                      const closeMinutes = (sched.closeHour * 60 + sched.closeMinute) - (sched.lastBookingHour * 60 + sched.lastBookingMinute);
+                      const maxDurationH = Math.floor(closeMinutes / 60);
+                      const maxDurationM = closeMinutes % 60;
+                      const maxDurationLabel = maxDurationM > 0 ? `${maxDurationH}h${maxDurationM}` : `${maxDurationH}h`;
+                      
+                      const formatCloseDisplay = (h: number, m: number) => {
+                        if (h >= 24) return `${String(h - 24).padStart(2, '0')}:${String(m).padStart(2, '0')} (+1j)`;
+                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                      };
+
+                      return (
+                        <tr key={day} className="border-b last:border-0 hover:bg-gray-50">
+                          <td className="py-3 px-2 font-medium">{name}</td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1">
+                              <select
+                                value={sched.openHour}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], openHour: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-open-hour-${day}`}
+                              >
+                                {Array.from({ length: 24 }, (_, i) => (
+                                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                                ))}
+                              </select>
+                              <span>:</span>
+                              <select
+                                value={sched.openMinute}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], openMinute: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-open-minute-${day}`}
+                              >
+                                <option value={0}>00</option>
+                                <option value={30}>30</option>
+                              </select>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1">
+                              <select
+                                value={sched.lastBookingHour}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], lastBookingHour: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-lastbooking-hour-${day}`}
+                              >
+                                {Array.from({ length: 24 }, (_, i) => (
+                                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                                ))}
+                              </select>
+                              <span>:</span>
+                              <select
+                                value={sched.lastBookingMinute}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], lastBookingMinute: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-lastbooking-minute-${day}`}
+                              >
+                                <option value={0}>00</option>
+                                <option value={30}>30</option>
+                              </select>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1">
+                              <select
+                                value={sched.closeHour}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], closeHour: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-close-hour-${day}`}
+                              >
+                                {Array.from({ length: 26 }, (_, i) => (
+                                  <option key={i} value={i}>
+                                    {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
+                                  </option>
+                                ))}
+                              </select>
+                              <span>:</span>
+                              <select
+                                value={sched.closeMinute}
+                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], closeMinute: parseInt(e.target.value) } }))}
+                                className="border rounded px-1.5 py-1 text-sm w-16"
+                                data-testid={`select-close-minute-${day}`}
+                              >
+                                <option value={0}>00</option>
+                                <option value={30}>30</option>
+                              </select>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                              {formatCloseDisplay(sched.closeHour, sched.closeMinute)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <span className="text-xs font-mono text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                              {maxDurationLabel}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => scheduleMutation.mutate({ dayOfWeek: day, schedule: sched })}
+                              disabled={scheduleMutation.isPending}
+                              className="h-8 px-3 text-xs"
+                              data-testid={`button-save-schedule-${day}`}
+                            >
+                              {scheduleMutation.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Save className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-4">
+              Les changements prennent effet immédiatement sur la page de réservation.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">

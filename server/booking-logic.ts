@@ -32,7 +32,8 @@ export interface ScoreBreakdown {
   bayClustering: number;
   peakHour: number;
   inefficientGap: number;
-  openStretchPenalty: number;
+  durationBonus: number;
+  durationStrategy: number;
   total: number;
 }
 
@@ -58,8 +59,20 @@ export interface TimeSlot {
   allBays?: BayEvaluation[];
 }
 
-const OPERATING_START_HOUR = 8;
-const OPERATING_END_HOUR = 22;
+export interface DaySchedule {
+  openHour: number;
+  openMinute: number;
+  lastBookingHour: number;
+  lastBookingMinute: number;
+  closeHour: number;
+  closeMinute: number;
+}
+
+const DEFAULT_SCHEDULE: DaySchedule = {
+  openHour: 8, openMinute: 0,
+  lastBookingHour: 22, lastBookingMinute: 0,
+  closeHour: 23, closeMinute: 0,
+};
 
 const HALF_HOUR_BAY_IDS = new Set(["3", "4"]);
 
@@ -74,12 +87,153 @@ const DEFAULT_SIMULATORS: Simulator[] = [
   { id: "4", name: "Baie 4" },
 ];
 
+function buildScheduleTimes(date: Date, schedule: DaySchedule) {
+  const dayStart = startOfDay(date);
+  const openTime = setMinutes(setHours(dayStart, schedule.openHour), schedule.openMinute);
+  const lastBookingTime = setMinutes(setHours(dayStart, schedule.lastBookingHour), schedule.lastBookingMinute);
+
+  let closeTime: Date;
+  if (schedule.closeHour >= 24) {
+    const nextDay = addMinutes(dayStart, 24 * 60);
+    closeTime = setMinutes(setHours(nextDay, schedule.closeHour - 24), schedule.closeMinute);
+  } else {
+    closeTime = setMinutes(setHours(dayStart, schedule.closeHour), schedule.closeMinute);
+  }
+
+  return { openTime, lastBookingTime, closeTime };
+}
+
+function rateRemainingGap(gap: number, touchesBooking: boolean): number {
+  if (gap === 0 && touchesBooking) return 5;
+  if (gap === 0) return 2;
+  if (gap > 0 && gap < 30) return -5;
+  if (gap >= 30 && gap < 60) return -2;
+  if (gap === 60) return -1;
+  if (gap === 240 || gap === 300) return 4;
+  if (gap === 120 || gap === 90) return 3;
+  if (gap >= 150 && gap <= 300 && gap % 30 === 0) return 2;
+  if (gap > 300) return 1;
+  return 0;
+}
+
+interface DurationContext {
+  durationMinutes: number;
+  emptyBay: boolean;
+  otherBaysHaveBookings: boolean;
+  remainingGapBefore: number;
+  remainingGapAfter: number;
+  touchesDayStart: boolean;
+  touchesDayEnd: boolean;
+  touchesBookingBefore: boolean;
+  touchesBookingAfter: boolean;
+  hour: number;
+  totalStretch: number;
+}
+
+function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; peakHour: number; durationStrategy: number; perfectFitOverride?: number } {
+  const { durationMinutes, emptyBay, otherBaysHaveBookings, remainingGapBefore, remainingGapAfter,
+    touchesDayStart, touchesDayEnd, touchesBookingBefore, touchesBookingAfter, hour, totalStretch } = ctx;
+
+  let durationBonus = 0;
+  let peakHour = 0;
+  let durationStrategy = 0;
+  let perfectFitOverride: number | undefined;
+
+  if (durationMinutes === 60) {
+    peakHour = 0;
+
+    if (touchesBookingBefore && touchesBookingAfter && remainingGapBefore === 0 && remainingGapAfter === 0) {
+      perfectFitOverride = 7;
+    }
+
+    if (emptyBay) {
+      if (otherBaysHaveBookings) {
+        durationStrategy -= 4;
+      } else {
+        if (touchesDayStart) {
+          durationStrategy += 3;
+        } else {
+          durationStrategy -= 2;
+        }
+      }
+    }
+
+    if (remainingGapAfter === 60) durationStrategy -= 2;
+    if (remainingGapBefore === 60) durationStrategy -= 2;
+
+  } else if (durationMinutes === 120) {
+    if (hour >= 17 && hour < 21) peakHour = 1;
+
+    if (emptyBay) {
+      if (otherBaysHaveBookings) {
+        durationStrategy -= 2;
+      } else {
+        if (touchesDayStart || touchesDayEnd) {
+          durationStrategy += 2;
+        }
+      }
+    }
+
+    if (remainingGapAfter === 60) durationStrategy -= 1;
+    if (remainingGapBefore === 60) durationStrategy -= 1;
+
+    if (!emptyBay) {
+      const popularDurations = [180, 240];
+      for (const pd of popularDurations) {
+        if (totalStretch >= pd && totalStretch <= pd + 30 && totalStretch > durationMinutes) {
+          durationStrategy -= 3;
+          break;
+        }
+      }
+    }
+
+  } else if (durationMinutes === 180) {
+    durationBonus = 1;
+    if (hour >= 17 && hour < 21) peakHour = 2;
+
+    if (emptyBay) {
+      if (touchesDayStart || touchesDayEnd) {
+        durationStrategy += 2;
+      }
+    }
+
+    if (remainingGapAfter === 60) durationStrategy -= 1;
+    if (remainingGapBefore === 60) durationStrategy -= 1;
+
+  } else if (durationMinutes === 240) {
+    durationBonus = 2;
+    if (hour >= 17 && hour < 21) peakHour = 1;
+
+    if (emptyBay) {
+      if (touchesDayStart || touchesDayEnd) {
+        durationStrategy += 3;
+      }
+    }
+
+    if (remainingGapAfter === 60) durationStrategy -= 2;
+    if (remainingGapBefore === 60) durationStrategy -= 2;
+
+  } else {
+    if (hour >= 17 && hour < 21) peakHour = 1;
+
+    if (emptyBay && (touchesDayStart || touchesDayEnd)) {
+      durationStrategy += 2;
+    }
+    if (remainingGapAfter === 60) durationStrategy -= 1;
+    if (remainingGapBefore === 60) durationStrategy -= 1;
+  }
+
+  return { durationBonus, peakHour, durationStrategy, perfectFitOverride };
+}
+
 function evaluateBayAtTime(
   bay: Simulator,
   currentSlot: Date,
   potentialEnd: Date,
-  endOfDay: Date,
+  closeTime: Date,
+  openTime: Date,
   dayBookings: BookingRecord[],
+  allDayBookings: BookingRecord[],
   date: Date,
   durationMinutes: number
 ): BayEvaluation {
@@ -122,14 +276,13 @@ function evaluateBayAtTime(
   if (nextBookingStart) {
     remainingGapAfter = differenceInMinutes(nextBookingStart, potentialEnd);
   } else {
-    remainingGapAfter = differenceInMinutes(endOfDay, potentialEnd);
+    remainingGapAfter = differenceInMinutes(closeTime, potentialEnd);
   }
 
   let remainingGapBefore = Infinity;
   if (previousBookingEnd) {
     remainingGapBefore = differenceInMinutes(currentSlot, previousBookingEnd);
   } else {
-    const openTime = setMinutes(setHours(startOfDay(date), OPERATING_START_HOUR), 0);
     remainingGapBefore = differenceInMinutes(currentSlot, openTime);
   }
 
@@ -152,79 +305,62 @@ function evaluateBayAtTime(
       bayClustering: 0,
       peakHour: 0,
       inefficientGap: 0,
-      openStretchPenalty: 0,
+      durationBonus: 0,
+      durationStrategy: 0,
       total: 0
     };
-
-    const MAX_BOOKING_DURATION = 300;
 
     const touchesBookingBefore = previousBookingEnd !== null && remainingGapBefore === 0;
     const touchesBookingAfter = nextBookingStart !== null && remainingGapAfter === 0;
     const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
     const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
 
-    const POPULAR_DURATIONS = [180, 240];
-
-    function rateRemainingGap(gap: number, touchesBooking: boolean): number {
-      if (gap === 0 && touchesBooking) return 5;
-      if (gap === 0) return 2;
-      if (gap > 0 && gap < 30) return -5;
-      if (gap >= 30 && gap < 60) return -2;
-      if (gap === 60) return -1;
-      if (gap === 240 || gap === MAX_BOOKING_DURATION) return 4;
-      if (gap === 120 || gap === 90) return 3;
-      if (gap >= 150 && gap <= MAX_BOOKING_DURATION && gap % 30 === 0) return 2;
-      if (gap > MAX_BOOKING_DURATION) return 1;
-      return 0;
-    }
-
     breakdown.gapAfter = rateRemainingGap(remainingGapAfter, touchesBookingAfter);
     breakdown.gapBefore = rateRemainingGap(remainingGapBefore, touchesBookingBefore);
 
-    const emptyBay = bayBookings.length === 0;
-
-    if (emptyBay) {
-      if (touchesDayStart) {
-        breakdown.gapBefore = 4;
-      } else if (touchesDayEnd) {
-        breakdown.gapAfter = 4;
-      } else {
-        const smaller = Math.min(remainingGapBefore, remainingGapAfter);
-        const larger = Math.max(remainingGapBefore, remainingGapAfter);
-        if (smaller > 0 && larger > 0) {
-          const ratio = smaller / larger;
-          if (ratio > 0.4) {
-            breakdown.openStretchPenalty -= Math.round(ratio * 6);
-          }
-        }
-      }
-    }
-
     if (touchesBookingBefore && touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore === 0) {
-      breakdown.perfectFit += 5;
+      breakdown.perfectFit = 5;
     } else if (touchesBookingBefore && touchesBookingAfter) {
-      breakdown.perfectFit += 2;
+      breakdown.perfectFit = 2;
     }
 
-    if (bayBookings.length > 0) breakdown.bayClustering += 2;
+    if (bayBookings.length > 0) breakdown.bayClustering = 2;
 
+    const emptyBay = bayBookings.length === 0;
+    const otherBaysHaveBookings = allDayBookings.some(b => b.simulatorId !== bay.id);
     const hour = currentSlot.getHours();
-    if (hour >= 17 && hour < 21) breakdown.peakHour += 1;
-
     const totalStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
 
-    if (durationMinutes <= 120) {
-      const couldFitPopular = POPULAR_DURATIONS.some(pd => totalStretch >= pd && totalStretch <= pd + 30);
-      const isNotPerfectFit = remainingGapAfter > 0 || remainingGapBefore > 0;
+    const durResult = applyDurationStrategy({
+      durationMinutes,
+      emptyBay,
+      otherBaysHaveBookings,
+      remainingGapBefore,
+      remainingGapAfter,
+      touchesDayStart,
+      touchesDayEnd,
+      touchesBookingBefore,
+      touchesBookingAfter,
+      hour,
+      totalStretch
+    });
 
-      if (couldFitPopular && isNotPerfectFit) {
-        breakdown.openStretchPenalty -= 7;
-      }
-      
-      if (!touchesBookingBefore && !touchesBookingAfter) {
-        breakdown.openStretchPenalty -= 6;
-      } else if (totalStretch > MAX_BOOKING_DURATION + durationMinutes) {
-        breakdown.openStretchPenalty -= 3;
+    breakdown.durationBonus = durResult.durationBonus;
+    breakdown.peakHour = durResult.peakHour;
+    breakdown.durationStrategy = durResult.durationStrategy;
+
+    if (durResult.perfectFitOverride !== undefined) {
+      breakdown.perfectFit = durResult.perfectFitOverride;
+    }
+
+    if (emptyBay && !touchesDayStart && !touchesDayEnd) {
+      const smaller = Math.min(remainingGapBefore, remainingGapAfter);
+      const larger = Math.max(remainingGapBefore, remainingGapAfter);
+      if (smaller > 0 && larger > 0) {
+        const ratio = smaller / larger;
+        if (ratio > 0.4) {
+          breakdown.durationStrategy -= Math.round(ratio * 4);
+        }
       }
     }
 
@@ -236,7 +372,8 @@ function evaluateBayAtTime(
       breakdown.bayClustering +
       breakdown.peakHour +
       breakdown.inefficientGap +
-      breakdown.openStretchPenalty;
+      breakdown.durationBonus +
+      breakdown.durationStrategy;
 
     score = breakdown.total;
   }
@@ -259,19 +396,19 @@ export function getOptimizedStartTimes(
   date: Date,
   durationMinutes: number,
   bookings: BookingRecord[],
-  simulators: Simulator[] = DEFAULT_SIMULATORS
+  simulators: Simulator[] = DEFAULT_SIMULATORS,
+  schedule: DaySchedule = DEFAULT_SCHEDULE
 ): TimeSlot[] {
-  const openTime = setMinutes(setHours(startOfDay(date), OPERATING_START_HOUR), 0);
-  const endOfDay = setMinutes(setHours(startOfDay(date), OPERATING_END_HOUR), 0);
+  const { openTime, lastBookingTime, closeTime } = buildScheduleTimes(date, schedule);
   const dayBookings = bookings.filter(b => isSameDay(parseISO(b.startTime), date));
 
   const candidateTimes = new Set<string>();
   for (const bay of simulators) {
     const granularity = getBayGranularity(bay.id);
     let t = openTime;
-    while (isBefore(t, endOfDay)) {
+    while (isBefore(t, lastBookingTime) || t.getTime() === lastBookingTime.getTime()) {
       const potentialEnd = addMinutes(t, durationMinutes);
-      if (!isAfter(potentialEnd, endOfDay)) {
+      if (!isAfter(potentialEnd, closeTime)) {
         candidateTimes.add(t.toISOString());
       }
       t = addMinutes(t, granularity);
@@ -295,7 +432,7 @@ export function getOptimizedStartTimes(
     const allBaysEvaluation: BayEvaluation[] = [];
 
     for (const bay of eligibleBays) {
-      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, endOfDay, dayBookings, date, durationMinutes);
+      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, closeTime, openTime, dayBookings, dayBookings, date, durationMinutes);
       allBaysEvaluation.push(evaluation);
 
       if (evaluation.isValid) {
@@ -333,9 +470,10 @@ export function validateBayAssignment(
   durationMinutes: number,
   requestedBayId: string,
   bookings: BookingRecord[],
-  simulators: Simulator[] = DEFAULT_SIMULATORS
+  simulators: Simulator[] = DEFAULT_SIMULATORS,
+  schedule: DaySchedule = DEFAULT_SCHEDULE
 ): { valid: boolean; reason?: string; suggestedBayId?: string } {
-  const slots = getOptimizedStartTimes(date, durationMinutes, bookings, simulators);
+  const slots = getOptimizedStartTimes(date, durationMinutes, bookings, simulators, schedule);
 
   const [h, m] = time.split(':').map(Number);
   const requestedTime = setMinutes(setHours(startOfDay(date), h), m);

@@ -49,6 +49,26 @@ export const oauthTokens = pgTable("oauth_tokens", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
 });
 
+export const operatingSchedule = pgTable("operating_schedule", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dayOfWeek: integer("day_of_week").notNull().unique(),
+  openHour: integer("open_hour").notNull().default(8),
+  openMinute: integer("open_minute").notNull().default(0),
+  lastBookingHour: integer("last_booking_hour").notNull().default(22),
+  lastBookingMinute: integer("last_booking_minute").notNull().default(0),
+  closeHour: integer("close_hour").notNull().default(23),
+  closeMinute: integer("close_minute").notNull().default(0),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().default(sql`now()`),
+});
+
+export const insertOperatingScheduleSchema = createInsertSchema(operatingSchedule).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertOperatingSchedule = z.infer<typeof insertOperatingScheduleSchema>;
+export type OperatingSchedule = typeof operatingSchedule.$inferSelect;
+
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   calendarEventId: true,

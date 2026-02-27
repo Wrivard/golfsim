@@ -19,8 +19,18 @@ export interface ScoreBreakdown {
   bayClustering: number;
   peakHour: number;
   inefficientGap: number;
-  openStretchPenalty: number;
+  durationBonus: number;
+  durationStrategy: number;
   total: number;
+}
+
+export interface DaySchedule {
+  openHour: number;
+  openMinute: number;
+  lastBookingHour: number;
+  lastBookingMinute: number;
+  closeHour: number;
+  closeMinute: number;
 }
 
 export interface BayEvaluation {

@@ -7,7 +7,7 @@ import { StepDetails } from "@/components/booking/StepDetails";
 import { StepConfirmation } from "@/components/booking/StepConfirmation";
 import { DebugPanel } from "@/components/booking/DebugPanel";
 import { useBookingStore } from "@/lib/booking-store";
-import { TimeSlot } from "@/lib/booking-types";
+import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import headerBg from "@assets/stock_images/golf_ball_on_tee_ind_0117f1a4.jpg";
@@ -36,6 +36,7 @@ export default function BookingPage() {
   }, []);
   const [hoveredSlot, setHoveredSlot] = useState<TimeSlot | null>(null);
   const [computedSlots, setComputedSlots] = useState<TimeSlot[]>([]);
+  const [currentSchedule, setCurrentSchedule] = useState<DaySchedule | null>(null);
 
   const handleHoverSlot = useCallback((slot: TimeSlot | null) => {
     setHoveredSlot(slot);
@@ -43,6 +44,10 @@ export default function BookingPage() {
 
   const handleSlotsReady = useCallback((slots: TimeSlot[]) => {
     setComputedSlots(slots);
+  }, []);
+
+  const handleScheduleReady = useCallback((schedule: DaySchedule | null) => {
+    setCurrentSchedule(schedule);
   }, []);
 
   const showDebugPanel = debugMode && step === 2;
@@ -101,6 +106,7 @@ export default function BookingPage() {
                 <StepTime 
                   onHoverSlot={debugMode ? handleHoverSlot : undefined} 
                   onSlotsReady={handleSlotsReady}
+                  onScheduleReady={handleScheduleReady}
                 />
               )}
               {step === 3 && <StepDetails />}
@@ -115,6 +121,7 @@ export default function BookingPage() {
                 bookings={bookings}
                 hoveredSlot={hoveredSlot}
                 selectedDuration={selectedDuration}
+                schedule={currentSchedule}
               />
             </div>
           )}

@@ -99,6 +99,68 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  try {
+    await storage.initializeDefaultSchedule();
+    console.log("[schedule] Default operating schedule initialized");
+  } catch (error) {
+    console.error("[schedule] Failed to initialize default schedule:", error);
+  }
+
+  app.get("/api/schedule", async (_req: Request, res: Response) => {
+    try {
+      const schedule = await storage.getSchedule();
+      return res.json({ ok: true, schedule });
+    } catch (error) {
+      console.error("Error fetching schedule:", error);
+      return res.status(500).json({ ok: false, message: "Erreur" });
+    }
+  });
+
+  app.get("/api/schedule/:date", async (req: Request, res: Response) => {
+    try {
+      const dateStr = req.params.date;
+      const date = new Date(dateStr);
+      const dayOfWeek = date.getUTCDay();
+      const schedule = await storage.getScheduleForDay(dayOfWeek);
+      if (!schedule) {
+        return res.json({ ok: true, schedule: { openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 23, closeMinute: 0 } });
+      }
+      return res.json({ ok: true, schedule });
+    } catch (error) {
+      console.error("Error fetching schedule for date:", error);
+      return res.status(500).json({ ok: false, message: "Erreur" });
+    }
+  });
+
+  app.put("/api/admin/schedule/:dayOfWeek", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const dayOfWeek = parseInt(req.params.dayOfWeek, 10);
+      if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
+        return res.status(400).json({ ok: false, message: "Jour invalide" });
+      }
+      const { openHour, openMinute, lastBookingHour, lastBookingMinute, closeHour, closeMinute } = req.body;
+      
+      const openTotal = openHour * 60 + (openMinute || 0);
+      const lastBookingTotal = lastBookingHour * 60 + (lastBookingMinute || 0);
+      const closeTotal = closeHour * 60 + (closeMinute || 0);
+      
+      if (openTotal >= lastBookingTotal) {
+        return res.status(400).json({ ok: false, message: "L'heure d'ouverture doit être avant la dernière réservation" });
+      }
+      if (lastBookingTotal >= closeTotal) {
+        return res.status(400).json({ ok: false, message: "La dernière réservation doit être avant la fermeture" });
+      }
+
+      const schedule = await storage.updateScheduleForDay(dayOfWeek, {
+        openHour, openMinute, lastBookingHour, lastBookingMinute, closeHour, closeMinute
+      });
+      return res.json({ ok: true, schedule });
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la mise à jour" });
+    }
+  });
+
   app.post("/api/auth/login", loginRateLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
@@ -503,12 +565,24 @@ export async function registerRoutes(
       const dayBookings = await storage.getBookingsByDateRange(targetDate, endDate);
       const formattedBookings = formatBookingsForLogic(dayBookings, date);
 
-      const slots = getOptimizedStartTimes(targetDate, durationMinutes, formattedBookings);
+      const dayOfWeek = new Date(date).getUTCDay();
+      const daySchedule = await storage.getScheduleForDay(dayOfWeek);
+      const schedule = daySchedule ? {
+        openHour: daySchedule.openHour,
+        openMinute: daySchedule.openMinute,
+        lastBookingHour: daySchedule.lastBookingHour,
+        lastBookingMinute: daySchedule.lastBookingMinute,
+        closeHour: daySchedule.closeHour,
+        closeMinute: daySchedule.closeMinute,
+      } : undefined;
+
+      const slots = getOptimizedStartTimes(targetDate, durationMinutes, formattedBookings, undefined, schedule);
 
       return res.json({
         ok: true,
         slots,
         bookings: formattedBookings,
+        schedule,
         meta: {
           date,
           durationMinutes,
@@ -608,12 +682,25 @@ export async function registerRoutes(
       );
       const formattedForLogic = formatBookingsForLogic(existingBookings, bookingDateStr);
 
+      const bookingDayOfWeek = validatedData.date.getUTCDay();
+      const bookingDaySchedule = await storage.getScheduleForDay(bookingDayOfWeek);
+      const bookingSchedule = bookingDaySchedule ? {
+        openHour: bookingDaySchedule.openHour,
+        openMinute: bookingDaySchedule.openMinute,
+        lastBookingHour: bookingDaySchedule.lastBookingHour,
+        lastBookingMinute: bookingDaySchedule.lastBookingMinute,
+        closeHour: bookingDaySchedule.closeHour,
+        closeMinute: bookingDaySchedule.closeMinute,
+      } : undefined;
+
       const bayValidation = validateBayAssignment(
         validatedData.date,
         validatedData.time,
         durationMinutes,
         validatedData.bayType,
-        formattedForLogic
+        formattedForLogic,
+        undefined,
+        bookingSchedule
       );
 
       if (!bayValidation.valid) {

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { TimeSlot, Booking, BayEvaluation } from "@/lib/booking-types";
+import { TimeSlot, Booking, BayEvaluation, DaySchedule } from "@/lib/booking-types";
 import { useBookingStore } from "@/lib/booking-store";
 
 interface DebugPanelProps {
@@ -10,22 +10,27 @@ interface DebugPanelProps {
   bookings: Booking[];
   hoveredSlot: TimeSlot | null;
   selectedDuration: number | null;
+  schedule?: DaySchedule | null;
 }
 
-function BayTimeline({ bayId, bayName, bookings, hoveredSlot }: { 
+function BayTimeline({ bayId, bayName, bookings, hoveredSlot, schedule }: { 
   bayId: string; 
   bayName: string; 
   bookings: Booking[];
   hoveredSlot: TimeSlot | null;
+  schedule?: DaySchedule | null;
 }) {
   const bayBookings = bookings.filter(b => b.simulatorId === bayId);
-  const HOURS_START = 8;
-  const HOURS_END = 22;
+  const HOURS_START = schedule?.openHour ?? 8;
+  const HOURS_END = schedule?.closeHour ?? 23;
   const TOTAL_MINUTES = (HOURS_END - HOURS_START) * 60;
 
   const getPosition = (timeStr: string) => {
     const timePart = timeStr.includes('T') ? timeStr.split('T')[1].substring(0, 5) : timeStr;
-    const [h, m] = timePart.split(':').map(Number);
+    let [h, m] = timePart.split(':').map(Number);
+    if (HOURS_END >= 24 && h < HOURS_START) {
+      h += 24;
+    }
     const minutes = (h - HOURS_START) * 60 + m;
     return Math.max(0, Math.min(100, (minutes / TOTAL_MINUTES) * 100));
   };
@@ -82,8 +87,8 @@ function BayTimeline({ bayId, bayName, bookings, hoveredSlot }: {
         )}
       </div>
       <div className="flex justify-between text-[10px] text-gray-600 px-0.5">
-        <span>08:00</span>
-        <span>22:00</span>
+        <span>{String(HOURS_START).padStart(2, '0')}:00</span>
+        <span>{HOURS_END >= 24 ? String(HOURS_END - 24).padStart(2, '0') : String(HOURS_END).padStart(2, '0')}:00</span>
       </div>
     </div>
   );
@@ -128,7 +133,8 @@ function DetailedInspector({ slot }: { slot: TimeSlot | null }) {
           <ScoreRow label="Clustering baie" value={bd.bayClustering} positive />
           <ScoreRow label="Heure de pointe (17-21h)" value={bd.peakHour} positive />
           <ScoreRow label="Gap inefficace (30-60m)" value={bd.inefficientGap} negative />
-          <ScoreRow label="Espace ouvert (préserver)" value={bd.openStretchPenalty} negative />
+          <ScoreRow label="Bonus durée" value={bd.durationBonus} positive />
+          <ScoreRow label="Stratégie durée" value={bd.durationStrategy} />
           <div className="border-t border-gray-700 pt-2 flex justify-between text-sm font-bold">
             <span className="text-gray-400">Total</span>
             <span className="text-green-400">{bd.total}</span>
@@ -187,7 +193,7 @@ function ScoreRow({ label, value, positive, negative }: { label: string; value: 
   );
 }
 
-export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: DebugPanelProps) {
+export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration, schedule }: DebugPanelProps) {
   const { simulators, selectedDate } = useBookingStore();
 
   const sortedByTime = useMemo(() =>
@@ -207,6 +213,13 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
         <p className="text-primary text-xs mt-0.5 font-medium">
           Mode horaire : {selectedDuration ? selectedDuration / 60 : "—"}h • {dateLabel}
         </p>
+        {schedule && (
+          <p className="text-gray-500 text-[10px] mt-1 font-mono">
+            Ouv {String(schedule.openHour).padStart(2,'0')}:{String(schedule.openMinute).padStart(2,'0')} • 
+            Dern. rés. {String(schedule.lastBookingHour).padStart(2,'0')}:{String(schedule.lastBookingMinute).padStart(2,'0')} • 
+            Ferm. {schedule.closeHour >= 24 ? String(schedule.closeHour - 24).padStart(2,'0') : String(schedule.closeHour).padStart(2,'0')}:{String(schedule.closeMinute).padStart(2,'0')}{schedule.closeHour >= 24 ? " (+1j)" : ""}
+          </p>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
@@ -225,6 +238,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
                 bayName={sim.name}
                 bookings={bookings}
                 hoveredSlot={hoveredSlot}
+                schedule={schedule}
               />
             ))}
           </div>
@@ -296,7 +310,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration }: D
 
       <div className="p-3 border-t border-gray-800 text-center">
         <p className="text-[10px] text-gray-600">
-          0→+5 | 4h→+4 | 1-2h→+3 | &lt;30m→-5 | PerfFit→+5/2 | Cluster→+2 | Peak→+1 | Frag3-4h→-7 | Open→-3/-6
+          Gap0→+5 | &lt;30m→-5 | PerfFit→+5/7 | Cluster→+2 | DurBonus→0-2 | Peak→0-2 | DurStrat→±4
         </p>
       </div>
     </div>

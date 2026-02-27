@@ -63,7 +63,8 @@ Preferred communication style: Simple, everyday language.
 **Database Schema**
 - `bookings` table with fields: id (UUID), name, email, phone, date, time, duration, bayType (bay 1-4), players (1-4), notes, calendarEventId, createdAt
 - `admin_users` table with fields: id (UUID), username (unique), passwordHash, role, createdAt
-- `calendar_settings` table with fields: id (UUID), syncEmail, calendarId, updatedAt
+- `calendar_settings` table with fields: id (UUID), syncEmail, calendarId, debugMode, updatedAt
+- `operating_schedule` table with fields: id (UUID), dayOfWeek (0=Sun–6=Sat, unique), openHour, openMinute, lastBookingHour, lastBookingMinute, closeHour (supports 24/25 for past-midnight), closeMinute, updatedAt
 - Unique constraint on (bayType, date, time) to prevent double-booking
 
 **Admin Authentication System**
@@ -72,6 +73,16 @@ Preferred communication style: Simple, everyday language.
 - Protected `/admin` dashboard for calendar settings management
 - Default admin credentials: username `admin`, password `golfsim2024`
 - SESSION_SECRET environment variable required in production
+
+**Operating Schedule System**
+- Database-driven day-of-week operating schedule (editable from admin panel)
+- Each day has: openHour/openMinute, lastBookingHour/lastBookingMinute, closeHour/closeMinute
+- Close hours ≥24 represent next-day (e.g., 25 = 1AM next day for Fri/Sat)
+- Slots can only START between open and lastBookingTime
+- Booking end time must be ≤ closeTime
+- Schedule fetched from DB on every availability request (no caching — admin changes take effect immediately)
+- Default schedule: Mon-Wed close 23h, Thu close midnight, Fri-Sat close 1AM, Sun last booking 21h close 22h
+- Admin UI: "Horaire d'ouverture" card in Administration section with per-day editable dropdowns
 
 **Booking Business Logic**
 - Conflict detection: checks existing bookings for same bay, date, and overlapping time windows
@@ -181,11 +192,16 @@ Preferred communication style: Simple, everyday language.
 **Architecture** (Adapted from Wrivard/golf-logic repository)
 - 4-step React booking flow: Duration → Time → Details → Confirmation
 - State management via Zustand store (`client/src/lib/booking-store.ts`)
-- Smart bay optimization algorithm (`server/booking-logic.ts`) that scores time slots based on:
-  - Gap efficiency (minimizing unusable gaps between bookings)
-  - Bay clustering (consolidating bookings on fewer bays)
-  - Peak hour preference (17h-21h)
-  - Inefficient gap penalties
+- Smart bay optimization algorithm (`server/booking-logic.ts`) with duration-specific scoring:
+  - ScoreBreakdown: base, gapAfter, gapBefore, perfectFit, bayClustering, peakHour, inefficientGap, durationBonus, durationStrategy, total
+  - Gap efficiency: rateRemainingGap() scores gaps (0→+5 adjacent, <30m→-5 unusable, bookable→+2/3)
+  - Bay clustering: +2 if bay already has bookings
+  - Duration profiles via applyDurationStrategy():
+    - 1h "Filler": no peak bonus, -4 on empty bay with others, +7 perfect gap fill, +3 edge on empty day
+    - 2h "Standard": +1 peak, -2 empty bay, -3 if occupying gap that fits 3-4h
+    - 3h "Popular": +1 bonus, +2 peak, +2 edge on empty bay
+    - 4h "Premium": +2 bonus, +1 peak, +3 edge on empty bay
+  - Schedule-aware: reads operating schedule from DB per request (open/lastBooking/close times)
 - Per-bay time slot granularity:
   - Bays 1-2: 60-minute granularity (8:00, 9:00, 10:00...)
   - Bays 3-4: 30-minute granularity (8:00, 8:30, 9:00, 9:30...)

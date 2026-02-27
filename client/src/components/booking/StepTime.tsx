@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TimeSlot } from "@/lib/booking-types";
+import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { useQuery } from "@tanstack/react-query";
 
 interface OptimizedResponse {
@@ -20,6 +20,7 @@ interface OptimizedResponse {
     endTime: string;
     customerName: string;
   }>;
+  schedule?: DaySchedule;
   meta: {
     date: string;
     durationMinutes: number;
@@ -38,9 +39,10 @@ async function fetchOptimizedSlots(dateStr: string, durationMinutes: number): Pr
 interface StepTimeProps {
   onHoverSlot?: (slot: TimeSlot | null) => void;
   onSlotsReady?: (slots: TimeSlot[]) => void;
+  onScheduleReady?: (schedule: DaySchedule | null) => void;
 }
 
-export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
+export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTimeProps) {
   const { 
     selectedDate, 
     selectedDuration, 
@@ -65,9 +67,10 @@ export function StepTime({ onHoverSlot, onSlotsReady }: StepTimeProps) {
   useEffect(() => {
     if (data) {
       setBookings(data.bookings);
+      onScheduleReady?.(data.schedule ?? null);
     }
     setIsLoadingBookings(isLoading);
-  }, [data, isLoading, setBookings, setIsLoadingBookings]);
+  }, [data, isLoading, setBookings, setIsLoadingBookings, onScheduleReady]);
 
   const slots = useMemo(() => data?.slots ?? [], [data]);
 
