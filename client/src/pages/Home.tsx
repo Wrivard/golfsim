@@ -21,7 +21,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section - "Urban Swing" Style Replicas */}
-      <section className="relative min-h-screen flex flex-col justify-center pt-20 overflow-hidden bg-background z-10">
+      <section className="relative min-h-screen flex flex-col justify-center pt-20 pb-16 md:pb-0 overflow-hidden bg-background z-10">
         
         {/* Faint Background Text "GOLF" */}
         <div className="absolute top-20 left-0 right-0 flex justify-center pointer-events-none select-none overflow-hidden z-0">
@@ -66,7 +66,7 @@ export default function Home() {
           </div>
 
           {/* Right Content - Image Composition */}
-          <div className="md:col-span-6 relative h-[400px] md:h-[600px] flex items-center justify-center">
+          <div className="md:col-span-6 relative h-[450px] md:h-[600px] flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

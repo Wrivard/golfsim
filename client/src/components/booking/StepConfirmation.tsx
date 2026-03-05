@@ -179,10 +179,10 @@ export function StepConfirmation() {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Button 
           variant="outline" 
-          className="w-1/3 border-foreground/20"
+          className="w-full sm:w-1/3 border-foreground/20"
           onClick={() => setStep(3)}
           disabled={bookingMutation.isPending}
           data-testid="button-back-details"
@@ -191,7 +191,7 @@ export function StepConfirmation() {
         </Button>
         <Button 
           size="lg" 
-          className="w-2/3 bg-primary hover:bg-primary/90 text-lg font-bold uppercase tracking-wider shadow-lg shadow-primary/20 rounded-full"
+          className="w-full sm:w-2/3 bg-primary hover:bg-primary/90 text-base sm:text-lg font-bold uppercase tracking-wider shadow-lg shadow-primary/20 rounded-full"
           onClick={handleConfirm}
           disabled={bookingMutation.isPending}
           data-testid="button-confirm"

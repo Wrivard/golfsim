@@ -95,11 +95,11 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Button 
           variant="ghost" 
           onClick={() => setStep(1)}
-          className="text-muted-foreground hover:text-foreground -ml-4"
+          className="text-muted-foreground hover:text-foreground -ml-2 sm:-ml-4 shrink-0"
           data-testid="button-back-duration"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
@@ -111,12 +111,12 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
             <Button
               variant="outline"
               className={cn(
-                "w-[240px] justify-start text-left font-normal border-foreground/20 bg-background/80",
+                "w-auto sm:w-[240px] justify-start text-left font-normal border-foreground/20 bg-background/80 text-xs sm:text-sm",
                 !selectedDate && "text-muted-foreground"
               )}
               data-testid="button-date-picker"
             >
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+              <CalendarIcon className="mr-2 h-4 w-4 text-primary shrink-0" />
               {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : <span>Choisir une date</span>}
             </Button>
           </PopoverTrigger>

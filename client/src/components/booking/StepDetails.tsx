@@ -141,11 +141,11 @@ export function StepDetails() {
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
           <Button 
             type="button" 
             variant="outline" 
-            className="w-1/3 border-foreground/20"
+            className="w-full sm:w-1/3 border-foreground/20"
             onClick={() => setStep(2)}
             data-testid="button-back-time"
           >
@@ -153,7 +153,7 @@ export function StepDetails() {
           </Button>
           <Button 
             type="submit" 
-            className="w-2/3 bg-primary hover:bg-primary/90 font-bold uppercase tracking-wider"
+            className="w-full sm:w-2/3 bg-primary hover:bg-primary/90 font-bold uppercase tracking-wider text-xs sm:text-sm"
             data-testid="button-review"
           >
             Vérifier la réservation
