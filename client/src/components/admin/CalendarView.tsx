@@ -32,15 +32,18 @@ const BAY_COLORS: Record<string, { bg: string; border: string; text: string }> =
 function parseDurationToMinutes(duration: string): number {
   const match = duration.match(/(\d+)h(\d{2})?/);
   if (!match) return 60;
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2] || "0", 10);
-  return hours * 60 + minutes;
+  return parseInt(match[1], 10) * 60 + parseInt(match[2] || "0", 10);
 }
 
 function parseTimeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + (m || 0);
 }
+
+const HOUR_HEIGHT = 64;
+const START_HOUR = 8;
+const END_HOUR = 25;
+const BAYS = ["1", "2", "3", "4"];
 
 export default function CalendarView({ bookings }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
@@ -55,25 +58,10 @@ export default function CalendarView({ bookings }: CalendarViewProps) {
 
   const hours = useMemo(() => {
     const slots = [];
-    for (let h = 8; h <= 24; h++) {
-      slots.push(h);
-    }
+    for (let h = START_HOUR; h <= END_HOUR; h++) slots.push(h);
     return slots;
   }, []);
 
-  const HOUR_HEIGHT = 64;
-  const START_HOUR = 8;
-  const END_HOUR = 25;
-
-  const getBookingStyle = (booking: Booking) => {
-    const startMinutes = parseTimeToMinutes(booking.time);
-    const durationMinutes = parseDurationToMinutes(booking.duration);
-    const topOffset = ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT;
-    const height = (durationMinutes / 60) * HOUR_HEIGHT;
-    return { top: `${topOffset}px`, height: `${height}px` };
-  };
-
-  const bays = ["1", "2", "3", "4"];
   const isToday = format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
   const currentTimeOffset = useMemo(() => {
@@ -126,19 +114,15 @@ export default function CalendarView({ bookings }: CalendarViewProps) {
       <CardContent className="p-0 bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
-            <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] border-b bg-gray-50 sticky top-0 z-10">
-              <div className="p-2 text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-r" />
-              {bays.map((bay) => {
+            {/* Bay headers */}
+            <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] border-b sticky top-0 z-10">
+              <div className="bg-gray-50 border-r border-gray-200" />
+              {BAYS.map((bay) => {
                 const colors = BAY_COLORS[bay];
                 const count = dayBookings.filter((b) => b.bayType === bay).length;
                 return (
-                  <div
-                    key={bay}
-                    className={`p-3 text-center border-r last:border-r-0 ${colors.bg}`}
-                  >
-                    <p className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>
-                      Baie {bay}
-                    </p>
+                  <div key={bay} className={`p-3 text-center border-r border-gray-200 last:border-r-0 ${colors.bg}`}>
+                    <p className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>Baie {bay}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
                       {count} réservation{count !== 1 ? "s" : ""}
                     </p>
@@ -147,89 +131,96 @@ export default function CalendarView({ bookings }: CalendarViewProps) {
               })}
             </div>
 
+            {/* Time grid */}
             <div className="relative overflow-y-auto max-h-[700px]">
-              <div
-                className="grid grid-cols-[60px_1fr_1fr_1fr_1fr]"
-                style={{ height: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}
-              >
-                <div className="relative border-r">
-                  {hours.map((h) => (
-                    <div
-                      key={h}
-                      className="absolute w-full text-right pr-2 -translate-y-1/2"
-                      style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT}px` }}
-                    >
-                      <span className="text-[11px] text-muted-foreground font-mono">
-                        {h === 24 ? "00" : String(h).padStart(2, "0")}:00
-                      </span>
-                    </div>
-                  ))}
+              <div className="relative" style={{ height: `${(END_HOUR - START_HOUR) * HOUR_HEIGHT}px` }}>
+                {/* Full-width hour lines */}
+                {hours.map((h) => (
+                  <div
+                    key={`line-${h}`}
+                    className="absolute left-0 right-0 border-t border-gray-200"
+                    style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT}px` }}
+                  />
+                ))}
+                {/* Half-hour lines (bay area only) */}
+                {hours.filter((h) => h < END_HOUR).map((h) => (
+                  <div
+                    key={`half-${h}`}
+                    className="absolute right-0 border-t border-gray-100"
+                    style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT + HOUR_HEIGHT / 2}px`, left: "60px" }}
+                  />
+                ))}
+
+                {/* Column grid overlay */}
+                <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr] absolute inset-0">
+                  {/* Time labels */}
+                  <div className="relative border-r border-gray-200">
+                    {hours.map((h) => (
+                      <div
+                        key={h}
+                        className="absolute w-full text-right pr-2 -translate-y-1/2"
+                        style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT}px` }}
+                      >
+                        <span className="text-[11px] text-muted-foreground font-mono bg-white px-0.5">
+                          {h === 24 ? "00" : String(h).padStart(2, "0")}:00
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Bay columns with bookings */}
+                  {BAYS.map((bay) => {
+                    const bayBookings = dayBookings.filter((b) => b.bayType === bay);
+                    const colors = BAY_COLORS[bay];
+                    return (
+                      <div key={bay} className="relative border-r border-gray-200 last:border-r-0">
+                        {bayBookings.map((booking) => {
+                          const startMin = parseTimeToMinutes(booking.time);
+                          const durMin = parseDurationToMinutes(booking.duration);
+                          const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT;
+                          const height = (durMin / 60) * HOUR_HEIGHT;
+                          const isShort = durMin <= 60;
+
+                          return (
+                            <div
+                              key={booking.id}
+                              className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-md transition-shadow cursor-default overflow-hidden`}
+                              style={{ top: `${top}px`, height: `${height}px` }}
+                              title={`${booking.name} — ${booking.time} (${booking.duration})`}
+                              data-testid={`booking-block-${booking.id}`}
+                            >
+                              <div className={`px-2 ${isShort ? "py-0.5" : "py-1.5"} h-full flex flex-col justify-center`}>
+                                <p className={`font-bold truncate ${colors.text} ${isShort ? "text-[11px]" : "text-xs"}`}>
+                                  {booking.name}
+                                </p>
+                                {!isShort && (
+                                  <>
+                                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                      {booking.time} — {booking.duration}
+                                    </p>
+                                    <div className="flex items-center gap-1 mt-0.5">
+                                      <Users className="w-3 h-3 text-muted-foreground" />
+                                      <span className="text-[10px] text-muted-foreground">
+                                        {booking.players} joueur{booking.players > 1 ? "s" : ""}
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
+                                {isShort && (
+                                  <p className="text-[9px] text-muted-foreground truncate">
+                                    {booking.time} · {booking.players}j
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {bays.map((bay) => {
-                  const bayBookings = dayBookings.filter((b) => b.bayType === bay);
-                  const colors = BAY_COLORS[bay];
-
-                  return (
-                    <div key={bay} className="relative border-r last:border-r-0">
-                      {hours.map((h) => (
-                        <div
-                          key={h}
-                          className="absolute w-full border-t border-gray-100"
-                          style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
-                        />
-                      ))}
-                      {hours.filter((h) => h < END_HOUR).map((h) => (
-                        <div
-                          key={`half-${h}`}
-                          className="absolute w-full border-t border-gray-50"
-                          style={{ top: `${(h - START_HOUR) * HOUR_HEIGHT + HOUR_HEIGHT / 2}px` }}
-                        />
-                      ))}
-
-                      {bayBookings.map((booking) => {
-                        const style = getBookingStyle(booking);
-                        const durationMin = parseDurationToMinutes(booking.duration);
-                        const isShort = durationMin <= 60;
-
-                        return (
-                          <div
-                            key={booking.id}
-                            className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-md transition-shadow cursor-default overflow-hidden group`}
-                            style={style}
-                            title={`${booking.name} — ${booking.time} (${booking.duration})`}
-                            data-testid={`booking-block-${booking.id}`}
-                          >
-                            <div className={`px-2 ${isShort ? "py-0.5" : "py-1.5"} h-full flex flex-col justify-center`}>
-                              <p className={`font-bold truncate ${colors.text} ${isShort ? "text-[11px]" : "text-xs"}`}>
-                                {booking.name}
-                              </p>
-                              {!isShort && (
-                                <>
-                                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                    {booking.time} — {booking.duration}
-                                  </p>
-                                  <div className="flex items-center gap-1 mt-0.5">
-                                    <Users className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-[10px] text-muted-foreground">
-                                      {booking.players} joueur{booking.players > 1 ? "s" : ""}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                              {isShort && (
-                                <p className="text-[9px] text-muted-foreground truncate">
-                                  {booking.time} · {booking.players}j
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-
+                {/* Current time indicator */}
                 {currentTimeOffset !== null && (
                   <div
                     className="absolute left-0 right-0 z-20 pointer-events-none"
