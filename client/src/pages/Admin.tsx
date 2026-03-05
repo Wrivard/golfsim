@@ -574,9 +574,6 @@ export default function Admin() {
           <CalendarView
             bookings={allBookings}
             onDeleteBooking={(id) => deleteMutation.mutate(id)}
-            onEditBooking={(booking) => {
-              window.open(`https://calendar.google.com/calendar/r/eventedit/${booking.calendarEventId || ''}`, '_blank');
-            }}
             isDeleting={deleteMutation.isPending}
           />
         )}

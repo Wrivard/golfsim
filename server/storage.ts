@@ -16,6 +16,7 @@ export interface IStorage {
   updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void>;
   getBookingByCalendarEventId(calendarEventId: string): Promise<Booking | undefined>;
   updateBookingByCalendarEventId(calendarEventId: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
+  updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
   deleteBooking(id: string): Promise<void>;
   createBookingWithConflictCheck(
     booking: InsertBooking,
@@ -84,6 +85,11 @@ export class DatabaseStorage implements IStorage {
 
   async updateBookingByCalendarEventId(calendarEventId: string, updates: Partial<InsertBooking>): Promise<Booking | undefined> {
     const [updated] = await db.update(bookings).set(updates).where(eq(bookings.calendarEventId, calendarEventId)).returning();
+    return updated;
+  }
+
+  async updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking | undefined> {
+    const [updated] = await db.update(bookings).set(updates).where(eq(bookings.id, id)).returning();
     return updated;
   }
 

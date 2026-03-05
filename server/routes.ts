@@ -271,6 +271,58 @@ export async function registerRoutes(
     }
   });
 
+  app.put("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const existing = await storage.getBooking(id);
+      if (!existing) {
+        return res.status(404).json({ ok: false, message: "Réservation non trouvée" });
+      }
+
+      const { name, email, phone, time, duration, bayType, players, notes } = req.body;
+      const updates: Record<string, any> = {};
+
+      if (name !== undefined) {
+        const sanitized = sanitizeString(name);
+        if (!sanitized) return res.status(400).json({ ok: false, message: "Nom requis" });
+        updates.name = sanitized;
+      }
+      if (email !== undefined) {
+        updates.email = email ? sanitizeEmail(email) : "";
+      }
+      if (phone !== undefined) {
+        updates.phone = phone ? sanitizePhone(phone) : null;
+      }
+      if (time !== undefined) {
+        const t = String(time).slice(0, 5);
+        if (!/^\d{2}:\d{2}$/.test(t)) return res.status(400).json({ ok: false, message: "Format d'heure invalide" });
+        updates.time = t;
+      }
+      if (duration !== undefined) {
+        if (!["1h", "2h", "3h", "4h"].includes(duration)) return res.status(400).json({ ok: false, message: "Durée invalide" });
+        updates.duration = duration;
+      }
+      if (bayType !== undefined) {
+        if (!["1", "2", "3", "4"].includes(String(bayType))) return res.status(400).json({ ok: false, message: "Baie invalide" });
+        updates.bayType = String(bayType);
+      }
+      if (players !== undefined) {
+        const p = Number(players);
+        if (isNaN(p) || p < 1 || p > 4) return res.status(400).json({ ok: false, message: "Nombre de joueurs invalide" });
+        updates.players = p;
+      }
+      if (notes !== undefined) {
+        updates.notes = notes ? sanitizeString(notes) : null;
+      }
+
+      const updated = await storage.updateBooking(id, updates);
+      return res.json({ ok: true, booking: updated });
+    } catch (error: any) {
+      console.error("Error updating booking:", error);
+      return res.status(500).json({ ok: false, message: error.message || "Erreur lors de la modification" });
+    }
+  });
+
   app.delete("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;

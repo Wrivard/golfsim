@@ -48,6 +48,7 @@ Preferred communication style: Simple, everyday language.
 **API Design**
 - RESTful API endpoints under `/api/*` namespace
 - POST `/api/book` - booking creation with conflict checking and Google Calendar integration
+- PUT `/api/admin/bookings/:id` - protected inline booking edit (name, email, phone, time, duration, bay, players, notes)
 - POST `/api/auth/login` - admin authentication with bcrypt password verification
 - POST `/api/auth/logout` - session destruction and logout
 - GET `/api/auth/session` - check current authentication status

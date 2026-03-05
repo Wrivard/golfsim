@@ -1,9 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink, Check, Loader2 } from "lucide-react";
 import { format, addDays, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface Booking {
   id: string;
@@ -23,7 +27,6 @@ interface Booking {
 interface CalendarViewProps {
   bookings: Booking[];
   onDeleteBooking?: (id: string) => void;
-  onEditBooking?: (booking: Booking) => void;
   isDeleting?: boolean;
 }
 
@@ -57,7 +60,7 @@ const END_HOUR = 25;
 const BAYS = ["1", "2", "3", "4"];
 const TIME_COL_WIDTH = 56;
 
-export default function CalendarView({ bookings, onDeleteBooking, onEditBooking, isDeleting }: CalendarViewProps) {
+export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
@@ -233,7 +236,6 @@ export default function CalendarView({ bookings, onDeleteBooking, onEditBooking,
           booking={selectedBooking}
           onClose={closeModal}
           onDelete={onDeleteBooking}
-          onEdit={onEditBooking}
           isDeleting={isDeleting}
         />
       )}
@@ -241,15 +243,62 @@ export default function CalendarView({ bookings, onDeleteBooking, onEditBooking,
   );
 }
 
-function BookingModal({ booking, onClose, onDelete, onEdit, isDeleting }: {
+async function updateBookingApi(id: string, updates: Record<string, any>) {
+  const response = await fetch(`/api/admin/bookings/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
+  const data = await response.json();
+  if (!response.ok || !data.ok) throw new Error(data.message || "Erreur");
+  return data.booking;
+}
+
+function BookingModal({ booking, onClose, onDelete, isDeleting }: {
   booking: Booking;
   onClose: () => void;
   onDelete?: (id: string) => void;
-  onEdit?: (booking: Booking) => void;
   isDeleting?: boolean;
 }) {
-  const colors = BAY_COLORS[booking.bayType] || BAY_COLORS["1"];
-  const price = getPriceForBooking(booking.duration || "1h");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const [editName, setEditName] = useState(booking.name);
+  const [editEmail, setEditEmail] = useState(booking.email || "");
+  const [editPhone, setEditPhone] = useState(booking.phone || "");
+  const [editTime, setEditTime] = useState(booking.time || "");
+  const [editDuration, setEditDuration] = useState(booking.duration || "1h");
+  const [editBay, setEditBay] = useState(booking.bayType || "1");
+  const [editPlayers, setEditPlayers] = useState(String(booking.players || 1));
+  const [editNotes, setEditNotes] = useState(booking.notes || "");
+
+  const saveMutation = useMutation({
+    mutationFn: () => updateBookingApi(booking.id, {
+      name: editName,
+      email: editEmail,
+      phone: editPhone,
+      time: editTime,
+      duration: editDuration,
+      bayType: editBay,
+      players: Number(editPlayers),
+      notes: editNotes,
+    }),
+    onSuccess: () => {
+      toast({ title: "Réservation modifiée" });
+      queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+      setIsEditing(false);
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const colors = BAY_COLORS[isEditing ? editBay : booking.bayType] || BAY_COLORS["1"];
+  const displayDuration = isEditing ? editDuration : (booking.duration || "1h");
+  const price = getPriceForBooking(displayDuration);
   const dateStr = typeof booking.date === "string" ? booking.date.split("T")[0] : "";
   let formattedDate = dateStr;
   try {
@@ -258,17 +307,15 @@ function BookingModal({ booking, onClose, onDelete, onEdit, isDeleting }: {
       formattedDate = format(new Date(y, mo - 1, d), "EEEE d MMMM yyyy", { locale: fr });
     }
   } catch { /* keep raw string */ }
-  const durMin = parseDurationToMinutes(booking.duration || "1h");
-  const timeParts = (booking.time || "00:00").split(":").map(Number);
+  const durMin = parseDurationToMinutes(displayDuration);
+  const displayTime = isEditing ? editTime : (booking.time || "00:00");
+  const timeParts = displayTime.split(":").map(Number);
   const startH = timeParts[0] || 0;
   const startM = timeParts[1] || 0;
   const endTotalMin = startH * 60 + startM + durMin;
   const endH = Math.floor(endTotalMin / 60);
   const endM = endTotalMin % 60;
   const endTime = `${(endH >= 24 ? endH - 24 : endH).toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
-  const hours = parseFloat(booking.duration?.replace("h", "") || "1");
-
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose} data-testid="modal-booking-overlay">
@@ -282,12 +329,21 @@ function BookingModal({ booking, onClose, onDelete, onEdit, isDeleting }: {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-white/80 ${colors.text} font-bold text-base border-2 ${colors.border} shadow-sm`}>
-                B{booking.bayType}
+                B{isEditing ? editBay : booking.bayType}
               </div>
               <div>
-                <h3 className={`font-heading font-bold text-xl uppercase tracking-wide ${colors.text}`} data-testid="text-modal-name">
-                  {booking.name}
-                </h3>
+                {isEditing ? (
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="font-heading font-bold text-lg uppercase tracking-wide h-8 bg-white/80 border-0 focus-visible:ring-1"
+                    data-testid="input-edit-name"
+                  />
+                ) : (
+                  <h3 className={`font-heading font-bold text-xl uppercase tracking-wide ${colors.text}`} data-testid="text-modal-name">
+                    {booking.name}
+                  </h3>
+                )}
                 <p className="text-sm text-muted-foreground capitalize mt-0.5">{formattedDate}</p>
               </div>
             </div>
@@ -298,111 +354,193 @@ function BookingModal({ booking, onClose, onDelete, onEdit, isDeleting }: {
         </div>
 
         <div className="px-6 py-6 space-y-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <Clock className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
-              <p className="font-bold text-base" data-testid="text-modal-time">{booking.time}</p>
-              <p className="text-xs text-muted-foreground mt-1">à {endTime}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <Users className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
-              <p className="font-bold text-base" data-testid="text-modal-players">{booking.players}</p>
-              <p className="text-xs text-muted-foreground mt-1">joueur{booking.players > 1 ? "s" : ""}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <MapPin className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
-              <p className={`font-bold text-base ${colors.text}`} data-testid="text-modal-bay">Baie {booking.bayType}</p>
-              <p className="text-xs text-muted-foreground mt-1">{booking.duration}</p>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Montant estimé</span>
-            <span className="font-bold text-lg">{price} $</span>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Coordonnées</p>
-            {booking.email && (
-              <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
-                <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <a href={`mailto:${booking.email}`} className="text-sm text-blue-600 hover:underline truncate" data-testid="text-modal-email">{booking.email}</a>
+          {isEditing ? (
+            <>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Heure</label>
+                  <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-time" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Durée</label>
+                  <Select value={editDuration} onValueChange={setEditDuration}>
+                    <SelectTrigger data-testid="select-edit-duration"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1h">1h</SelectItem>
+                      <SelectItem value="2h">2h</SelectItem>
+                      <SelectItem value="3h">3h</SelectItem>
+                      <SelectItem value="4h">4h</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Baie</label>
+                  <Select value={editBay} onValueChange={setEditBay}>
+                    <SelectTrigger data-testid="select-edit-bay"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Baie 1</SelectItem>
+                      <SelectItem value="2">Baie 2</SelectItem>
+                      <SelectItem value="3">Baie 3</SelectItem>
+                      <SelectItem value="4">Baie 4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
-            {booking.phone && (
-              <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
-                <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <a href={`tel:${booking.phone}`} className="text-sm text-blue-600 hover:underline" data-testid="text-modal-phone">{booking.phone}</a>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Joueurs</label>
+                  <Select value={editPlayers} onValueChange={setEditPlayers}>
+                    <SelectTrigger data-testid="select-edit-players"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Montant</label>
+                  <div className="h-9 flex items-center px-3 bg-gray-50 rounded-md border text-sm font-bold">{price} $</div>
+                </div>
               </div>
-            )}
-            {!booking.email && !booking.phone && (
-              <p className="text-sm text-muted-foreground italic">Aucune coordonnée disponible</p>
-            )}
-          </div>
 
-          {booking.calendarEventId && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Synchronisé avec Google Calendar</span>
-            </div>
-          )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Courriel</label>
+                <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" data-testid="input-edit-email" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Téléphone</label>
+                <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} data-testid="input-edit-phone" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Notes</label>
+                <Input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} data-testid="input-edit-notes" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <Clock className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="font-bold text-base" data-testid="text-modal-time">{booking.time}</p>
+                  <p className="text-xs text-muted-foreground mt-1">à {endTime}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <Users className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="font-bold text-base" data-testid="text-modal-players">{booking.players}</p>
+                  <p className="text-xs text-muted-foreground mt-1">joueur{booking.players > 1 ? "s" : ""}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <MapPin className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+                  <p className={`font-bold text-base ${colors.text}`} data-testid="text-modal-bay">Baie {booking.bayType}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{booking.duration}</p>
+                </div>
+              </div>
 
-          {booking.notes && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-2">Notes</p>
-              <p className="text-sm text-amber-900" data-testid="text-modal-notes">{booking.notes}</p>
-            </div>
+              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Montant estimé</span>
+                <span className="font-bold text-lg">{price} $</span>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Coordonnées</p>
+                {booking.email && (
+                  <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
+                    <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <a href={`mailto:${booking.email}`} className="text-sm text-blue-600 hover:underline truncate" data-testid="text-modal-email">{booking.email}</a>
+                  </div>
+                )}
+                {booking.phone && (
+                  <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
+                    <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <a href={`tel:${booking.phone}`} className="text-sm text-blue-600 hover:underline" data-testid="text-modal-phone">{booking.phone}</a>
+                  </div>
+                )}
+                {!booking.email && !booking.phone && (
+                  <p className="text-sm text-muted-foreground italic">Aucune coordonnée disponible</p>
+                )}
+              </div>
+
+              {booking.calendarEventId && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Synchronisé avec Google Calendar</span>
+                </div>
+              )}
+
+              {booking.notes && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-2">Notes</p>
+                  <p className="text-sm text-amber-900" data-testid="text-modal-notes">{booking.notes}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-            onClick={onClose}
-          >
-            Fermer
-          </Button>
-          <div className="flex items-center gap-3">
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="default"
-                className="gap-2"
-                onClick={() => { onEdit(booking); onClose(); }}
-                data-testid="button-edit-booking"
-              >
-                <Pencil className="w-4 h-4" />
-                Modifier
+          {isEditing ? (
+            <>
+              <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setIsEditing(false)}>
+                Annuler
               </Button>
-            )}
-            {onDelete && !confirmDelete && (
               <Button
-                variant="outline"
                 size="default"
-                className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                onClick={() => setConfirmDelete(true)}
-                data-testid="button-delete-booking"
+                className="gap-2 bg-[#2B5734] hover:bg-[#1e3d24]"
+                disabled={saveMutation.isPending || !editName.trim()}
+                onClick={() => saveMutation.mutate()}
+                data-testid="button-save-booking"
               >
-                <Trash2 className="w-4 h-4" />
-                Supprimer
+                {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                {saveMutation.isPending ? "Enregistrement..." : "Enregistrer"}
               </Button>
-            )}
-            {onDelete && confirmDelete && (
-              <Button
-                variant="destructive"
-                size="default"
-                className="gap-2"
-                disabled={isDeleting}
-                onClick={() => { onDelete(booking.id); onClose(); }}
-                data-testid="button-confirm-delete-booking"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? "Suppression..." : "Confirmer la suppression"}
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onClose}>
+                Fermer
               </Button>
-            )}
-          </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="gap-2"
+                  onClick={() => setIsEditing(true)}
+                  data-testid="button-edit-booking"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Modifier
+                </Button>
+                {onDelete && !confirmDelete && (
+                  <Button
+                    variant="outline"
+                    size="default"
+                    className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => setConfirmDelete(true)}
+                    data-testid="button-delete-booking"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Supprimer
+                  </Button>
+                )}
+                {onDelete && confirmDelete && (
+                  <Button
+                    variant="destructive"
+                    size="default"
+                    className="gap-2"
+                    disabled={isDeleting}
+                    onClick={() => { onDelete(booking.id); onClose(); }}
+                    data-testid="button-confirm-delete-booking"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {isDeleting ? "Suppression..." : "Confirmer"}
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
