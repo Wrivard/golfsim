@@ -574,6 +574,9 @@ export default function Admin() {
           <CalendarView
             bookings={allBookings}
             onDeleteBooking={(id) => deleteMutation.mutate(id)}
+            onEditBooking={(booking) => {
+              window.open(`https://calendar.google.com/calendar/r/eventedit/${booking.calendarEventId || ''}`, '_blank');
+            }}
             isDeleting={deleteMutation.isPending}
           />
         )}
@@ -758,7 +761,6 @@ export default function Admin() {
         </Card>
         )}
 
-        {viewMode === "list" && (
         <Card className="shadow-lg border-none" data-testid="card-calendar-template">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
@@ -799,7 +801,6 @@ export default function Admin() {
             </div>
           </CardContent>
         </Card>
-        )}
 
         <div className="border border-foreground/10 rounded-lg overflow-hidden">
           <button

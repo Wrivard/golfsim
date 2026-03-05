@@ -266,120 +266,143 @@ function BookingModal({ booking, onClose, onDelete, onEdit, isDeleting }: {
   const endH = Math.floor(endTotalMin / 60);
   const endM = endTotalMin % 60;
   const endTime = `${(endH >= 24 ? endH - 24 : endH).toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
+  const hours = parseFloat(booking.duration?.replace("h", "") || "1");
 
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose} data-testid="modal-booking-overlay">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
         data-testid="modal-booking-detail"
       >
-        <div className={`${colors.headerBg} px-5 py-4 flex items-center justify-between`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colors.bg} ${colors.text} font-bold text-sm border-2 ${colors.border}`}>
-              B{booking.bayType}
+        <div className={`${colors.headerBg} px-6 py-5`}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-white/80 ${colors.text} font-bold text-base border-2 ${colors.border} shadow-sm`}>
+                B{booking.bayType}
+              </div>
+              <div>
+                <h3 className={`font-heading font-bold text-xl uppercase tracking-wide ${colors.text}`} data-testid="text-modal-name">
+                  {booking.name}
+                </h3>
+                <p className="text-sm text-muted-foreground capitalize mt-0.5">{formattedDate}</p>
+              </div>
             </div>
-            <div>
-              <h3 className={`font-heading font-bold text-lg uppercase tracking-wide ${colors.text}`} data-testid="text-modal-name">
-                {booking.name}
-              </h3>
-              <p className="text-xs text-muted-foreground capitalize">{formattedDate}</p>
-            </div>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 transition-colors -mt-1 -mr-1" data-testid="button-close-modal">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-black/10 transition-colors" data-testid="button-close-modal">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
         </div>
 
-        <div className="px-5 py-4 space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <Clock className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-              <p className="font-bold text-sm" data-testid="text-modal-time">{booking.time} — {endTime}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{booking.duration}</p>
+        <div className="px-6 py-6 space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <Clock className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+              <p className="font-bold text-base" data-testid="text-modal-time">{booking.time}</p>
+              <p className="text-xs text-muted-foreground mt-1">à {endTime}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <Users className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-              <p className="font-bold text-sm" data-testid="text-modal-players">{booking.players}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">joueur{booking.players > 1 ? "s" : ""}</p>
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <Users className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+              <p className="font-bold text-base" data-testid="text-modal-players">{booking.players}</p>
+              <p className="text-xs text-muted-foreground mt-1">joueur{booking.players > 1 ? "s" : ""}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <MapPin className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-              <p className={`font-bold text-sm ${colors.text}`} data-testid="text-modal-bay">Baie {booking.bayType}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{price} $</p>
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <MapPin className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
+              <p className={`font-bold text-base ${colors.text}`} data-testid="text-modal-bay">Baie {booking.bayType}</p>
+              <p className="text-xs text-muted-foreground mt-1">{booking.duration}</p>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Montant estimé</span>
+            <span className="font-bold text-lg">{price} $</span>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Coordonnées</p>
             {booking.email && (
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
                 <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <a href={`mailto:${booking.email}`} className="text-blue-600 hover:underline truncate" data-testid="text-modal-email">{booking.email}</a>
+                <a href={`mailto:${booking.email}`} className="text-sm text-blue-600 hover:underline truncate" data-testid="text-modal-email">{booking.email}</a>
               </div>
             )}
             {booking.phone && (
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
                 <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <a href={`tel:${booking.phone}`} className="text-blue-600 hover:underline" data-testid="text-modal-phone">{booking.phone}</a>
+                <a href={`tel:${booking.phone}`} className="text-sm text-blue-600 hover:underline" data-testid="text-modal-phone">{booking.phone}</a>
               </div>
             )}
-            {booking.calendarEventId && (
-              <div className="flex items-center gap-3 text-sm">
-                <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-muted-foreground text-xs truncate">Google Calendar lié</span>
-              </div>
+            {!booking.email && !booking.phone && (
+              <p className="text-sm text-muted-foreground italic">Aucune coordonnée disponible</p>
             )}
           </div>
 
+          {booking.calendarEventId && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Synchronisé avec Google Calendar</span>
+            </div>
+          )}
+
           {booking.notes && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground font-medium mb-1">Notes</p>
-              <p className="text-sm" data-testid="text-modal-notes">{booking.notes}</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-2">Notes</p>
+              <p className="text-sm text-amber-900" data-testid="text-modal-notes">{booking.notes}</p>
             </div>
           )}
         </div>
 
-        <div className="px-5 py-3 bg-gray-50 border-t flex items-center gap-2 justify-end">
-          {onEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => { onEdit(booking); onClose(); }}
-              data-testid="button-edit-booking"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Modifier
-            </Button>
-          )}
-          {onDelete && !confirmDelete && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-              onClick={() => setConfirmDelete(true)}
-              data-testid="button-delete-booking"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              Supprimer
-            </Button>
-          )}
-          {onDelete && confirmDelete && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-1.5"
-              disabled={isDeleting}
-              onClick={() => { onDelete(booking.id); onClose(); }}
-              data-testid="button-confirm-delete-booking"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              {isDeleting ? "Suppression..." : "Confirmer"}
-            </Button>
-          )}
+        <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={onClose}
+          >
+            Fermer
+          </Button>
+          <div className="flex items-center gap-3">
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="default"
+                className="gap-2"
+                onClick={() => { onEdit(booking); onClose(); }}
+                data-testid="button-edit-booking"
+              >
+                <Pencil className="w-4 h-4" />
+                Modifier
+              </Button>
+            )}
+            {onDelete && !confirmDelete && (
+              <Button
+                variant="outline"
+                size="default"
+                className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                onClick={() => setConfirmDelete(true)}
+                data-testid="button-delete-booking"
+              >
+                <Trash2 className="w-4 h-4" />
+                Supprimer
+              </Button>
+            )}
+            {onDelete && confirmDelete && (
+              <Button
+                variant="destructive"
+                size="default"
+                className="gap-2"
+                disabled={isDeleting}
+                onClick={() => { onDelete(booking.id); onClose(); }}
+                data-testid="button-confirm-delete-booking"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? "Suppression..." : "Confirmer la suppression"}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
