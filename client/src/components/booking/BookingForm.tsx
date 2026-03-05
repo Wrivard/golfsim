@@ -558,7 +558,7 @@ export default function BookingForm() {
                       <FormItem>
                         <FormLabel className="uppercase font-bold text-xs tracking-wider text-foreground/80">Téléphone</FormLabel>
                         <FormControl>
-                          <Input placeholder="(450) 123-4567" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="input-phone" />
+                          <Input placeholder="(450) 561-3815" {...field} className="bg-background/80 border-foreground/20 focus:border-primary h-12" data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

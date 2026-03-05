@@ -104,7 +104,7 @@ export function StepDetails() {
             <Input 
               id="phone" 
               type="tel" 
-              placeholder="(450) 555-1234" 
+              placeholder="(450) 561-3815" 
               className="pl-9 bg-background/80 border-foreground/20 h-11" 
               {...form.register("phone")} 
               data-testid="input-phone"

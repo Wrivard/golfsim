@@ -56,7 +56,7 @@ export default function Contact() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="uppercase font-bold text-xs tracking-wider">Téléphone</Label>
-                  <Input id="phone" placeholder="(450) 123-4567" {...register("phone")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
+                  <Input id="phone" placeholder="(450) 561-3815" {...register("phone")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
               </div>
               
@@ -109,7 +109,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Adresse</h4>
-                    <p className="text-muted-foreground font-sans text-sm">123 Rue du Golf<br/>Sorel-Tracy, QC J3P 1A1</p>
+                    <p className="text-muted-foreground font-sans text-sm">215 Bd Fiset<br/>Sorel-Tracy, QC J3P 3P3</p>
                   </div>
                 </div>
 
@@ -119,7 +119,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Téléphone</h4>
-                    <p className="text-muted-foreground font-sans text-sm">(450) 123-4567</p>
+                    <p className="text-muted-foreground font-sans text-sm">(450) 561-3815</p>
                   </div>
                 </div>
 
@@ -162,7 +162,7 @@ export default function Contact() {
                  style={{border:0}} 
                  loading="lazy"
                  className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
-                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d44567.54741301245!2d-73.15000000000001!3d46.0333333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc8600000000001%3A0x0!2sSorel-Tracy%2C%20QC!5e0!3m2!1sen!2sca!4v1620000000000!5m2!1sen!2sca"
+                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2784.5!2d-73.1212!3d46.0471!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc8139a36e6d9ed%3A0x0!2s215+Bd+Fiset%2C+Sorel-Tracy%2C+QC+J3P+3P3!5e0!3m2!1sfr!2sca!4v1620000000000!5m2!1sfr!2sca"
                ></iframe>
             </div>
           </div>

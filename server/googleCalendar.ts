@@ -453,7 +453,17 @@ function parseCalendarEvent(event: any): {
     
     let bayType = '1';
     const summary = event.summary || '';
-    const description = event.description || '';
+    const rawDescription = event.description || '';
+    const description = rawDescription
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/?(pre|p|div|span|b|i|strong|em|ul|li|ol|a|h[1-6])[^>]*>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
     
     const bayMatch = summary.match(/Baie\s*(\d)/i) || description.match(/Baie\s*(\d)/i);
     if (bayMatch && ['1', '2', '3', '4'].includes(bayMatch[1])) {

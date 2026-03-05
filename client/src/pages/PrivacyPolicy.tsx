@@ -124,9 +124,9 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-background/50 p-6 rounded-lg border border-foreground/10">
               <p className="font-bold text-foreground">Golf SIM Sorel-Tracy</p>
-              <p>123 Rue du Golf, Sorel-Tracy, QC J3P 1A1</p>
+              <p>215 Bd Fiset, Sorel-Tracy, QC J3P 3P3</p>
               <p>Courriel : <a href="mailto:info@golfsimst.com" className="text-primary hover:underline">info@golfsimst.com</a></p>
-              <p>Téléphone : <a href="tel:+14501234567" className="text-primary hover:underline">(450) 123-4567</a></p>
+              <p>Téléphone : <a href="tel:+14505613815" className="text-primary hover:underline">(450) 561-3815</a></p>
             </div>
           </section>
         </div>

@@ -41,13 +41,13 @@ export default function Footer() {
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <MapPin className="w-4 h-4 shrink-0" />
                 </div>
-                <span className="font-sans text-sm leading-relaxed mt-1">123 Rue du Golf,<br />Sorel-Tracy, QC J3P 1A1</span>
+                <span className="font-sans text-sm leading-relaxed mt-1">215 Bd Fiset,<br />Sorel-Tracy, QC J3P 3P3</span>
               </li>
               <li className="flex items-center gap-4 text-white/60 group">
                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Phone className="w-4 h-4 shrink-0" />
                 </div>
-                <a href="tel:+14501234567" className="hover:text-white transition-colors font-sans text-sm font-bold tracking-wide">(450) 123-4567</a>
+                <a href="tel:+14505613815" className="hover:text-white transition-colors font-sans text-sm font-bold tracking-wide">(450) 561-3815</a>
               </li>
               <li className="flex items-center gap-4 text-white/60 group">
                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
