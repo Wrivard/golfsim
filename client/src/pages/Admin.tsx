@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock, Archive } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -143,7 +143,8 @@ export default function Admin() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBay, setFilterBay] = useState("all");
-  const [filterPeriod, setFilterPeriod] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("upcoming");
+  const [showArchived, setShowArchived] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [showAdminSection, setShowAdminSection] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Record<number, { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }>>({});
@@ -388,7 +389,7 @@ export default function Admin() {
   
   const filteredBookings = useMemo(() => {
     const now = new Date();
-    return allBookings.filter((booking: any) => {
+    const filtered = allBookings.filter((booking: any) => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesName = booking.name?.toLowerCase().includes(query);
@@ -406,10 +407,23 @@ export default function Admin() {
         if (filterPeriod === "upcoming" && !isAfter(bookingDateTime, now)) return false;
         if (filterPeriod === "past" && isAfter(bookingDateTime, now)) return false;
       }
+
+      if (!showArchived && filterPeriod !== "past") {
+        const bookingDateTime = getBookingDateTime(booking);
+        if (!isAfter(bookingDateTime, now)) return false;
+      }
       
       return true;
     });
-  }, [allBookings, searchQuery, filterBay, filterPeriod]);
+
+    filtered.sort((a: any, b: any) => {
+      const dateA = getBookingDateTime(a);
+      const dateB = getBookingDateTime(b);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return filtered;
+  }, [allBookings, searchQuery, filterBay, filterPeriod, showArchived]);
 
   if (sessionQuery.isLoading) {
     return (
@@ -548,7 +562,7 @@ export default function Admin() {
                     data-testid="input-search"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Select value={filterBay} onValueChange={setFilterBay}>
                     <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-bay">
                       <SelectValue placeholder="Baie" />
@@ -561,22 +575,29 @@ export default function Admin() {
                       <SelectItem value="4">Baie 4</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-                    <SelectTrigger className="w-[130px] h-10" data-testid="select-filter-period">
-                      <SelectValue placeholder="Période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes</SelectItem>
-                      <SelectItem value="upcoming">À venir</SelectItem>
-                      <SelectItem value="past">Passées</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="flex items-center gap-2 cursor-pointer px-3 h-10 rounded-md border border-input bg-background hover:bg-accent transition-colors select-none" data-testid="checkbox-show-archived">
+                    <input
+                      type="checkbox"
+                      checked={showArchived}
+                      onChange={(e) => {
+                        setShowArchived(e.target.checked);
+                        if (e.target.checked) {
+                          setFilterPeriod("all");
+                        } else {
+                          setFilterPeriod("upcoming");
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-[#2B5734] focus:ring-[#2B5734] accent-[#2B5734]"
+                    />
+                    <Archive className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Archives</span>
+                  </label>
                 </div>
               </div>
-              {(searchQuery || filterBay !== "all" || filterPeriod !== "all") && (
+              {(searchQuery || filterBay !== "all" || showArchived) && (
                 <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                   <Filter className="w-4 h-4" />
-                  <span>{filteredBookings.length} résultat(s) sur {allBookings.length}</span>
+                  <span>{filteredBookings.length} résultat(s){showArchived ? ` sur ${allBookings.length}` : ''}</span>
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -584,7 +605,8 @@ export default function Admin() {
                     onClick={() => {
                       setSearchQuery("");
                       setFilterBay("all");
-                      setFilterPeriod("all");
+                      setFilterPeriod("upcoming");
+                      setShowArchived(false);
                     }}
                   >
                     Effacer les filtres
@@ -602,11 +624,16 @@ export default function Admin() {
               </div>
             ) : (
               <div className="divide-y max-h-[600px] overflow-y-auto">
-                {filteredBookings.map((booking: any) => (
-                  <div key={booking.id} className="p-3 md:p-4 hover:bg-gray-50">
+                {filteredBookings.map((booking: any) => {
+                  const isPast = !isAfter(getBookingDateTime(booking), new Date());
+                  return (
+                  <div key={booking.id} className={`p-3 md:p-4 hover:bg-gray-50 ${isPast ? 'opacity-60 bg-gray-50/50' : ''}`}>
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-bold text-foreground truncate">{booking.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-foreground truncate">{booking.name}</p>
+                          {isPast && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 shrink-0">Passée</span>}
+                        </div>
                         <p className="text-xs sm:text-sm text-muted-foreground truncate">{booking.email}</p>
                         {booking.phone && (
                           <p className="text-xs sm:text-sm text-muted-foreground">{booking.phone}</p>
@@ -683,7 +710,8 @@ export default function Admin() {
                       <p className="mt-2 text-xs text-muted-foreground italic">Note: {booking.notes}</p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
