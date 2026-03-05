@@ -571,7 +571,11 @@ export default function Admin() {
         </div>
 
         {viewMode === "calendar" && (
-          <CalendarView bookings={allBookings} />
+          <CalendarView
+            bookings={allBookings}
+            onDeleteBooking={(id) => deleteMutation.mutate(id)}
+            isDeleting={deleteMutation.isPending}
+          />
         )}
 
         {viewMode === "list" && (
