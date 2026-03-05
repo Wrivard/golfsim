@@ -252,7 +252,7 @@ export default function Admin() {
     onSuccess: (data) => {
       toast({ 
         title: "Synchronisation terminée", 
-        description: `${data.imported} importée(s), ${data.skipped} ignorée(s)${data.errors > 0 ? `, ${data.errors} erreur(s)` : ''}` 
+        description: `${data.imported} importée(s), ${data.updated || 0} mise(s) à jour, ${data.deleted || 0} supprimée(s), ${data.skipped} ignorée(s)${data.errors > 0 ? `, ${data.errors} erreur(s)` : ''}` 
       });
       queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
     },

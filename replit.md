@@ -215,7 +215,7 @@ Preferred communication style: Simple, everyday language.
 
 **Bidirectional Google Calendar Sync**
 - Website → Calendar: Bookings created on website are pushed to Google Calendar (existing)
-- Calendar → Website: Events in Google Calendar with "Golf SIM" in summary are pulled into database
+- Calendar → Website: Events in Google Calendar with "Golf SIM" in summary are pulled into database (supports create, update, and delete)
 - Real-time sync via Google Calendar push notifications (webhook at `/api/calendar/webhook`)
 - Watch channel auto-renews before 7-day expiration
 - Fallback polling every 5 minutes if push notifications unavailable

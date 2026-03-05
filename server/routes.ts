@@ -1111,8 +1111,13 @@ export async function registerRoutes(
 
     try {
       const result = await syncCalendarToDatabase();
-      if (result.imported > 0) {
-        console.log(`[Calendar Watch] Webhook sync: imported ${result.imported} booking(s)`);
+      const changes = [
+        result.imported > 0 && `imported ${result.imported}`,
+        result.updated > 0 && `updated ${result.updated}`,
+        result.deleted > 0 && `deleted ${result.deleted}`,
+      ].filter(Boolean);
+      if (changes.length > 0) {
+        console.log(`[Calendar Watch] Webhook sync: ${changes.join(', ')} booking(s)`);
       }
     } catch (error) {
     }
@@ -1123,8 +1128,13 @@ export async function registerRoutes(
   async function runBackgroundSync() {
     try {
       const result = await syncCalendarToDatabase();
-      if (result.imported > 0) {
-        console.log(`[Calendar Sync] Imported ${result.imported} booking(s) from Google Calendar`);
+      const changes = [
+        result.imported > 0 && `imported ${result.imported}`,
+        result.updated > 0 && `updated ${result.updated}`,
+        result.deleted > 0 && `deleted ${result.deleted}`,
+      ].filter(Boolean);
+      if (changes.length > 0) {
+        console.log(`[Calendar Sync] ${changes.join(', ')} booking(s) from Google Calendar`);
       }
     } catch (error) {
     }

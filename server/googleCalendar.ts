@@ -310,6 +310,8 @@ export async function deleteCalendarEvent(eventId: string) {
 
 export interface CalendarSyncResult {
   imported: number;
+  updated: number;
+  deleted: number;
   skipped: number;
   errors: number;
 }
@@ -325,7 +327,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
   const timeMax = new Date(now);
   timeMax.setMonth(timeMax.getMonth() + 3);
   
-  const result: CalendarSyncResult = { imported: 0, skipped: 0, errors: 0 };
+  const result: CalendarSyncResult = { imported: 0, updated: 0, deleted: 0, skipped: 0, errors: 0 };
   
   try {
     const response = await calendar.events.list({
@@ -335,21 +337,46 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
       singleEvents: true,
       orderBy: 'startTime',
       maxResults: 500,
+      showDeleted: true,
     });
     
     const events = response.data.items || [];
     const existingBookings = await storage.getAllBookings();
-    const existingCalendarEventIds = new Set(
-      existingBookings.filter(b => b.calendarEventId).map(b => b.calendarEventId)
-    );
+    const calendarBookingsMap = new Map<string, typeof existingBookings[0]>();
+    for (const b of existingBookings) {
+      if (b.calendarEventId) {
+        calendarBookingsMap.set(b.calendarEventId, b);
+      }
+    }
+
+    const seenCalendarEventIds = new Set<string>();
     
     for (const event of events) {
-      if (!event.id || !event.start?.dateTime || !event.end?.dateTime) {
+      if (!event.id) {
         result.skipped++;
         continue;
       }
-      
-      if (existingCalendarEventIds.has(event.id)) {
+
+      seenCalendarEventIds.add(event.id);
+
+      const isCancelled = event.status === 'cancelled';
+      const existingBooking = calendarBookingsMap.get(event.id);
+
+      if (isCancelled) {
+        if (existingBooking) {
+          try {
+            await storage.deleteBooking(existingBooking.id);
+            result.deleted++;
+            console.log(`[Calendar Sync] Deleted booking for cancelled event: ${event.id}`);
+          } catch (err) {
+            console.error('Error deleting cancelled calendar event booking:', event.id, err);
+            result.errors++;
+          }
+        }
+        continue;
+      }
+
+      if (!event.start?.dateTime || !event.end?.dateTime) {
         result.skipped++;
         continue;
       }
@@ -363,7 +390,79 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
       try {
         const parsed = parseCalendarEvent(event);
         if (!parsed) {
-          result.skipped++;
+          if (existingBooking) {
+            try {
+              const localStart = new Date(event.start!.dateTime!);
+              const localEnd = new Date(event.end!.dateTime!);
+              const diffMs = localEnd.getTime() - localStart.getTime();
+              const durationMin = Math.round(diffMs / 60000);
+              const hours = Math.floor(durationMin / 60);
+              const mins = durationMin % 60;
+              const timeStr = `${String(localStart.getHours()).padStart(2, '0')}:${String(localStart.getMinutes()).padStart(2, '0')}`;
+              const durationStr = mins > 0 ? `${hours}h${String(mins).padStart(2, '0')}` : `${hours}h00`;
+              const dateOnly = new Date(localStart);
+              dateOnly.setHours(0, 0, 0, 0);
+              
+              const dateChanged = new Date(existingBooking.date).toDateString() !== dateOnly.toDateString();
+              const timeChanged = existingBooking.time !== timeStr;
+              const durationChanged = existingBooking.duration !== durationStr;
+
+              if (dateChanged || timeChanged || durationChanged) {
+                await storage.updateBookingByCalendarEventId(event.id, {
+                  date: dateOnly,
+                  time: timeStr,
+                  duration: durationStr,
+                });
+                result.updated++;
+                console.log(`[Calendar Sync] Updated booking time/date for event (fallback): ${event.id}`);
+              } else {
+                result.skipped++;
+              }
+            } catch (fallbackErr) {
+              console.error('Error in fallback update:', event.id, fallbackErr);
+              result.errors++;
+            }
+          } else {
+            result.skipped++;
+          }
+          continue;
+        }
+
+        if (existingBooking) {
+          const dateChanged = new Date(existingBooking.date).toDateString() !== new Date(parsed.date).toDateString();
+          const timeChanged = existingBooking.time !== parsed.time;
+          const durationChanged = existingBooking.duration !== parsed.duration;
+          const bayChanged = existingBooking.bayType !== parsed.bayType;
+          const nameChanged = existingBooking.name !== parsed.name;
+          const emailChanged = existingBooking.email !== parsed.email;
+          const phoneChanged = (existingBooking.phone || null) !== (parsed.phone || null);
+          const playersChanged = existingBooking.players !== parsed.players;
+
+          if (dateChanged || timeChanged || durationChanged || bayChanged || nameChanged || emailChanged || phoneChanged || playersChanged) {
+            await storage.updateBookingByCalendarEventId(event.id, {
+              date: parsed.date,
+              time: parsed.time,
+              duration: parsed.duration,
+              bayType: parsed.bayType,
+              name: parsed.name,
+              email: parsed.email,
+              phone: parsed.phone,
+              players: parsed.players,
+            });
+            result.updated++;
+            console.log(`[Calendar Sync] Updated booking for event: ${event.id} (${[
+              dateChanged && 'date',
+              timeChanged && 'time', 
+              durationChanged && 'duration',
+              bayChanged && 'bay',
+              nameChanged && 'name',
+              emailChanged && 'email',
+              phoneChanged && 'phone',
+              playersChanged && 'players'
+            ].filter(Boolean).join(', ')})`);
+          } else {
+            result.skipped++;
+          }
           continue;
         }
         
@@ -477,13 +576,13 @@ function parseCalendarEvent(event: any): {
     }
     
     let email = 'calendrier@golfsim.ca';
-    const emailMatch = description.match(/Courriel:\s*(.+)/i);
+    const emailMatch = description.match(/Courriel:\s*([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/i);
     if (emailMatch) {
       email = emailMatch[1].trim();
     }
     
     let phone: string | null = null;
-    const phoneMatch = description.match(/T[ée]l[ée]phone:\s*(.+)/i);
+    const phoneMatch = description.match(/T[ée]l[ée]phone:\s*([\d().\-+\s]{7,20})/i);
     if (phoneMatch && phoneMatch[1].trim() !== 'Non fourni') {
       phone = phoneMatch[1].trim();
     }
