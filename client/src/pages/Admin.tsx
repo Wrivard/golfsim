@@ -8,7 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock, Archive } from "lucide-react";
+import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock, Archive, LayoutGrid, List } from "lucide-react";
+import CalendarView from "@/components/admin/CalendarView";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -149,6 +150,7 @@ export default function Admin() {
   const [filterBay, setFilterBay] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("upcoming");
   const [showArchived, setShowArchived] = useState(false);
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [debugMode, setDebugMode] = useState(false);
   const [showAdminSection, setShowAdminSection] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Record<number, { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }>>({});
@@ -545,6 +547,34 @@ export default function Admin() {
           </Card>
         </div>
         
+        <div className="flex items-center justify-end gap-1 bg-white rounded-lg shadow-sm p-1 w-fit ml-auto">
+          <Button
+            variant={viewMode === "calendar" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("calendar")}
+            className={viewMode === "calendar" ? "bg-[#2B5734] hover:bg-[#2B5734]/90 text-white" : "text-muted-foreground"}
+            data-testid="button-view-calendar"
+          >
+            <LayoutGrid className="w-4 h-4 mr-1.5" />
+            Calendrier
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className={viewMode === "list" ? "bg-[#2B5734] hover:bg-[#2B5734]/90 text-white" : "text-muted-foreground"}
+            data-testid="button-view-list"
+          >
+            <List className="w-4 h-4 mr-1.5" />
+            Liste
+          </Button>
+        </div>
+
+        {viewMode === "calendar" && (
+          <CalendarView bookings={allBookings} />
+        )}
+
+        {viewMode === "list" && (
         <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
@@ -722,7 +752,9 @@ export default function Admin() {
             )}
           </CardContent>
         </Card>
+        )}
 
+        {viewMode === "list" && (
         <Card className="shadow-lg border-none" data-testid="card-calendar-template">
           <CardHeader className="bg-[#4285F4] text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
@@ -763,6 +795,7 @@ export default function Admin() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         <div className="border border-foreground/10 rounded-lg overflow-hidden">
           <button
