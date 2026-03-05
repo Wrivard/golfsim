@@ -27,7 +27,7 @@ export default function MembershipPreview() {
             Réservez <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">Votre Élan</span>
           </h2>
           <p className="text-lg text-white/60 font-sans max-w-2xl mx-auto leading-relaxed">
-             Profitez de nos installations de classe mondiale. Réservez votre écran pour des blocs de 4 heures et jouez entre amis.
+             Profitez de nos installations de classe mondiale. Réservez votre écran de 1 à 4 heures et jouez entre amis.
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export default function MembershipPreview() {
                     {[
                       { title: "4 Simulateurs", desc: "Technologie Trackman 4 sur tous nos écrans." },
                       { title: "Groupes de 4", desc: "Jusqu'à 4 joueurs par simulateur." },
-                      { title: "Blocs de 4 Heures", desc: "Prenez le temps de jouer un 18 trous complet." },
+                      { title: "Sessions Flexibles", desc: "De 1 à 4 heures pour jouer à votre rythme." },
                       { title: "Ambiance Lounge", desc: "Service de bar et détente sur place." }
                     ].map((item, idx) => (
                       <li key={idx} className="flex items-start gap-4">
@@ -70,7 +70,7 @@ export default function MembershipPreview() {
                  <p className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4">Tarification Simple</p>
                  <div className="flex flex-col items-center justify-center gap-1 mb-6">
                     <span className="text-4xl md:text-5xl font-heading font-bold text-white">PAR PERSONNE</span>
-                    <span className="text-xl text-white/50 font-sans">Bloc de 4 heures</span>
+                    <span className="text-xl text-white/50 font-sans">Sessions de 1 à 4 heures</span>
                  </div>
                  <p className="text-white/40 text-sm mb-8 font-sans">Réservation en ligne facile et rapide.</p>
                  

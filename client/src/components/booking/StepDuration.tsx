@@ -5,10 +5,10 @@ export function StepDuration() {
   const { setDuration, setStep } = useBookingStore();
 
   const durations = [
-    { value: 60, label: "1 Heure", sub: "Session Standard", badge: null },
-    { value: 120, label: "2 Heures", sub: "Session Standard", badge: null },
-    { value: 180, label: "3 Heures", sub: "Session Standard", badge: null },
-    { value: 240, label: "4 Heures", sub: "Session Standard", badge: null },
+    { value: 60, label: "1 Heure", sub: "25$ / heure", badge: "Pratique" },
+    { value: 120, label: "2 Heures", sub: "28$ / heure", badge: null },
+    { value: 180, label: "3 Heures", sub: "28$ / heure", badge: null },
+    { value: 240, label: "4 Heures", sub: "28$ / heure", badge: null },
   ];
 
   const handleSelect = (minutes: number) => {

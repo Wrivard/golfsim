@@ -120,7 +120,11 @@ async function logout() {
   return data;
 }
 
-const PRICE_PER_HOUR = 25;
+function getPriceForBooking(durationStr: string): number {
+  const hours = parseFloat(durationStr?.replace('h', '') || '0');
+  const pricePerHour = hours === 1 ? 25 : 28;
+  return hours * pricePerHour;
+}
 
 function getBookingDateTime(booking: any): Date {
   try {
@@ -377,7 +381,9 @@ export default function Admin() {
       return acc + hours;
     }, 0);
     
-    const estimatedRevenue = totalHours * PRICE_PER_HOUR;
+    const estimatedRevenue = allBookings.reduce((acc: number, b: any) => {
+      return acc + getPriceForBooking(b.duration || '0h');
+    }, 0);
     
     return {
       total: allBookings.length,

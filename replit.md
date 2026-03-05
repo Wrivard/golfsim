@@ -87,7 +87,7 @@ Preferred communication style: Simple, everyday language.
 **Booking Business Logic**
 - Conflict detection: checks existing bookings for same bay, date, and overlapping time windows
 - Time overlap calculation converts time strings and duration to minutes for precise comparison
-- Pricing: 25$/hour per bay for all durations
+- Pricing: 25$/hour for 1h sessions (pratique), 28$/hour for 2-4h sessions
 - Atomic operations: booking creation fails if calendar sync fails (prevents orphaned bookings)
 
 ### External Dependencies
@@ -209,7 +209,7 @@ Preferred communication style: Simple, everyday language.
   - Bays 1-2: 60-minute granularity (8:00, 9:00, 10:00...)
   - Bays 3-4: 30-minute granularity (8:00, 8:30, 9:00, 9:30...)
 - "Meilleur choix" label on slots with score >= 5, displayed first in the grid
-- Components: StepDuration, StepTime, StepDetails, StepConfirmation in `client/src/components/booking/`
+- Components: StepDuration, StepTime, StepDetails (with terms/conditions checkbox), StepConfirmation in `client/src/components/booking/`
 - Real-time availability fetched via GET `/api/availability/optimized?date=YYYY-MM-DD&duration=N`
 - Bay automatically assigned to the optimal simulator for each time slot
 

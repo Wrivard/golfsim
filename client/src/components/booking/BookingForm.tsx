@@ -712,7 +712,7 @@ export default function BookingForm() {
           </Card>
 
           <div className="bg-white/50 backdrop-blur p-4 rounded-lg border border-foreground/5 text-xs text-foreground/60 font-sans leading-relaxed space-y-2">
-            <p><span className="font-bold text-primary text-sm">25$ / heure</span> <span className="text-foreground/50">par baie</span></p>
+            <p><span className="font-bold text-primary text-sm">25$/h (1h) • 28$/h (2-4h)</span> <span className="text-foreground/50">par baie</span></p>
             <div className="border-t border-foreground/10 pt-2 mt-2">
               <p><span className="font-bold text-foreground">Ouvert:</span> 8h - 22h</p>
               <p><span className="font-bold text-foreground">Baies:</span> 4 simulateurs</p>

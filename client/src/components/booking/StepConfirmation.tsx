@@ -6,7 +6,9 @@ import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucid
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-const PRICE_PER_HOUR = 25;
+function getPricePerHour(durationMinutes: number): number {
+  return durationMinutes === 60 ? 25 : 28;
+}
 
 async function createBooking(data: {
   name: string;
@@ -49,7 +51,8 @@ export function StepConfirmation() {
 
   const durationHours = selectedDuration ? selectedDuration / 60 : 0;
   const durationString = durationHours % 1 === 0 ? `${durationHours}h` : `${durationHours}h`;
-  const price = durationHours * PRICE_PER_HOUR;
+  const pricePerHour = getPricePerHour(selectedDuration || 60);
+  const price = durationHours * pricePerHour;
 
   const bookingMutation = useMutation({
     mutationFn: createBooking,

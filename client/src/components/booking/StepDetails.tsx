@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, User, Mail, Phone, Users, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Link } from "wouter";
 
 const formSchema = z.object({
   name: z.string().min(2, "Le nom est requis (minimum 2 caractères)"),
@@ -16,6 +17,7 @@ const formSchema = z.object({
   phone: z.string().optional(),
   players: z.coerce.number().min(1, "Minimum 1 joueur").max(4, "Maximum 4 joueurs"),
   notes: z.string().optional(),
+  acceptTerms: z.literal(true, { errorMap: () => ({ message: "Vous devez accepter les termes et conditions" }) }),
 });
 
 export function StepDetails() {
@@ -29,11 +31,13 @@ export function StepDetails() {
       email: "",
       phone: "",
       notes: "",
+      acceptTerms: undefined as unknown as true,
     }
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    setUserDetails(values);
+    const { acceptTerms, ...userDetails } = values;
+    setUserDetails(userDetails);
     setStep(4);
   };
 
@@ -139,6 +143,27 @@ export function StepDetails() {
               data-testid="input-notes"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="flex items-start gap-3 cursor-pointer select-none group">
+            <input
+              type="checkbox"
+              {...form.register("acceptTerms")}
+              className="mt-1 w-4 h-4 rounded border-gray-300 text-[#2B5734] focus:ring-[#2B5734] accent-[#2B5734]"
+              data-testid="checkbox-accept-terms"
+            />
+            <span className="text-xs text-muted-foreground leading-relaxed">
+              J'accepte les{" "}
+              <Link href="/politique-de-confidentialite" className="text-primary underline hover:text-primary/80" target="_blank">
+                termes et conditions
+              </Link>{" "}
+              et la politique de confidentialité de Golf SIM Sorel-Tracy.
+            </span>
+          </label>
+          {form.formState.errors.acceptTerms && (
+            <p className="text-xs text-destructive">{form.formState.errors.acceptTerms.message}</p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">

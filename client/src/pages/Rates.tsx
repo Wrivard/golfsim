@@ -17,7 +17,7 @@ export default function Rates() {
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl sm:text-6xl md:text-8xl font-heading font-bold mb-6 uppercase tracking-tighter leading-none text-white">Nos <span className="text-white">Tarifs</span></h1>
           <p className="text-lg text-white/90 max-w-2xl mx-auto font-sans">
-            Une structure simple et transparente. Payez par joueur pour des blocs de 4 heures.
+            Une structure simple et transparente. Réservez de 1 à 4 heures à votre rythme.
           </p>
         </div>
       </div>
@@ -27,18 +27,24 @@ export default function Rates() {
           
           {/* Standard Rate Card */}
           <div className="bg-transparent border-2 border-foreground/10 p-6 md:p-8 flex flex-col relative hover:border-foreground transition-all duration-300 group">
-            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Tarif Standard</h3>
-            <p className="text-muted-foreground mb-8 font-sans">Expérience complète de 4 heures.</p>
+            <h3 className="font-heading font-bold text-3xl mb-2 uppercase">Tarif Horaire</h3>
+            <p className="text-muted-foreground mb-8 font-sans">Réservez de 1 à 4 heures selon vos besoins.</p>
             <div className="mb-8 pb-8 border-b border-foreground/10">
-              <span className="text-6xl font-heading font-bold">40$</span>
-              <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider"> / personne</span>
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-5xl font-heading font-bold">25$</span>
+                <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider">/h — Pratique (1h)</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-5xl font-heading font-bold">28$</span>
+                <span className="text-muted-foreground font-sans font-bold text-sm uppercase tracking-wider">/h — Session (2-4h)</span>
+              </div>
             </div>
             <ul className="space-y-4 mb-12 flex-grow">
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Bloc de 4 heures de jeu</span>
+                <span>Sessions de 1h à 4h flexibles</span>
               </li>
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
