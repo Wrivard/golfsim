@@ -30,6 +30,8 @@ export default function Footer() {
               <li><Link href="/about" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Le Club</Link></li>
               <li><Link href="/rates" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Tarifs & Forfaits</Link></li>
               <li><Link href="/gallery" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Galerie</Link></li>
+              <li><Link href="/contact" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Contact</Link></li>
+              <li><Link href="/booking" className="text-white/60 hover:text-primary transition-colors font-sans font-medium uppercase text-sm tracking-wide">Réservation</Link></li>
             </ul>
           </div>
 
