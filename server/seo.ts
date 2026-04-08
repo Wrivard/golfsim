@@ -163,6 +163,147 @@ function getLocalBusinessSchema(): object {
   };
 }
 
+function getBreadcrumbSchema(path: string, pageName: string): object {
+  const siteUrl = getSiteDomain();
+  const items: object[] = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Accueil",
+      item: siteUrl,
+    },
+  ];
+
+  if (path !== "/") {
+    items.push({
+      "@type": "ListItem",
+      position: 2,
+      name: pageName,
+      item: `${siteUrl}${path}`,
+    });
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items,
+  };
+}
+
+function getFAQSchema(): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Dois-je apporter mes propres clubs ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Nous recommandons d'apporter vos propres clubs pour une meilleure expérience. Cependant, nous offrons des ensembles de location premium (TaylorMade & Titleist) pour un petit supplément si vous n'avez pas les vôtres.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Quelle est la précision des simulateurs ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Extrêmement précis. Nous utilisons la technologie Trackman 4, qui est le standard de l'industrie utilisé par les professionnels de la PGA. Il suit la vitesse de la balle, le taux de rotation, l'angle de lancement et plus encore avec une précision radar Doppler.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Puis-je apporter ma nourriture et mes boissons ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Nous avons un lounge complet avec des collations et des breuvages disponibles à l'achat. La nourriture extérieure est permise uniquement pour les réservations d'événements privés.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Comment fonctionne l'accès 24/7 ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Les membres reçoivent une clé numérique sur leur téléphone intelligent qui donne accès à l'installation à tout moment. Vous pouvez réserver votre baie en ligne et entrer par vous-même, même en dehors des heures avec personnel.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Combien de temps pour jouer 18 trous ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Il faut généralement environ 1 heure pour qu'un seul joueur complète 18 trous. Pour un groupe de 4, nous recommandons de réserver 3-4 heures pour jouer une ronde complète confortablement.",
+        },
+      },
+    ],
+  };
+}
+
+function getServiceSchema(): object {
+  const siteUrl = getSiteDomain();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    serviceType: "Simulateur de golf intérieur",
+    provider: {
+      "@type": "SportsActivityLocation",
+      name: "Golf SIM Sorel-Tracy",
+      url: siteUrl,
+    },
+    areaServed: {
+      "@type": "City",
+      name: "Sorel-Tracy",
+    },
+    description:
+      "Location de simulateurs de golf intérieur haut de gamme avec technologie Trackman. Sessions de 1 à 4 heures, idéal pour la pratique, le loisir et les événements de groupe.",
+    offers: [
+      {
+        "@type": "Offer",
+        name: "Session Pratique (1h)",
+        price: "25",
+        priceCurrency: "CAD",
+        description: "1 heure de simulateur – idéal pour la pratique",
+        url: `${siteUrl}/booking`,
+      },
+      {
+        "@type": "Offer",
+        name: "Session Loisir (2h)",
+        price: "56",
+        priceCurrency: "CAD",
+        description: "2 heures de simulateur – 28$/heure",
+        url: `${siteUrl}/booking`,
+      },
+      {
+        "@type": "Offer",
+        name: "Session Groupe (3h)",
+        price: "84",
+        priceCurrency: "CAD",
+        description: "3 heures de simulateur – 28$/heure, parfait pour les groupes",
+        url: `${siteUrl}/booking`,
+      },
+      {
+        "@type": "Offer",
+        name: "Session Premium (4h)",
+        price: "112",
+        priceCurrency: "CAD",
+        description: "4 heures de simulateur – 28$/heure, ronde complète",
+        url: `${siteUrl}/booking`,
+      },
+    ],
+  };
+}
+
+const BREADCRUMB_NAMES: Record<string, string> = {
+  "/": "Accueil",
+  "/about": "À propos",
+  "/rates": "Tarifs",
+  "/gallery": "Galerie",
+  "/contact": "Contact",
+  "/booking": "Réservation",
+  "/politique-de-confidentialite": "Politique de confidentialité",
+  "/politique-de-cookies": "Politique de cookies",
+};
+
 function getSiteUrl(): string {
   return getSiteDomain();
 }
@@ -198,9 +339,18 @@ export function injectSeoMeta(html: string, path: string): string {
   headInjection += `    <meta name="twitter:description" content="${meta.ogDescription || meta.description}" />\n`;
   headInjection += `    <meta name="twitter:image" content="${ogImageUrl}" />\n`;
 
+  const breadcrumbName = BREADCRUMB_NAMES[path];
+  if (breadcrumbName && !meta.noindex) {
+    headInjection += `    <script type="application/ld+json">${JSON.stringify(getBreadcrumbSchema(path, breadcrumbName))}</script>\n`;
+  }
+
   if (path === "/") {
-    const schema = getLocalBusinessSchema();
-    headInjection += `    <script type="application/ld+json">${JSON.stringify(schema)}</script>\n`;
+    headInjection += `    <script type="application/ld+json">${JSON.stringify(getLocalBusinessSchema())}</script>\n`;
+    headInjection += `    <script type="application/ld+json">${JSON.stringify(getServiceSchema())}</script>\n`;
+  }
+
+  if (path === "/rates") {
+    headInjection += `    <script type="application/ld+json">${JSON.stringify(getFAQSchema())}</script>\n`;
   }
 
   let result = html;
