@@ -21,7 +21,7 @@ export default function FAQ() {
               Dois-je apporter mes propres clubs ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              Nous recommandons d'apporter vos propres clubs pour une meilleure expérience. Cependant, nous offrons des ensembles de location premium (TaylorMade & Titleist) pour un petit supplément si vous n'avez pas les vôtres.
+              Oui, vous devez apporter vos propres clubs. Golf SIM ne fournit pas de clubs et n'offre pas de location.
             </AccordionContent>
           </AccordionItem>
 
@@ -40,15 +40,6 @@ export default function FAQ() {
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
               Nous avons un lounge complet avec des collations et des breuvages disponibles à l'achat. La nourriture extérieure est permise uniquement pour les réservations d'événements privés.
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-4" className="border-2 border-foreground/10 px-6">
-            <AccordionTrigger className="text-xl font-heading font-bold uppercase hover:no-underline py-6">
-              Comment fonctionne l'accès 24/7 ?
-            </AccordionTrigger>
-            <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              Les membres reçoivent une clé numérique sur leur téléphone intelligent qui donne accès à l'installation à tout moment. Vous pouvez réserver votre baie en ligne et entrer par vous-même, même en dehors des heures avec personnel.
             </AccordionContent>
           </AccordionItem>
 

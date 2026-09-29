@@ -1,4 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
+import { useLayoutEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,6 +20,16 @@ import CookiePolicy from "@/pages/CookiePolicy";
 function Router() {
   const [location] = useLocation();
   usePageMeta(location);
+
+  useLayoutEffect(() => {
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => { window.history.scrollRestoration = previous; };
+  }, []);
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location]);
 
   return (
     <Switch>

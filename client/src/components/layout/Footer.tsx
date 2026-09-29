@@ -64,7 +64,7 @@ export default function Footer() {
           <div className="space-y-6">
             <h4 className="font-heading font-bold text-xl uppercase tracking-wider text-white">Suivez-nous</h4>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">
+              <a href="https://www.facebook.com/p/Golf-SIM-Sorel-Tracy-100063923208468/" target="_blank" rel="noopener noreferrer" aria-label="Golf SIM Sorel-Tracy sur Facebook" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">
                 <Facebook className="w-5 h-5" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">

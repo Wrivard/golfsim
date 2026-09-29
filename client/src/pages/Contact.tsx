@@ -139,11 +139,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Horaires</h4>
-                    <p className="text-muted-foreground text-sm font-sans">
-                      <span className="block font-medium text-foreground">Membres :</span> Accès 24/7
-                    </p>
                     <p className="text-muted-foreground text-sm mt-1 font-sans">
-                      <span className="block font-medium text-foreground">Visiteurs :</span>
                       Lun - Dim : 10h00 - 22h00
                     </p>
                   </div>
