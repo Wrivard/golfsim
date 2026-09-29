@@ -717,7 +717,10 @@ export async function registerRoutes(
 
       return res.json({
         ok: true,
-        slots,
+        slots: slots.map(slot => {
+          const clock = new Date(slot.time);
+          return { ...slot, bookingTime: `${String(clock.getHours()).padStart(2, "0")}:${String(clock.getMinutes()).padStart(2, "0")}` };
+        }),
         bookings: formattedBookings,
         schedule,
         meta: {

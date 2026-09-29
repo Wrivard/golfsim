@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { staffSlotTime } from "./staffSlotTime";
 
 export interface BookingPrefill {
   date: string;
@@ -16,6 +17,7 @@ export interface BookingPrefill {
 
 interface AvailableSlot {
   time: string;
+  bookingTime?: string;
   allBays?: { bayId: string; isValid: boolean }[];
 }
 
@@ -49,10 +51,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
   });
   const availableTimes = (slotsQuery.data || [])
     .filter(slot => slot.allBays?.some(bay => bay.bayId === bayType && bay.isValid))
-    .map(slot => {
-      const local = new Date(slot.time);
-      return `${String(local.getHours()).padStart(2, "0")}:${String(local.getMinutes()).padStart(2, "0")}`;
-    })
+    .map(staffSlotTime)
     .filter(value => {
       const [hour, minute] = value.split(":").map(Number);
       const start = hour * 60 + minute;
