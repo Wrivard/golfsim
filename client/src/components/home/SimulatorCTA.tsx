@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import ctaImage from "@assets/stock_images/close_up_golf_balls__b53e793b.jpg";
+import ctaImage from "@assets/20260105-7-07_1790696495857.webp";
 
 export default function SimulatorCTA() {
   return (
@@ -9,7 +9,7 @@ export default function SimulatorCTA() {
       <div className="absolute inset-0 z-0">
         <img 
           src={ctaImage} 
-          alt="Golf balls close up in simulator" 
+          alt="Golfeur en action dans le simulateur"
           className="w-full h-full object-cover brightness-75" // Slightly darkened for text legibility without heavy overlay
         />
         {/* Subtle dark gradient for text pop */}

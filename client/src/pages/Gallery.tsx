@@ -1,45 +1,37 @@
 import Layout from "@/components/layout/Layout";
 
 // Images
-import img1 from "@assets/generated_images/luxury_indoor_golf_simulator_bay.png";
-import img2 from "@assets/generated_images/luxury_golf_lounge_area.png";
-import img3 from "@assets/generated_images/golfer_swinging_indoors.png";
-import img4 from "@assets/generated_images/golf_ball_on_turf_close_up.png";
-import img5 from "@assets/generated_images/golf_simulator_screen_display.png";
-import img6 from "@assets/generated_images/golf_clubs_detail_shot.png";
-import headerBg from "@assets/stock_images/pile_of_golf_balls_o_6c3431a4.jpg";
+import img1 from "@assets/20260105-1-01_1790696495855.webp";
+import img2 from "@assets/20260105-2-02_1790696495856.webp";
+import img3 from "@assets/20260105-3-03_1790696495856.webp";
+import img4 from "@assets/20260105-4-04_1790696495856.webp";
+import img5 from "@assets/20260105-5-05_1790696495856.webp";
+import img6 from "@assets/20260105-6-06_1790696495857.webp";
+import img7 from "@assets/20260105-7-07_1790696495857.webp";
+import img8 from "@assets/20260105-8-08_1790696495857.webp";
+import img9 from "@assets/20260105-9-09_1790696495857.webp";
+import img10 from "@assets/20260105-10-10_1790696495858.webp";
+import img11 from "@assets/20260105-11-11_1790696495858.webp";
+import img12 from "@assets/20260105-12-12_1790696495858.webp";
+import img13 from "@assets/20260105-13-13_1790696495858.webp";
+import img14 from "@assets/20260105-14-14_1790696495858.webp";
+import headerBg from "@assets/20260105-9-09_1790696495857.webp";
 
 const images = [
-  {
-    src: img1,
-    alt: "Simulateur de luxe",
-    category: "La Baie"
-  },
-  {
-    src: img3,
-    alt: "Golfeur en action",
-    category: "Action"
-  },
-  {
-    src: img2,
-    alt: "Espace Lounge",
-    category: "Lounge"
-  },
-  {
-    src: img5,
-    alt: "Écran Simulateur",
-    category: "Expérience"
-  },
-  {
-    src: img4,
-    alt: "Détail Tech",
-    category: "Tech"
-  },
-  {
-    src: img6,
-    alt: "Clubs Premium",
-    category: "Équipement"
-  }
+  { src: img1, alt: "Baie de golf avec écran de simulation", category: "La Baie" },
+  { src: img2, alt: "Bâton et balle sur le tapis de golf", category: "Équipement" },
+  { src: img3, alt: "Balle devant le parcours virtuel", category: "Expérience" },
+  { src: img4, alt: "Golfeur préparant son coup", category: "Action" },
+  { src: img5, alt: "Golfeur terminant son élan", category: "Action" },
+  { src: img6, alt: "Comptoir du bar et ses tabourets", category: "Le Bar" },
+  { src: img7, alt: "Élan de golf devant le simulateur", category: "Action" },
+  { src: img8, alt: "Groupe de golfeurs réuni dans une baie", category: "En Groupe" },
+  { src: img9, alt: "Sac de golf devant le bar et les baies", category: "Équipement" },
+  { src: img10, alt: "Deux golfeurs pratiquant un mouvement dans une baie", category: "Pratique" },
+  { src: img11, alt: "Sélection de boissons au bar", category: "Le Bar" },
+  { src: img12, alt: "Espace détente entre les simulateurs", category: "Lounge" },
+  { src: img13, alt: "Accueil au comptoir du bar", category: "Le Bar" },
+  { src: img14, alt: "Boissons sur une table devant un simulateur", category: "Détente" },
 ];
 
 export default function Gallery() {
@@ -47,7 +39,7 @@ export default function Gallery() {
     <Layout>
        <div className="relative pt-32 pb-12 border-b border-foreground/5">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Golf Equipment" className="w-full h-full object-cover" />
+            <img src={headerBg} alt="Équipement et espace golf" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -68,6 +60,7 @@ export default function Gallery() {
               <img 
                 src={img.src} 
                 alt={img.alt} 
+                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
               />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
 // Images
-import loungeImage from "@assets/generated_images/luxury_golf_lounge_area.png";
-import headerBg from "@assets/stock_images/golf_balls_on_artifi_49b5b303.jpg";
+import loungeImage from "@assets/20260105-12-12_1790696495858.webp";
+import headerBg from "@assets/20260105-9-09_1790696495857.webp";
 
 export default function About() {
   return (
@@ -34,7 +34,7 @@ export default function About() {
             <div className="relative z-10 h-[500px] rounded-lg overflow-hidden shadow-2xl">
                <img 
                 src={loungeImage} 
-                alt="Lounge de luxe" 
+                alt="Espace détente de Golf SIM Sorel-Tracy"
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
               />
             </div>

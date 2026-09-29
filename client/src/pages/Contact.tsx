@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import headerBg from "@assets/stock_images/golf_ball_on_tee_ind_0117f1a4.jpg";
+import headerBg from "@assets/20260105-6-06_1790696495857.webp";
 
 export default function Contact() {
   const { register, handleSubmit, reset } = useForm();
@@ -27,7 +27,7 @@ export default function Contact() {
     <Layout>
       <div className="relative py-24 pt-32">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Reception" className="w-full h-full object-cover" />
+            <img src={headerBg} alt="Bar de Golf SIM Sorel-Tracy" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">

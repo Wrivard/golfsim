@@ -14,8 +14,8 @@ import BarLounge from "@/components/home/BarLounge";
 
 // Images
 // Fix imports to use local assets instead of generated_images alias directly if inconsistent
-import heroImage from "@/assets/images/golf_balls_on_turf_in_simulator.png";
-import techImage from "@/assets/images/golf_ball_on_turf_close_up.png";
+import heroImage from "@assets/20260105-1-01_1790696495855.webp";
+import techImage from "@assets/20260105-2-02_1790696495856.webp";
 
 export default function Home() {
   return (
@@ -77,7 +77,7 @@ export default function Home() {
               <div className="w-full h-full rounded-lg overflow-hidden relative z-10">
                 <img 
                   src={heroImage} 
-                  alt="Balles de golf sur gazon synthétique" 
+                  alt="Baie de golf et écran de simulation"
                   className="w-full h-full object-cover"
                 />
               </div>

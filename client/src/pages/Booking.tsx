@@ -10,7 +10,7 @@ import { useBookingStore } from "@/lib/booking-store";
 import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
-import headerBg from "@assets/stock_images/golf_ball_on_tee_ind_0117f1a4.jpg";
+import headerBg from "@assets/20260105-2-02_1790696495856.webp";
 
 const stepTitles: Record<number, string> = {
   1: "Sélectionnez la durée de votre session",
@@ -56,7 +56,7 @@ export default function BookingPage() {
     <Layout>
       <div className="relative pt-32 pb-24 border-b border-foreground/5">
         <div className="absolute inset-0 z-0">
-          <img src={headerBg} alt="Golf Tee" className="w-full h-full object-cover" />
+          <img src={headerBg} alt="Balle et bâton sur le tapis du simulateur" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">

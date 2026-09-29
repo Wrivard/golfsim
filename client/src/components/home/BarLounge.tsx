@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Wine, Beer, Coffee } from "lucide-react";
-import barImage from "@assets/stock_images/modern_golf_simulato_aa98d462.jpg";
+import barImage from "@assets/20260105-6-06_1790696495857.webp";
 
 export default function BarLounge() {
   return (

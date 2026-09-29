@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "wouter";
 import FAQ from "@/components/rates/FAQ";
-import headerBg from "@assets/stock_images/golfer_hitting_ball__a2cb5d6d.jpg";
+import headerBg from "@assets/20260105-5-05_1790696495856.webp";
 
 export default function Rates() {
   return (
@@ -11,7 +11,7 @@ export default function Rates() {
        {/* Header */}
        <div className="relative py-32 pt-40">
         <div className="absolute inset-0 z-0">
-            <img src={headerBg} alt="Golf Landscape" className="w-full h-full object-cover" />
+            <img src={headerBg} alt="Golfeur en action au simulateur" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/60 z-10" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
