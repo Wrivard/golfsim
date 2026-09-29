@@ -8,6 +8,7 @@ import { format, addDays, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { parseDurationToMinutes } from "./calendarDuration";
 
 interface Booking {
   id: string;
@@ -36,12 +37,6 @@ const BAY_COLORS: Record<string, { bg: string; bgSolid: string; border: string; 
   "3": { bg: "bg-amber-50", bgSolid: "#fffbeb", border: "border-amber-400", text: "text-amber-800", headerBg: "bg-amber-100" },
   "4": { bg: "bg-purple-50", bgSolid: "#faf5ff", border: "border-purple-400", text: "text-purple-800", headerBg: "bg-purple-100" },
 };
-
-function parseDurationToMinutes(duration: string): number {
-  const match = duration.match(/(\d+)h(\d{2})?/);
-  if (!match) return 60;
-  return parseInt(match[1], 10) * 60 + parseInt(match[2] || "0", 10);
-}
 
 function parseTimeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);

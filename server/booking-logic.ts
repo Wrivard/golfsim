@@ -10,6 +10,7 @@ import {
   isSameDay,
   parseISO
 } from 'date-fns';
+import { measurePlacement, type PlacementMetrics } from './booking-scoring';
 
 export interface Simulator {
   id: string;
@@ -44,6 +45,7 @@ export interface BayEvaluation {
   isValid: boolean;
   rejectionReason?: string;
   breakdown?: ScoreBreakdown;
+  metrics?: PlacementMetrics;
   debug?: {
     gapBefore: number;
     gapAfter: number;
@@ -103,152 +105,15 @@ function buildScheduleTimes(date: Date, schedule: DaySchedule) {
   return { openTime, lastBookingTime, closeTime };
 }
 
-function rateRemainingGap(gap: number, touchesBooking: boolean): number {
-  if (gap === 0 && touchesBooking) return 5;
-  if (gap === 0) return 2;
-  if (gap > 0 && gap < 30) return -5;
-  if (gap >= 30 && gap < 60) return -2;
-  if (gap === 60) return -1;
-  return 0;
-}
-
-function rateGapToBoundary(gap: number): number {
-  if (gap === 0) return 3;
-  if (gap > 0 && gap < 30) return -5;
-  if (gap >= 30 && gap <= 60) return -1;
-  if (gap > 60 && gap <= 120) return 0;
-  return -1;
-}
-
-interface DurationContext {
-  durationMinutes: number;
-  emptyBay: boolean;
-  otherBaysHaveBookings: boolean;
-  remainingGapBefore: number;
-  remainingGapAfter: number;
-  touchesDayStart: boolean;
-  touchesDayEnd: boolean;
-  touchesBookingBefore: boolean;
-  touchesBookingAfter: boolean;
-  gapBeforeIsToBooking: boolean;
-  gapAfterIsToBooking: boolean;
-  hour: number;
-  totalStretch: number;
-}
-
-function applyDurationStrategy(ctx: DurationContext): { durationBonus: number; peakHour: number; durationStrategy: number; perfectFitOverride?: number } {
-  const { durationMinutes, emptyBay, otherBaysHaveBookings, remainingGapBefore, remainingGapAfter,
-    touchesDayStart, touchesDayEnd, touchesBookingBefore, touchesBookingAfter,
-    gapBeforeIsToBooking, gapAfterIsToBooking, hour, totalStretch } = ctx;
-
-  let durationBonus = 0;
-  let peakHour = 0;
-  let durationStrategy = 0;
-  let perfectFitOverride: number | undefined;
-
-  if (durationMinutes === 60) {
-    peakHour = 0;
-
-    if (touchesBookingBefore && touchesBookingAfter && remainingGapBefore === 0 && remainingGapAfter === 0) {
-      perfectFitOverride = 7;
-    }
-
-    if (emptyBay) {
-      if (otherBaysHaveBookings) {
-        durationStrategy -= 4;
-      } else {
-        if (touchesDayStart) {
-          durationStrategy += 3;
-        } else {
-          durationStrategy -= 2;
-        }
-      }
-    }
-
-    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 2;
-    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 2;
-
-    if (touchesBookingBefore && remainingGapBefore === 0 && remainingGapAfter > 120) {
-      durationStrategy -= 3;
-    } else if (touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore > 120) {
-      durationStrategy -= 3;
-    }
-
-  } else if (durationMinutes === 120) {
-    if (hour >= 17 && hour < 21) peakHour = 1;
-
-    if (emptyBay) {
-      if (otherBaysHaveBookings) {
-        durationStrategy -= 2;
-      } else {
-        if (touchesDayStart || touchesDayEnd) {
-          durationStrategy += 2;
-        }
-      }
-    }
-
-    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
-    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
-
-    if (!emptyBay) {
-      const popularDurations = [180, 240];
-      for (const pd of popularDurations) {
-        if (totalStretch >= pd && totalStretch <= pd + 30 && totalStretch > durationMinutes) {
-          durationStrategy -= 3;
-          break;
-        }
-      }
-    }
-
-  } else if (durationMinutes === 180) {
-    durationBonus = 1;
-    if (hour >= 17 && hour < 21) peakHour = 2;
-
-    if (emptyBay) {
-      if (touchesDayStart || touchesDayEnd) {
-        durationStrategy += 2;
-      }
-    }
-
-    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
-    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
-
-  } else if (durationMinutes === 240) {
-    durationBonus = 2;
-    if (hour >= 17 && hour < 21) peakHour = 1;
-
-    if (emptyBay) {
-      if (touchesDayStart || touchesDayEnd) {
-        durationStrategy += 3;
-      }
-    }
-
-    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 2;
-    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 2;
-
-  } else {
-    if (hour >= 17 && hour < 21) peakHour = 1;
-
-    if (emptyBay && (touchesDayStart || touchesDayEnd)) {
-      durationStrategy += 2;
-    }
-    if (remainingGapAfter === 60 && gapAfterIsToBooking) durationStrategy -= 1;
-    if (remainingGapBefore === 60 && gapBeforeIsToBooking) durationStrategy -= 1;
-  }
-
-  return { durationBonus, peakHour, durationStrategy, perfectFitOverride };
-}
-
 function evaluateBayAtTime(
   bay: Simulator,
   currentSlot: Date,
   potentialEnd: Date,
   closeTime: Date,
+  lastBookingTime: Date,
   openTime: Date,
   dayBookings: BookingRecord[],
-  allDayBookings: BookingRecord[],
-  date: Date,
-  durationMinutes: number
+  candidateGranularities: number[]
 ): BayEvaluation {
   const bayBookings = dayBookings.filter(b => b.simulatorId === bay.id);
 
@@ -307,6 +172,7 @@ function evaluateBayAtTime(
   }
 
   let breakdown: ScoreBreakdown | undefined;
+  let metrics: PlacementMetrics | undefined;
   let score = 0;
 
   if (isValid) {
@@ -325,66 +191,21 @@ function evaluateBayAtTime(
 
     const touchesBookingBefore = previousBookingEnd !== null && remainingGapBefore === 0;
     const touchesBookingAfter = nextBookingStart !== null && remainingGapAfter === 0;
-    const touchesDayStart = previousBookingEnd === null && remainingGapBefore === 0;
-    const touchesDayEnd = nextBookingStart === null && remainingGapAfter === 0;
+    metrics = measurePlacement(
+      currentSlot, potentialEnd,
+      previousBookingEnd ?? openTime, nextBookingStart ?? closeTime,
+      openTime, lastBookingTime, closeTime, getBayGranularity(bay.id), candidateGranularities
+    );
 
-    const gapBeforeIsToBooking = previousBookingEnd !== null;
-    const gapAfterIsToBooking = nextBookingStart !== null;
-
-    breakdown.gapAfter = gapAfterIsToBooking
-      ? rateRemainingGap(remainingGapAfter, touchesBookingAfter)
-      : rateGapToBoundary(remainingGapAfter);
-    breakdown.gapBefore = gapBeforeIsToBooking
-      ? rateRemainingGap(remainingGapBefore, touchesBookingBefore)
-      : rateGapToBoundary(remainingGapBefore);
-
-    if (touchesBookingBefore && touchesBookingAfter && remainingGapAfter === 0 && remainingGapBefore === 0) {
-      breakdown.perfectFit = 5;
-    } else if (touchesBookingBefore && touchesBookingAfter) {
-      breakdown.perfectFit = 2;
-    }
-
-    if (bayBookings.length > 0) breakdown.bayClustering = 1;
-
-    const emptyBay = bayBookings.length === 0;
-    const otherBaysHaveBookings = allDayBookings.some(b => b.simulatorId !== bay.id);
-    const hour = currentSlot.getHours();
-    const totalStretch = remainingGapBefore + durationMinutes + remainingGapAfter;
-
-    const durResult = applyDurationStrategy({
-      durationMinutes,
-      emptyBay,
-      otherBaysHaveBookings,
-      remainingGapBefore,
-      remainingGapAfter,
-      touchesDayStart,
-      touchesDayEnd,
-      touchesBookingBefore,
-      touchesBookingAfter,
-      gapBeforeIsToBooking,
-      gapAfterIsToBooking,
-      hour,
-      totalStretch
-    });
-
-    breakdown.durationBonus = durResult.durationBonus;
-    breakdown.peakHour = durResult.peakHour;
-    breakdown.durationStrategy = durResult.durationStrategy;
-
-    if (durResult.perfectFitOverride !== undefined) {
-      breakdown.perfectFit = durResult.perfectFitOverride;
-    }
-
-    if (emptyBay && !touchesDayStart && !touchesDayEnd) {
-      const smaller = Math.min(remainingGapBefore, remainingGapAfter);
-      const larger = Math.max(remainingGapBefore, remainingGapAfter);
-      if (smaller > 0 && larger > 0) {
-        const ratio = smaller / larger;
-        if (ratio > 0.4) {
-          breakdown.durationStrategy -= Math.round(ratio * 4);
-        }
-      }
-    }
+    // Lexicographic priorities in a numeric score (StepTime sorts descending):
+    // new waste > booking adjacency / gap fill > long starts saved > clustering.
+    // Existing unsellable minutes are measured, but never penalized a second time.
+    breakdown.inefficientGap = -metrics.newlyUnsellableMinutes * 100000;
+    breakdown.gapBefore = touchesBookingBefore ? 30000 : remainingGapBefore === 0 ? 1000 : 0;
+    breakdown.gapAfter = touchesBookingAfter ? 30000 : remainingGapAfter === 0 ? 1000 : 0;
+    breakdown.perfectFit = touchesBookingBefore && touchesBookingAfter ? 20000 : 0;
+    breakdown.durationStrategy = -metrics.longStartsLost * 100 - metrics.mediumStartsLost * 10;
+    breakdown.bayClustering = bayBookings.length > 0 ? 1 : 0;
 
     breakdown.total =
       breakdown.base +
@@ -407,6 +228,7 @@ function evaluateBayAtTime(
     isValid,
     rejectionReason,
     breakdown,
+    metrics,
     debug: {
       gapBefore: remainingGapBefore,
       gapAfter: remainingGapAfter
@@ -423,6 +245,7 @@ export function getOptimizedStartTimes(
 ): TimeSlot[] {
   const { openTime, lastBookingTime, closeTime } = buildScheduleTimes(date, schedule);
   const dayBookings = bookings.filter(b => isSameDay(parseISO(b.startTime), date));
+  const candidateGranularities = simulators.map(bay => getBayGranularity(bay.id));
 
   const candidateTimes = new Set<string>();
   for (const bay of simulators) {
@@ -454,7 +277,7 @@ export function getOptimizedStartTimes(
     const allBaysEvaluation: BayEvaluation[] = [];
 
     for (const bay of eligibleBays) {
-      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, closeTime, openTime, dayBookings, dayBookings, date, durationMinutes);
+      const evaluation = evaluateBayAtTime(bay, currentSlot, potentialEnd, closeTime, lastBookingTime, openTime, dayBookings, candidateGranularities);
       allBaysEvaluation.push(evaluation);
 
       if (evaluation.isValid) {
@@ -477,9 +300,11 @@ export function getOptimizedStartTimes(
   }
 
   if (slots.length > 0) {
-    const BEST_CHOICE_THRESHOLD = 5;
+    // "Meilleur choix" is relative to this request's available slots, not an
+    // absolute quality threshold: even an all-poor day has a best option.
+    const bestScore = Math.max(...slots.map(slot => slot.score));
     for (const slot of slots) {
-      slot.label = slot.score >= BEST_CHOICE_THRESHOLD ? "Meilleur choix" : undefined;
+      slot.label = slot.score === bestScore ? "Meilleur choix" : undefined;
     }
   }
 

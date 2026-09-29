@@ -108,6 +108,10 @@ export class DatabaseStorage implements IStorage {
       const endOfDay = new Date(insertBooking.date);
       endOfDay.setHours(23, 59, 59, 999);
 
+      // Serialize conflict-checking inserts for this date across server instances.
+      // The lock is released automatically at the end of the transaction.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bookings:${startOfDay.toISOString().slice(0, 10)}`}))`);
+
       const existingBookings = await tx.select().from(bookings).where(
         and(
           gte(bookings.date, startOfDay),

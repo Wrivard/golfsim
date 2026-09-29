@@ -1,0 +1,1 @@
+- [Booking optimization boundaries](booking-boundaries.md) — approved optimization scope and deliberately preserved business behavior.

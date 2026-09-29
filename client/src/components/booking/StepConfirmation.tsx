@@ -20,7 +20,7 @@ async function createBooking(data: {
   bayType: string;
   players: number;
   notes?: string;
-}) {
+}): Promise<{ reservation: { bayType: string } }> {
   const response = await fetch("/api/book", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -30,6 +30,9 @@ async function createBooking(data: {
   if (!response.ok || !result.ok) {
     throw new Error(result.message || "Erreur lors de la réservation");
   }
+  if (typeof result.reservation?.bayType !== "string") {
+    throw new Error("La réservation a été créée, mais la baie confirmée n'a pas été retournée. Veuillez nous contacter avant de réessayer.");
+  }
   return result;
 }
 
@@ -38,11 +41,12 @@ export function StepConfirmation() {
     selectedTimeSlot, 
     selectedDuration, 
     assignedBayId,
+    proposedBayId,
     simulators,
     userDetails, 
     reset,
     isConfirmed,
-    setIsConfirmed,
+    confirmBay,
     setStep,
     setIsSubmitting,
   } = useBookingStore();
@@ -56,8 +60,8 @@ export function StepConfirmation() {
 
   const bookingMutation = useMutation({
     mutationFn: createBooking,
-    onSuccess: () => {
-      setIsConfirmed(true);
+    onSuccess: (result, request) => {
+      confirmBay(request.bayType, result.reservation.bayType);
       setIsSubmitting(false);
     },
     onError: (error: Error) => {
@@ -96,6 +100,8 @@ export function StepConfirmation() {
   };
 
   if (isConfirmed) {
+    const confirmedBayName = simulators.find(s => s.id === assignedBayId)?.name || `Baie ${assignedBayId}`;
+    const proposedBayName = simulators.find(s => s.id === proposedBayId)?.name || `Baie ${proposedBayId}`;
     return (
       <div className="text-center py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -108,6 +114,14 @@ export function StepConfirmation() {
         <p className="text-sm text-muted-foreground mb-8">
           Le paiement s'effectue sur place.
         </p>
+        <p className="text-base font-semibold text-foreground mb-2" data-testid="confirmed-bay">
+          Simulateur confirmé : {confirmedBayName}
+        </p>
+        {proposedBayId && proposedBayId !== assignedBayId && (
+          <p className="text-sm text-primary font-medium mb-8" data-testid="bay-changed-notice">
+            Votre baie a changé de {proposedBayName} à {confirmedBayName} lors de la confirmation pour assurer la meilleure disponibilité. L'heure et la durée restent les mêmes.
+          </p>
+        )}
         <Button onClick={handleReset} size="lg" className="min-w-[200px] rounded-full font-bold uppercase tracking-wider" data-testid="button-new-booking">
           Réserver une autre session
         </Button>
@@ -177,7 +191,7 @@ export function StepConfirmation() {
            <div>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Simulateur</p>
             <p className="text-base font-semibold text-foreground">{bayName}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Attribué automatiquement pour la meilleure disponibilité</p>
+             <p className="text-xs text-muted-foreground mt-0.5">Baie proposée, réévaluée lors de la confirmation selon les disponibilités.</p>
           </div>
         </div>
       </div>

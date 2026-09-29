@@ -7,6 +7,7 @@ interface BookingStore {
   selectedDate: Date;
   selectedTimeSlot: string | null;
   assignedBayId: string | null;
+  proposedBayId: string | null;
   userDetails: BookingDetails | null;
   isSubmitting: boolean;
   isConfirmed: boolean;
@@ -24,6 +25,7 @@ interface BookingStore {
   setIsLoadingBookings: (loading: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
   setIsConfirmed: (confirmed: boolean) => void;
+  confirmBay: (proposedBayId: string, actualBayId: string) => void;
   reset: () => void;
 }
 
@@ -40,6 +42,7 @@ export const useBookingStore = create<BookingStore>((set) => ({
   selectedDate: new Date(),
   selectedTimeSlot: null,
   assignedBayId: null,
+  proposedBayId: null,
   userDetails: null,
   isSubmitting: false,
   isConfirmed: false,
@@ -50,19 +53,21 @@ export const useBookingStore = create<BookingStore>((set) => ({
 
   setStep: (step) => set({ step }),
   setDuration: (minutes) => set({ selectedDuration: minutes }),
-  setDate: (date) => set({ selectedDate: date, selectedTimeSlot: null, assignedBayId: null }),
-  setTimeSlot: (time, bayId) => set({ selectedTimeSlot: time, assignedBayId: bayId }),
+  setDate: (date) => set({ selectedDate: date, selectedTimeSlot: null, assignedBayId: null, proposedBayId: null }),
+  setTimeSlot: (time, bayId) => set({ selectedTimeSlot: time, assignedBayId: bayId, proposedBayId: null }),
   setUserDetails: (details) => set({ userDetails: details }),
   setBookings: (bookings) => set({ bookings }),
   setIsLoadingBookings: (loading) => set({ isLoadingBookings: loading }),
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
   setIsConfirmed: (confirmed) => set({ isConfirmed: confirmed }),
+  confirmBay: (proposedBayId, actualBayId) => set({ proposedBayId, assignedBayId: actualBayId, isConfirmed: true }),
   
   reset: () => set({
     step: 1,
     selectedDuration: null,
     selectedTimeSlot: null,
     assignedBayId: null,
+    proposedBayId: null,
     userDetails: null,
     isSubmitting: false,
     isConfirmed: false,

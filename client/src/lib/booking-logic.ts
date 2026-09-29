@@ -110,7 +110,8 @@ export function getOptimizedStartTimes(
               bayClustering: 0,
               peakHour: 0,
               inefficientGap: 0,
-              openStretchPenalty: 0,
+              durationBonus: 0,
+              durationStrategy: 0,
               total: 0
             };
 
@@ -135,7 +136,8 @@ export function getOptimizedStartTimes(
               breakdown.bayClustering + 
               breakdown.peakHour + 
               breakdown.inefficientGap +
-              breakdown.openStretchPenalty;
+              breakdown.durationBonus +
+              breakdown.durationStrategy;
             
             score = breakdown.total;
         }

@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Booking } from "@shared/schema";
+import { type Booking, type InsertBooking } from "@shared/schema";
 import { 
   createCalendarEvent, 
   deleteCalendarEvent, 
@@ -19,9 +19,9 @@ import {
 } from "./googleCalendar";
 import { 
   getOptimizedStartTimes, 
-  validateBayAssignment, 
   type BookingRecord 
 } from "./booking-logic";
+import { getConfirmationBay } from "./confirmation-bay";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "./middleware/security";
@@ -731,12 +731,6 @@ export async function registerRoutes(
       }
 
       const bookingDateStr = validatedData.date.toISOString().split('T')[0];
-      const existingBookings = await storage.getBookingsByDateRange(
-        new Date(new Date(bookingDateStr).setHours(0, 0, 0, 0)),
-        new Date(new Date(bookingDateStr).setHours(23, 59, 59, 999))
-      );
-      const formattedForLogic = formatBookingsForLogic(existingBookings, bookingDateStr);
-
       const bookingDayOfWeek = validatedData.date.getUTCDay();
       const bookingDaySchedule = await storage.getScheduleForDay(bookingDayOfWeek);
       const bookingSchedule = bookingDaySchedule ? {
@@ -748,25 +742,7 @@ export async function registerRoutes(
         closeMinute: bookingDaySchedule.closeMinute,
       } : undefined;
 
-      const bayValidation = validateBayAssignment(
-        validatedData.date,
-        validatedData.time,
-        durationMinutes,
-        validatedData.bayType,
-        formattedForLogic,
-        undefined,
-        bookingSchedule
-      );
-
-      if (!bayValidation.valid) {
-        return res.status(409).json({
-          ok: false,
-          message: bayValidation.reason || "Ce créneau n'est pas disponible.",
-          suggestedBayId: bayValidation.suggestedBayId,
-        });
-      }
-      
-      const bookingData = {
+      const bookingData: InsertBooking = {
         name: validatedData.name,
         email: validatedData.email,
         phone: validatedData.phone || null,
@@ -781,27 +757,26 @@ export async function registerRoutes(
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
         (existingBookings: Booking[]) => {
-          const requestedBay = validatedData.bayType;
-          const newStartMinutes = parseTimeToMinutes(validatedData.time);
-          const newDurationMinutes = parseDurationToMinutes(validatedData.duration);
-          const newEndMinutes = newStartMinutes + newDurationMinutes;
-          
-          const newSlots = new Set<number>();
-          for (let m = newStartMinutes; m < newEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
-            newSlots.add(m);
-          }
-          
+          // This callback runs after the date's transaction lock and its fresh
+          // bookings read, immediately before the insert in the same transaction.
+          const finalBayId = getConfirmationBay(
+            validatedData.date,
+            validatedData.time,
+            durationMinutes,
+            formatBookingsForLogic(existingBookings, bookingDateStr),
+            bookingSchedule
+          );
+          if (!finalBayId) return true;
+          bookingData.bayType = finalBayId;
+
           for (const existing of existingBookings) {
-            if (existing.bayType !== requestedBay) continue;
+            if (existing.bayType !== finalBayId) continue;
             
             const existingStartMinutes = parseTimeToMinutes(existing.time);
             const existingDurationMinutes = parseDurationToMinutes(existing.duration);
             const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
-            
-            for (let m = existingStartMinutes; m < existingEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
-              if (newSlots.has(m)) {
-                return true;
-              }
+            if (startMinutes < existingEndMinutes && endMinutes > existingStartMinutes) {
+              return true;
             }
           }
           
@@ -825,7 +800,7 @@ export async function registerRoutes(
           date: validatedData.date,
           time: validatedData.time,
           duration: validatedData.duration,
-          bayType: validatedData.bayType,
+          bayType: booking.bayType,
           players: validatedData.players,
           notes: validatedData.notes || null,
         });
