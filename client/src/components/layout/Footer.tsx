@@ -55,7 +55,7 @@ export default function Footer() {
                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Mail className="w-4 h-4 shrink-0" />
                 </div>
-                <a href="mailto:info@golfsimst.com" className="hover:text-white transition-colors font-sans text-sm font-bold tracking-wide">info@golfsimst.com</a>
+                <a href="mailto:golfsim.soreltracy@gmail.com" className="hover:text-white transition-colors font-sans text-sm font-bold tracking-wide">golfsim.soreltracy@gmail.com</a>
               </li>
             </ul>
           </div>

@@ -144,7 +144,7 @@ export default function CookiePolicy() {
             <div className="bg-background/50 p-6 rounded-lg border border-foreground/10">
               <p className="font-bold text-foreground">Golf SIM Sorel-Tracy</p>
               <p>215 Bd Fiset, Sorel-Tracy, QC J3P 3P3</p>
-              <p>Courriel : <a href="mailto:info@golfsimst.com" className="text-primary hover:underline">info@golfsimst.com</a></p>
+              <p>Courriel : <a href="mailto:golfsim.soreltracy@gmail.com" className="text-primary hover:underline">golfsim.soreltracy@gmail.com</a></p>
               <p>Téléphone : <a href="tel:+14505613815" className="text-primary hover:underline">(450) 561-3815</a></p>
             </div>
           </section>

@@ -129,7 +129,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-bold uppercase text-xs tracking-wider mb-1">Courriel</h4>
-                    <p className="text-muted-foreground font-sans text-sm">info@golfsimst.com</p>
+                    <p className="text-muted-foreground font-sans text-sm">golfsim.soreltracy@gmail.com</p>
                   </div>
                 </div>
 
