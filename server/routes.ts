@@ -22,6 +22,7 @@ import {
   type BookingRecord 
 } from "./booking-logic";
 import { getConfirmationBay } from "./confirmation-bay";
+import { isStaffSlotAvailable, isWithinPublicBookingHours } from "./staff-booking";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "./middleware/security";
@@ -43,6 +44,19 @@ const bookingRequestSchema = z.object({
   bayType: z.enum(["1", "2", "3", "4"]),
   players: z.number().min(1).max(4),
   notes: z.string().optional(),
+});
+
+const staffBookingSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  email: z.union([z.literal(""), z.string().email()]).default(""),
+  phone: z.string().max(100).default(""),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =>
+    !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  duration: z.enum(["1h", "2h", "3h", "4h"]),
+  bayType: z.enum(["1", "2", "3", "4"]),
+  players: z.number().int().min(1).max(4),
+  notes: z.string().max(2000).default(""),
 });
 
 const loginSchema = z.object({
@@ -268,6 +282,74 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching bookings:", error);
       return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des réservations" });
+    }
+  });
+
+  app.post("/api/admin/bookings", requireAdmin, async (req: Request, res: Response) => {
+    const parsed = staffBookingSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ ok: false, message: "Données de réservation invalides.", errors: parsed.error.errors });
+    }
+    const input = parsed.data;
+    const date = new Date(`${input.date}T00:00:00.000Z`);
+    const durationMinutes = parseDurationToMinutes(input.duration);
+    if (!isWithinPublicBookingHours(input.time, durationMinutes)) {
+      return res.status(400).json({ ok: false, message: "Les réservations doivent commencer à partir de 8h et se terminer au plus tard à 22h." });
+    }
+    try {
+      const daySchedule = await storage.getScheduleForDay(date.getUTCDay());
+      const schedule = daySchedule ? {
+        openHour: daySchedule.openHour, openMinute: daySchedule.openMinute,
+        lastBookingHour: daySchedule.lastBookingHour, lastBookingMinute: daySchedule.lastBookingMinute,
+        closeHour: daySchedule.closeHour, closeMinute: daySchedule.closeMinute,
+      } : undefined;
+      const bookingData: InsertBooking = {
+        name: sanitizeString(input.name),
+        email: input.email ? sanitizeEmail(input.email) : "",
+        phone: input.phone ? sanitizePhone(input.phone) : null,
+        date,
+        time: input.time,
+        duration: input.duration,
+        bayType: input.bayType,
+        players: input.players,
+        notes: input.notes ? sanitizeString(input.notes) : null,
+      };
+      const { booking, conflict } = await storage.createBookingWithConflictCheck(
+        bookingData,
+        existing => !isStaffSlotAvailable(
+          date, input.time, durationMinutes, input.bayType,
+          formatBookingsForLogic(existing, input.date), schedule,
+        ),
+      );
+      if (conflict || !booking) {
+        return res.status(409).json({ ok: false, message: "Ce créneau n'est pas disponible pour cette baie et cet horaire." });
+      }
+      try {
+        const calendarEventId = await createCalendarEvent(bookingData);
+        if (!calendarEventId) {
+          console.error("Google Calendar returned no event ID for staff booking");
+          await storage.deleteBooking(booking.id);
+          return res.status(500).json({ ok: false, message: "L'événement calendrier n'a pas été confirmé. Réservation annulée." });
+        }
+        try {
+          await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+        } catch (error) {
+          console.error("Failed to save staff booking calendar event ID:", error);
+          try { await deleteCalendarEvent(calendarEventId); } catch (deleteError) {
+            console.error("Failed to delete orphaned calendar event:", deleteError);
+          }
+          await storage.deleteBooking(booking.id);
+          return res.status(500).json({ ok: false, message: "Erreur lors de la sauvegarde. Veuillez réessayer." });
+        }
+        return res.status(201).json({ ok: true, booking: { ...booking, calendarEventId } });
+      } catch (error) {
+        console.error("Failed to create staff booking calendar event:", error);
+        await storage.deleteBooking(booking.id);
+        return res.status(500).json({ ok: false, message: "Erreur lors de la création de l'événement calendrier. Veuillez réessayer." });
+      }
+    } catch (error) {
+      console.error("Staff booking error:", error);
+      return res.status(500).json({ ok: false, message: "Erreur lors de la réservation." });
     }
   });
 

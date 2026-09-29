@@ -15,8 +15,8 @@ Leave the existing closing-time/cutoff behavior unchanged unless separately auth
 
 **How to apply:** Do not bundle a closing-time correction with scoring changes.
 
-Staff enter ordinary phone reservations through the public site; business-rule exceptions are made through Google Calendar only, not a new website override.
+Staff may enter ordinary phone reservations through the public site or the admin calendar creation modal. Business-rule exceptions remain through Google Calendar only, not a new website override.
 
-**Why:** This is the user's chosen staff workflow.
+**Why:** The user subsequently requested direct admin-calendar creation for speed, without authorizing changes to booking rules.
 
 **How to apply:** Do not add admin override controls as part of optimization. Any confirmation-time reassignment must clearly display the final bay.

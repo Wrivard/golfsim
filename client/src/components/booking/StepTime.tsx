@@ -61,6 +61,8 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
     queryKey: ['optimized-slots', dateStr, selectedDuration],
     queryFn: () => fetchOptimizedSlots(dateStr, selectedDuration || 60),
     staleTime: 15000,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
     enabled: !!selectedDuration,
   });
 

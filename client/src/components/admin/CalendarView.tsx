@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink, Check, Loader2, Plus } from "lucide-react";
 import { format, addDays, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { parseDurationToMinutes } from "./calendarDuration";
+import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
 
 interface Booking {
   id: string;
@@ -58,6 +59,10 @@ const TIME_COL_WIDTH = 56;
 export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [createPrefill, setCreatePrefill] = useState<BookingPrefill | null>(null);
+  const openCreate = (bayType = "1", time = "08:00") => setCreatePrefill({
+    date: format(selectedDate, "yyyy-MM-dd"), time, bayType,
+  });
 
   const dayBookings = useMemo(() => {
     const dateStr = format(selectedDate, "yyyy-MM-dd");
@@ -98,16 +103,19 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
     <>
       <Card className="shadow-lg border-none" data-testid="card-calendar-view">
         <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
               <Calendar className="w-5 h-5" />
               Vue calendrier
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" onClick={() => openCreate()} className="bg-[#2B5734] hover:bg-[#23482b] text-white gap-1.5">
+                <Plus className="w-4 h-4" /> Ajouter
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-prev-day">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))} className={`text-white hover:bg-white/10 text-sm font-heading uppercase tracking-wider min-w-[180px] ${isToday ? "bg-white/10" : ""}`} data-testid="button-today">
+              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))} className={`text-white hover:bg-white/10 text-sm font-heading uppercase tracking-wider ${isToday ? "bg-white/10" : ""}`} data-testid="button-today">
                 {format(selectedDate, "EEEE d MMMM", { locale: fr })}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-next-day">
@@ -162,7 +170,17 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                           const bayBookings = dayBookings.filter((b) => b.bayType === bay);
                           const colors = BAY_COLORS[bay];
                           return (
-                            <div key={bay} className="relative border-r border-gray-200 last:border-r-0">
+                            <div
+                              key={bay}
+                              className="relative border-r border-gray-200 last:border-r-0 cursor-crosshair"
+                              title={`Ajouter une réservation — baie ${bay}`}
+                              onClick={e => {
+                                const bounds = e.currentTarget.getBoundingClientRect();
+                                const halfHours = Math.floor(Math.max(0, e.clientY - bounds.top) / (HOUR_HEIGHT / 2));
+                                const minutes = START_HOUR * 60 + Math.min(halfHours * 30, (END_HOUR - START_HOUR) * 60 - 30);
+                                openCreate(bay, `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
+                              }}
+                            >
                               {bayBookings.map((booking) => {
                                 const startMin = parseTimeToMinutes(booking.time);
                                 const durMin = parseDurationToMinutes(booking.duration);
@@ -234,6 +252,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
           isDeleting={isDeleting}
         />
       )}
+      {createPrefill && <CreateBookingDialog key={`${createPrefill.date}-${createPrefill.time}-${createPrefill.bayType}`} prefill={createPrefill} onClose={() => setCreatePrefill(null)} />}
     </>
   );
 }

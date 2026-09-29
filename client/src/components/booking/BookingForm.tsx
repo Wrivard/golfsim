@@ -145,6 +145,8 @@ export default function BookingForm() {
     queryKey: ['availability', monthStart.toISOString(), monthEnd.toISOString(), durationHours],
     queryFn: () => fetchAvailability(monthStart, monthEnd, durationHours),
     staleTime: 30000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {

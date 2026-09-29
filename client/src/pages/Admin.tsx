@@ -183,6 +183,9 @@ export default function Admin() {
     queryKey: ["adminBookings"],
     queryFn: fetchBookings,
     enabled: sessionQuery.data?.authenticated,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+    staleTime: 15000,
   });
 
   const scheduleQuery = useQuery({
