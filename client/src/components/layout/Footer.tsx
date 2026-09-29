@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react";
+import { Facebook, MapPin, Phone, Mail } from "lucide-react";
 import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
 import kuaLogo from "@assets/white-letter-kua-logo_1764361974050.png";
 
@@ -66,9 +66,6 @@ export default function Footer() {
             <div className="flex gap-4">
               <a href="https://www.facebook.com/p/Golf-SIM-Sorel-Tracy-100063923208468/" target="_blank" rel="noopener noreferrer" aria-label="Golf SIM Sorel-Tracy sur Facebook" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">
                 <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all text-white/60">
-                <Instagram className="w-5 h-5" />
               </a>
             </div>
             <div className="pt-6 border-t border-white/10">
