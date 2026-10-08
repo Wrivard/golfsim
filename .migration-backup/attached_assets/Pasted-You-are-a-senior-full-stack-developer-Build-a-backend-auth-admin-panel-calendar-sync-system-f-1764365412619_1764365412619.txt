@@ -1,0 +1,41 @@
+You are a senior full-stack developer. Build a backend + auth + admin panel + calendar sync system for “Golf SIM Sorel-Tracy”.  
+Use: Next.js + Node.js + React + NextAuth.js for authentication + googleapis (Google Calendar API Client) for calendar sync + a simple database (SQLite, JSON, or whichever) to store reservations and tokens.
+
+### 1. Authentication / Admin login:
+- Use NextAuth.js (or a comparable OAuth 2.0 solution) to allow login with Google.  
+- Only authenticated admin users can access the “Admin” dashboard or calendar-connection page.  
+- Store user session securely (cookies or session tokens).  
+
+### 2. Calendar connection / OAuth & permissions:
+- After login, provide an “Connect with Google Calendar” button in admin dashboard.  
+- On click, trigger Google OAuth consent flow requesting scopes: at minimum `https://www.googleapis.com/auth/calendar.events` (or similar) so the app can create events. :contentReference[oaicite:3]{index=3}  
+- After consent, store the OAuth access & refresh token (or service credentials) securely in the database, associated with the admin user.  
+- Also store the `calendarId` (or allow admin to choose which calendar) in config or DB.  
+
+### 3. Reservation API + Calendar sync:
+- Provide API route (e.g. POST `/api/bookings`) that receives reservation data: name, email, phone, date, start time, duration, number of players, bay type, remarks.  
+- On submission:  
+   • Validate inputs (required fields)  
+   • Check availability by querying your reservations DB (avoid overlapping bookings)  
+   • If available: save reservation in DB, then use stored Google OAuth credentials to call Google Calendar API and create an event in the linked calendar. Use `calendar.events.insert(...)`. :contentReference[oaicite:4]{index=4}  
+   • Save the returned `eventId` (from Google) in the reservation record (for future modification / cancellation).  
+- If calendar insertion fails: roll back the reservation (delete from DB) and return error.  
+
+### 4. Admin panel for management:
+- Protected route (admin only), show list of existing reservations (from DB), with details (date, time, players, bay, event link).  
+- Provide option to “Reconnect calendar” (for example if tokens expire), or “Disconnect calendar / change calendar account.”  
+- Provide a setting page to change / update `calendarId` or OAuth credentials if needed.  
+
+### 5. Environment & config:
+- Use `.env` or secret storage for sensitive values (e.g. `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, redirect URI, etc.)  
+- In README, document how to set up a project on Google Cloud Console, enable Calendar API, set authorized redirect URIs (e.g. `/api/auth/callback/google` for NextAuth). :contentReference[oaicite:5]{index=5}  
+
+### 6. Security & error handling:
+- Ensure backend never exposes credentials or tokens to frontend.  
+- Handle token refresh if using OAuth (refresh_token) so calendar insertion continues working. See token rotation best practice. :contentReference[oaicite:6]{index=6}  
+- Validate user inputs, avoid SQL injection (if using SQL), sanitize inputs.  
+- Log errors, return appropriate HTTP status codes and JSON errors for frontend to catch.  
+
+### 7. Code organization & deliverables:
+- Provide Next.js API routes for auth callbacks, booking creation, admin resources.  
+- Provide React components/pages for: admin login (handled by NextAuth), admin dashboard, calendar-connect page, booking confirmation/reservation API.

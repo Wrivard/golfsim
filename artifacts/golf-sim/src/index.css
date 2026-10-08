@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  
+  --font-sans: "DM Sans", sans-serif;
+  --font-heading: "Oswald", sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  /* User Specified Palette */
+  /* White/Cream: #F7F3E8 -> HSL(44, 48%, 94%) */
+  --background: 44 48% 94%;
+  
+  /* Black: #1B1A18 -> HSL(40, 6%, 10%) */
+  --foreground: 40 6% 10%;
+
+  /* Card: Same as background for this style, or slightly lighter */
+  --card: 44 48% 94%;
+  --card-foreground: 40 6% 10%;
+
+  /* Popover */
+  --popover: 44 48% 94%;
+  --popover-foreground: 40 6% 10%;
+
+  /* Primary Green: #2B5734 -> HSL(132, 34%, 25%) */
+  --primary: 132 34% 25%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Light Greenish tint or just darker cream */
+  --secondary: 132 10% 90%;
+  --secondary-foreground: 132 34% 25%;
+
+  /* Muted */
+  --muted: 40 10% 85%;
+  --muted-foreground: 40 10% 40%;
+
+  /* Accent: Keeping Gold for subtle touches if needed */
+  --accent: 35 50% 55%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Destructive */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Borders */
+  --border: 40 6% 10%; /* Dark borders for high contrast look */
+  --input: 40 6% 10%;
+  --ring: 132 34% 25%;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Inverted for Dark Mode if user switches */
+  --background: 40 6% 10%;
+  --foreground: 44 48% 94%;
+  
+  --card: 40 6% 12%;
+  --card-foreground: 44 48% 94%;
+  
+  --primary: 132 34% 35%; /* Slightly lighter green */
+  --primary-foreground: 0 0% 100%;
+  
+  --border: 44 20% 20%;
+  --input: 44 20% 20%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold uppercase tracking-tight;
+  }
+}
+
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
