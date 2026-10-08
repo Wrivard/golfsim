@@ -30,7 +30,7 @@ export default function FAQ() {
               Quelle est la précision des simulateurs ?
             </AccordionTrigger>
             <AccordionContent className="text-base font-sans text-muted-foreground pb-6 leading-relaxed">
-              Extrêmement précis. Nous utilisons la technologie Trackman 4, qui est le standard de l'industrie utilisé par les professionnels de la PGA. Il suit la vitesse de la balle, le taux de rotation, l'angle de lancement et plus encore avec une précision radar Doppler.
+              Nos simulateurs utilisent GSPro pour afficher des parcours virtuels et les données de jeu pendant votre partie.
             </AccordionContent>
           </AccordionItem>
 

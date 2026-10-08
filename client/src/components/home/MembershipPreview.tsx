@@ -43,7 +43,7 @@ export default function MembershipPreview() {
                  </h3>
                  <ul className="space-y-6">
                     {[
-                      { title: "4 Simulateurs", desc: "Technologie Trackman 4 sur tous nos écrans." },
+                      { title: "4 Simulateurs", desc: "Nos simulateurs utilisent le logiciel GSPro." },
                       { title: "Groupes de 4", desc: "Jusqu'à 4 joueurs par simulateur." },
                       { title: "Sessions Flexibles", desc: "De 1 à 4 heures pour jouer à votre rythme." },
                       { title: "Ambiance Lounge", desc: "Service de bar et détente sur place." }

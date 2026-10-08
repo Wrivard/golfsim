@@ -5,7 +5,7 @@ const REVIEWS = [
   {
     name: "Marc-André L.",
     role: "Client Fidèle",
-    text: "La précision des simulateurs Trackman est inégalée. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
+    text: "L'expérience sur les simulateurs GSPro est incroyable. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
     rating: 5,
     theme: "light"
   },

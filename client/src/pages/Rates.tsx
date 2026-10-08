@@ -56,7 +56,7 @@ export default function Rates() {
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                   <Check className="w-3 h-3" />
                 </div>
-                <span>Technologie Trackman 4</span>
+                <span>Simulateurs propulsés par GSPro</span>
               </li>
               <li className="flex items-center gap-4 text-sm font-sans font-medium">
                 <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">

@@ -1,1 +1,2 @@
 - [Booking optimization boundaries](booking-boundaries.md) — approved optimization scope and deliberately preserved business behavior.
+- [Simulator brand](simulator-brand.md) — Golf SIM Sorel-Tracy uses GSPro, not Trackman, for its simulator setup.

@@ -91,7 +91,7 @@ export default function Home() {
                   Simulateurs
                 </h3>
                 <p className="text-xs md:text-sm font-sans text-background/80 leading-relaxed hidden md:block">
-                  Jouez sur des parcours de renommée mondiale avec la technologie Trackman.
+                  Jouez sur des parcours de renommée mondiale avec GSPro.
                 </p>
               </div>
 
@@ -135,7 +135,7 @@ export default function Home() {
                 />
                 {/* Tech Overlay Tag */}
                 <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur px-4 py-2 rounded text-xs font-bold uppercase tracking-widest z-20">
-                   Trackman 4
+                   GSPro
                 </div>
              </div>
              <div className="space-y-8 order-1 md:order-2">
@@ -146,7 +146,7 @@ export default function Home() {
                   Technologie <br/> <span className="text-primary">Pro</span>
                 </h2>
                 <p className="text-lg font-sans leading-relaxed max-w-md text-muted-foreground">
-                  Découvrez la précision de la technologie Trackman 4. Chaque drive, approche et putt est capturé avec une précision hyper-réaliste, vous permettant d'analyser votre jeu comme un pro.
+                  Découvrez GSPro, le logiciel de simulation qui vous permet de jouer sur des parcours virtuels et de consulter les données de vos coups.
                 </p>
                 
                 <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-sm cursor-pointer group">

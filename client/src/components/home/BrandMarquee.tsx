@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 const BRANDS = [
-  "TRACKMAN",
+  "GSPRO",
   "TITLEIST",
   "TAYLORMADE",
   "CALLAWAY",
@@ -14,10 +14,6 @@ const BRANDS = [
 export default function BrandMarquee() {
   return (
     <div className="w-full bg-foreground text-background py-12 overflow-hidden border-y border-white/10">
-      <div className="container mx-auto px-4 mb-8 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">Propulsé par les leaders de l'industrie</p>
-      </div>
-      
       <div className="relative flex overflow-hidden group no-scrollbar">
         <motion.div
           className="flex items-center gap-16 md:gap-32 whitespace-nowrap"
