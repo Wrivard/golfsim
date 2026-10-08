@@ -1,9 +1,8 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import BrandMarquee from "@/components/home/BrandMarquee";
 import Testimonials from "@/components/home/Testimonials";
 import SimulatorCTA from "@/components/home/SimulatorCTA";
 import MembershipPreview from "@/components/home/MembershipPreview";
@@ -109,11 +108,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Brand Marquee */}
-      <div className="relative z-20">
-         <BrandMarquee />
-      </div>
-
       {/* How It Works */}
       <div className="relative z-10">
          <HowItWorks />
@@ -148,11 +142,6 @@ export default function Home() {
                 <p className="text-lg font-sans leading-relaxed max-w-md text-muted-foreground">
                   Découvrez GSPro, le logiciel de simulation qui vous permet de jouer sur des parcours virtuels et de consulter les données de vos coups.
                 </p>
-                
-                <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-sm cursor-pointer group">
-                   <span>En savoir plus sur notre tech</span>
-                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </div>
              </div>
            </div>
         </div>
