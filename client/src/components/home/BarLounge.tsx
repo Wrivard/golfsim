@@ -36,7 +36,7 @@ export default function BarLounge() {
               </div>
 
               <div className="pt-4">
-                <Link href="/contact">
+                <Link href="/booking">
                   <Button className="bg-foreground text-background hover:bg-primary hover:text-white rounded-full px-8 h-14 text-sm font-bold uppercase tracking-wider transition-all">
                     Réserver une table
                   </Button>

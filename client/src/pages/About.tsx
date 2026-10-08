@@ -106,7 +106,7 @@ export default function About() {
         </div>
         
         <div className="mt-24 text-center">
-           <Link href="/contact">
+           <Link href="/booking">
               <Button className="bg-foreground text-background hover:bg-primary hover:text-white rounded-full px-12 h-16 text-sm font-bold uppercase tracking-wider transition-all">
                 Rejoindre le Club
               </Button>

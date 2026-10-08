@@ -62,7 +62,7 @@ export default function BookingPage() {
         <div className="container mx-auto px-4 text-center relative z-10">
           <span className="text-white text-sm font-bold tracking-widest uppercase mb-4 block animate-in fade-in-50 duration-700">Golf SIM Sorel-Tracy</span>
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold mb-6 text-white uppercase tracking-tighter leading-none animate-in slide-in-from-bottom-5 duration-700">
-            Réserver un <span className="text-primary">Bay</span>
+            Réserver une <span className="text-primary">Bay</span>
           </h1>
           <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed font-sans animate-in slide-in-from-bottom-5 duration-700 delay-100">
             Sélectionnez votre date et heure pour profiter de l'expérience de golf ultime.

@@ -3,23 +3,23 @@ import { Star } from "lucide-react";
 
 const REVIEWS = [
   {
-    name: "Marc-André L.",
-    role: "Client Fidèle",
-    text: "L'expérience sur les simulateurs GSPro est incroyable. Ça a complètement changé ma routine d'entraînement durant l'hiver.",
+    name: "Stéphane Cyr",
+    role: "2 avis · il y a 4 ans",
+    text: "Belle endroit propre, avec bon conseil et service, très friendly, permet de faire une bonne partie sans stress...",
     rating: 5,
     theme: "light"
   },
   {
-    name: "Équipe Tech Sorel",
-    role: "Soirée Corporative",
-    text: "L'endroit idéal pour notre party de bureau. L'ambiance était parfaite et même les débutants ont adoré l'expérience.",
+    name: "David Brouillette",
+    role: "2 avis · il y a 3 ans",
+    text: "Endroit calme excellent service et du plaisir garantie",
     rating: 5,
     theme: "dark"
   },
   {
-    name: "Jean-Pierre G.",
-    role: "Client Régulier",
-    text: "Pouvoir réserver un écran pour 4h avec mes amis est génial. L'application de réservation est super simple à utiliser.",
+    name: "Les SMB",
+    role: "Guide local · 324 avis · 64 photos · il y a 2 ans",
+    text: "Bon personnel 👍",
     rating: 5,
     theme: "light"
   }
