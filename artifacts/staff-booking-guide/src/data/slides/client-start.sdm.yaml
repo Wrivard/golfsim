@@ -1,0 +1,659 @@
+format: replit.sdm
+version: 1
+size:
+  width: 1920
+  height: 1080
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
+theme:
+  colors:
+    background: "#F7F3E8"
+    foreground: "#1B1A18"
+    accent: "#2B5734"
+    surface: "#FFFFFF"
+    muted: "#70695C"
+  fonts:
+    display: Oswald
+    body: DM Sans
+assets:
+  p1-r1:
+    src: images/simple-p1-r1.png
+  p1-r2-date:
+    src: images/simple-p1-r2-date.png
+  p1-r2-calendar:
+    src: images/simple-p1-r2-calendar.png
+  p1-r3:
+    src: images/simple-p1-r3.png
+elements:
+  - id: brand
+    type: text
+    frame:
+      x: 96
+      y: 64
+      width: 1380
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: GOLF SIM · GUIDE DE RÉSERVATION
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 16
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: chapter
+    type: text
+    frame:
+      x: 1560
+      y: 64
+      width: 264
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: CLIENT
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 16
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: right
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: title
+    type: text
+    frame:
+      x: 96
+      y: 129
+      width: 1728
+      height: 118
+    body:
+      paragraphs:
+        - runs:
+            - text: Client — choisir le créneau
+          defaultRunStyle:
+            font:
+              kind: token
+              token: display
+            sizePt: 38
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: header-rule
+    type: shape
+    frame:
+      x: 96
+      y: 239
+      width: 1728
+      height: 4
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: p1-r1-background
+    type: shape
+    frame:
+      x: 377.2325581395349
+      y: 262
+      width: 337.5348837209302
+      height: 226
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p1-r1
+    type: image
+    assetId: p1-r1
+    fit: contain
+    frame:
+      x: 381.2325581395349
+      y: 266
+      width: 329.5348837209302
+      height: 218
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p1-r1-target
+    type: shape
+    frame:
+      x: 382.83720930232556
+      y: 267.6046511627907
+      width: 326.3255813953488
+      height: 214.7906976744186
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-1-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 340
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-1-number
+    type: text
+    frame:
+      x: 1040
+      y: 350
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "1"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-1-title
+    type: text
+    frame:
+      x: 1140
+      y: 262
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Choisir la durée
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-1-body
+    type: text
+    frame:
+      x: 1140
+      y: 326
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Cliquer sur « RÉSERVER », puis choisir 1, 2, 3 ou 4 heures.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-1-arrow
+    type: shape
+    frame:
+      x: 723.1627906976744
+      y: 363
+      width: 302.8372093023256
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: row-rule-0
+    type: shape
+    frame:
+      x: 96
+      y: 500
+      width: 1728
+      height: 1
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: muted
+  - id: p1-r2-date-background
+    type: shape
+    frame:
+      x: 92
+      y: 574.4426229508197
+      width: 456
+      height: 85.11475409836066
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p1-r2-date
+    type: image
+    assetId: p1-r2-date
+    fit: contain
+    frame:
+      x: 96
+      y: 578.4426229508197
+      width: 448
+      height: 77.11475409836066
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p1-r2-date-target
+    type: shape
+    frame:
+      x: 97.34426229508196
+      y: 572.4426229508197
+      width: 452.65573770491807
+      height: 81.77049180327869
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: p1-r2-calendar-background
+    type: shape
+    frame:
+      x: 614
+      y: 508
+      width: 226
+      height: 226
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p1-r2-calendar
+    type: image
+    assetId: p1-r2-calendar
+    fit: contain
+    frame:
+      x: 618
+      y: 512
+      width: 218
+      height: 218
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p1-r2-calendar-target
+    type: shape
+    frame:
+      x: 685.2790262172284
+      y: 578.8197565543071
+      width: 84.30945692883896
+      height: 84.30945692883896
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-2-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 586
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-2-number
+    type: text
+    frame:
+      x: 1040
+      y: 596
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "2"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-2-title
+    type: text
+    frame:
+      x: 1140
+      y: 508
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Choisir la date
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-2-body
+    type: text
+    frame:
+      x: 1140
+      y: 572
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Cliquer sur la date, puis choisir le jour dans le calendrier.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-2-arrow
+    type: shape
+    frame:
+      x: 783.5884831460673
+      y: 608.9744850187266
+      width: 242.41151685393265
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: row-rule-1
+    type: shape
+    frame:
+      x: 96
+      y: 746
+      width: 1728
+      height: 1
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: muted
+  - id: p1-r3-background
+    type: shape
+    frame:
+      x: 336.93220338983053
+      y: 754
+      width: 418.135593220339
+      height: 226
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p1-r3
+    type: image
+    assetId: p1-r3
+    fit: contain
+    frame:
+      x: 340.93220338983053
+      y: 758
+      width: 410.135593220339
+      height: 218
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p1-r3-target
+    type: shape
+    frame:
+      x: 344.7853107344633
+      y: 761.8531073446328
+      width: 412.2824858757062
+      height: 210.29378531073445
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-3-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 832
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-3-number
+    type: text
+    frame:
+      x: 1040
+      y: 842
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "3"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-3-title
+    type: text
+    frame:
+      x: 1140
+      y: 754
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Choisir l’heure
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-3-body
+    type: text
+    frame:
+      x: 1140
+      y: 818
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Cliquer sur une heure disponible. Sinon, essayer une autre date.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-3-arrow
+    type: shape
+    frame:
+      x: 771.0677966101695
+      y: 855
+      width: 254.93220338983053
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: footer
+    type: text
+    frame:
+      x: 96
+      y: 1015
+      width: 1430
+      height: 52
+    body:
+      paragraphs:
+        - runs:
+            - text: "Exemples fictifs : utiliser la date et les informations du client."
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 400
+            color:
+              kind: token
+              token: muted
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: pagination
+    type: text
+    frame:
+      x: 1600
+      y: 1015
+      width: 224
+      height: 52
+    body:
+      paragraphs:
+        - runs:
+            - text: PAGE 1 / 6
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 400
+            color:
+              kind: token
+              token: muted
+          align: right
+          lineHeight: 1.2
+          spaceAfterPt: 0

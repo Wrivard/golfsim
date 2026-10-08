@@ -1,0 +1,1 @@
+- [Staff training audience](staff-training.md) — printable French guide for older staff: six pages maximum and unique 1–2–3 instructions beside real screenshots.

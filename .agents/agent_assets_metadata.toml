@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ilcTWvOgYD2zU6Xxl2-Rr"
+uri = "file://artifacts/staff-booking-guide/docs/site-review.html"
+type = "html"
+title = "Revue du fonctionnement du site"
+description = "Parcours client et administration, contrôles de réservation, limites Google Calendar et principaux points à corriger."
+logical_id = "25a921d4-fd57-429e-8412-d15a25951acf"
+content_hash = "sha256:c6e036c29a1a5b65ae9ca88ab3df90495e202ea23eaa6770e1bef22dd37ccd05"
+size = 14795
+mtime_ms = 1791475577329
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/25a921d4-fd57-429e-8412-d15a25951acf/f56e1bd4-6ea7-479a-ba50-c740beccd591"
+storage_version_token = "1791475612154037"
+content_type = "text/html"
+
+[[outputs]]
+id = "vZLpZksosnNOffyG88gbM"
+uri = "file://.local/outputs/Guide-personnel-Golf-SIM.pdf"
+type = "pdf"
+title = "Guide du personnel — PDF imprimable"
+description = "12 pages en français · Lettre US paysage · Une page par feuille à 100 % · Captures réelles avec repères de clic."
+logical_id = "f8338df9-9f4a-415c-a088-4a17233486c8"
+content_hash = "sha256:d0db018d3a78ce822696830413fafa78090ceb9d3a2ae196546ef2c710987b5b"
+size = 952678
+mtime_ms = 1791475471933
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/f8338df9-9f4a-415c-a088-4a17233486c8/9ab0c99c-48a2-449f-b92a-041f20d6bdc1"
+storage_version_token = "1791475612729408"
+content_type = "application/pdf"

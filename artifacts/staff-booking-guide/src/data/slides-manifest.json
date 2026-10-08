@@ -1,0 +1,56 @@
+[
+  {
+    "id": "client-start",
+    "position": 1,
+    "kind": "sdm",
+    "filepath": "src/data/slides/client-start.sdm.yaml",
+    "title": "Client — choisir le créneau",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "client-details",
+    "position": 2,
+    "kind": "sdm",
+    "filepath": "src/data/slides/client-details.sdm.yaml",
+    "title": "Client — entrer les coordonnées",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "client-confirm",
+    "position": 3,
+    "kind": "sdm",
+    "filepath": "src/data/slides/client-confirm.sdm.yaml",
+    "title": "Client — confirmer la réservation",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "staff-login",
+    "position": 4,
+    "kind": "sdm",
+    "filepath": "src/data/slides/staff-login.sdm.yaml",
+    "title": "Admin — ouvrir une réservation",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "staff-save",
+    "position": 5,
+    "kind": "sdm",
+    "filepath": "src/data/slides/staff-save.sdm.yaml",
+    "title": "Admin — remplir la réservation",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "staff-check",
+    "position": 6,
+    "kind": "sdm",
+    "filepath": "src/data/slides/staff-check.sdm.yaml",
+    "title": "Admin — enregistrer et vérifier",
+    "description": "Guide simplifié : trois actions, avec chaque numéro une seule fois à côté de son texte.",
+    "speakerNotes": ""
+  }
+]

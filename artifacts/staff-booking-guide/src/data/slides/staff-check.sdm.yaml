@@ -1,0 +1,641 @@
+format: replit.sdm
+version: 1
+size:
+  width: 1920
+  height: 1080
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
+theme:
+  colors:
+    background: "#F7F3E8"
+    foreground: "#1B1A18"
+    accent: "#2B5734"
+    surface: "#FFFFFF"
+    muted: "#70695C"
+  fonts:
+    display: Oswald
+    body: DM Sans
+assets:
+  p6-r1:
+    src: images/simple-p6-r1.png
+  p6-r2:
+    src: images/simple-p6-r2.png
+  p6-r3-details:
+    src: images/simple-p6-r3-details.png
+  p6-r3-logout:
+    src: images/simple-p6-r3-logout.png
+elements:
+  - id: brand
+    type: text
+    frame:
+      x: 96
+      y: 64
+      width: 1380
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: GOLF SIM · GUIDE DE RÉSERVATION
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 16
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: chapter
+    type: text
+    frame:
+      x: 1560
+      y: 64
+      width: 264
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: ADMIN
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 16
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: right
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: title
+    type: text
+    frame:
+      x: 96
+      y: 129
+      width: 1728
+      height: 118
+    body:
+      paragraphs:
+        - runs:
+            - text: Admin — enregistrer et vérifier
+          defaultRunStyle:
+            font:
+              kind: token
+              token: display
+            sizePt: 38
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: header-rule
+    type: shape
+    frame:
+      x: 96
+      y: 239
+      width: 1728
+      height: 4
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: p6-r1-background
+    type: shape
+    frame:
+      x: 107.18478260869568
+      y: 262
+      width: 877.6304347826086
+      height: 226
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p6-r1
+    type: image
+    assetId: p6-r1
+    fit: contain
+    frame:
+      x: 111.18478260869568
+      y: 266
+      width: 869.6304347826086
+      height: 218
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p6-r1-target
+    type: shape
+    frame:
+      x: 125.17798913043481
+      y: 278.95652173913044
+      width: 842.6807065217391
+      height: 192.08695652173913
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-1-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 340
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-1-number
+    type: text
+    frame:
+      x: 1040
+      y: 350
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "1"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-1-title
+    type: text
+    frame:
+      x: 1140
+      y: 262
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Enregistrer
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-1-body
+    type: text
+    frame:
+      x: 1140
+      y: 326
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Cliquer une seule fois sur « Ajouter la réservation » et attendre.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-1-arrow
+    type: shape
+    frame:
+      x: 981.858695652174
+      y: 363
+      width: 44.14130434782601
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: row-rule-0
+    type: shape
+    frame:
+      x: 96
+      y: 500
+      width: 1728
+      height: 1
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: muted
+  - id: p6-r2-background
+    type: shape
+    frame:
+      x: 143.78666666666663
+      y: 508
+      width: 804.4266666666667
+      height: 226
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p6-r2
+    type: image
+    assetId: p6-r2
+    fit: contain
+    frame:
+      x: 147.78666666666663
+      y: 512
+      width: 796.4266666666667
+      height: 218
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p6-r2-target
+    type: shape
+    frame:
+      x: 185.38666666666663
+      y: 567.04
+      width: 692.16
+      height: 59.96
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-2-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 586
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-2-number
+    type: text
+    frame:
+      x: 1040
+      y: 596
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "2"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-2-title
+    type: text
+    frame:
+      x: 1140
+      y: 508
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Vérifier l’ajout
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-2-body
+    type: text
+    frame:
+      x: 1140
+      y: 572
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Attendre « Réservation ajoutée », puis ouvrir son bloc dans le calendrier.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-2-arrow
+    type: shape
+    frame:
+      x: 891.5466666666666
+      y: 585.02
+      width: 134.45333333333338
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: row-rule-1
+    type: shape
+    frame:
+      x: 96
+      y: 746
+      width: 1728
+      height: 1
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: muted
+  - id: p6-r3-details-background
+    type: shape
+    frame:
+      x: 92
+      y: 793.5882352941177
+      width: 568
+      height: 146.82352941176472
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p6-r3-details
+    type: image
+    assetId: p6-r3-details
+    fit: contain
+    frame:
+      x: 96
+      y: 797.5882352941177
+      width: 560
+      height: 138.82352941176472
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p6-r3-logout-background
+    type: shape
+    frame:
+      x: 692
+      y: 819.1428571428571
+      width: 308
+      height: 93.71428571428571
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-p6-r3-logout
+    type: image
+    assetId: p6-r3-logout
+    fit: contain
+    frame:
+      x: 696
+      y: 823.1428571428571
+      width: 300
+      height: 85.71428571428571
+    altText: Capture réelle de Golf SIM ; exemple fictif.
+  - id: p6-r3-logout-target
+    type: shape
+    frame:
+      x: 699.375
+      y: 825.7142857142857
+      width: 294.05357142857144
+      height: 80.57142857142857
+    geometry:
+      kind: preset
+      preset: roundRect
+      cornerRadius: 8
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: step-3-badge
+    type: shape
+    frame:
+      x: 1040
+      y: 832
+      width: 74
+      height: 74
+    geometry:
+      kind: preset
+      preset: ellipse
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: step-3-number
+    type: text
+    frame:
+      x: 1040
+      y: 842
+      width: 74
+      height: 56
+    body:
+      paragraphs:
+        - runs:
+            - text: "3"
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: surface
+          align: center
+          lineHeight: 1.05
+          spaceAfterPt: 0
+  - id: step-3-title
+    type: text
+    frame:
+      x: 1140
+      y: 754
+      width: 684
+      height: 64
+    body:
+      paragraphs:
+        - runs:
+            - text: Contrôler et sortir
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 24
+            weight: 700
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.1
+          spaceAfterPt: 0
+  - id: step-3-body
+    type: text
+    frame:
+      x: 1140
+      y: 818
+      width: 684
+      height: 170
+    body:
+      paragraphs:
+        - runs:
+            - text: Relire nom, date, heure, durée, baie et joueurs. Puis « Déconnexion ».
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 20
+            weight: 400
+            color:
+              kind: token
+              token: foreground
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: step-3-arrow
+    type: shape
+    frame:
+      x: 1007.4285714285714
+      y: 854
+      width: 18.571428571428555
+      height: 24
+    geometry:
+      kind: preset
+      preset: leftArrow
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: accent
+  - id: footer
+    type: text
+    frame:
+      x: 96
+      y: 1015
+      width: 1430
+      height: 52
+    body:
+      paragraphs:
+        - runs:
+            - text: Erreur à l’enregistrement ? Prévenir le responsable. Paiement sur place.
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 400
+            color:
+              kind: token
+              token: muted
+          align: left
+          lineHeight: 1.2
+          spaceAfterPt: 0
+  - id: pagination
+    type: text
+    frame:
+      x: 1600
+      y: 1015
+      width: 224
+      height: 52
+    body:
+      paragraphs:
+        - runs:
+            - text: PAGE 6 / 6
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 400
+            color:
+              kind: token
+              token: muted
+          align: right
+          lineHeight: 1.2
+          spaceAfterPt: 0

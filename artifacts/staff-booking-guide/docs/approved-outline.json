@@ -1,0 +1,50 @@
+[
+  [
+    "Client — choisir le créneau",
+    [
+      "Choisir la durée — Cliquer sur « RÉSERVER », puis choisir 1, 2, 3 ou 4 heures.",
+      "Choisir la date — Cliquer sur la date, puis choisir le jour dans le calendrier.",
+      "Choisir l’heure — Cliquer sur une heure disponible. Sinon, essayer une autre date."
+    ]
+  ],
+  [
+    "Client — entrer les coordonnées",
+    [
+      "Nom et courriel — Entrer le nom complet et l’adresse courriel du client.",
+      "Choisir les joueurs — Choisir de 1 à 4 joueurs. Téléphone et notes : facultatifs.",
+      "Continuer — Cocher les conditions, puis cliquer sur le bouton vert."
+    ]
+  ],
+  [
+    "Client — confirmer la réservation",
+    [
+      "Vérifier — Relire date, heure, durée et nom. Corriger avec « Retour ».",
+      "Confirmer — Cliquer une seule fois sur « Confirmer » et attendre.",
+      "Vérifier le succès — Attendre « Réservation Confirmée ! » et noter la baie. Paiement sur place."
+    ]
+  ],
+  [
+    "Admin — ouvrir une réservation",
+    [
+      "Connexion /login — Identifiant : ______________\nMot de passe : ______________\nPuis « Se connecter ».",
+      "Afficher le bon jour — Utiliser les flèches pour afficher la date demandée.",
+      "Ouvrir le formulaire — Cliquer sur « Ajouter », dans la barre du calendrier."
+    ]
+  ],
+  [
+    "Admin — remplir la réservation",
+    [
+      "Date et heure — Choisir la date et l’heure demandées par le client.",
+      "Durée, baie, joueurs — Choisir 1 à 4 heures, la baie et le nombre de joueurs (1 à 4).",
+      "Nom du client — Entrer le nom. Courriel, téléphone et notes sont facultatifs."
+    ]
+  ],
+  [
+    "Admin — enregistrer et vérifier",
+    [
+      "Enregistrer — Cliquer une seule fois sur « Ajouter la réservation » et attendre.",
+      "Vérifier l’ajout — Attendre « Réservation ajoutée », puis ouvrir son bloc dans le calendrier.",
+      "Contrôler et sortir — Relire nom, date, heure, durée, baie et joueurs. Puis « Déconnexion »."
+    ]
+  ]
+]
