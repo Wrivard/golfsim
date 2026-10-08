@@ -11,7 +11,7 @@ Guide de six pages : trois côté client, trois côté administration. Chaque pa
 - Mode clair. Crème `#F7F3E8`, texte `#1B1A18`, accent `#2B5734`, provenant du site existant.
 - Titres Oswald 700 ; texte DM Sans 400/700. Deux familles et deux graisses.
 - Motifs : bandeau de chapitre / page et repères numérotés entourant les contrôles.
-- Les encadrés sont statiques : rien ne dépend du survol pour apparaître sur papier. Les accès administratifs ont des espaces à remplir manuellement par le responsable ; aucun mot de passe réel n’est stocké ou affiché.
+- Les encadrés sont statiques : rien ne dépend du survol pour apparaître sur papier. Les diapositives et le PDF public gardent des espaces pour les accès. Seul le PDF confidentiel destiné au personnel reçoit les accès réels, à partir du champ sécurisé ; ce fichier n’est jamais copié dans les assets publics.
 - Chaque photographie et logo visible appartient à la capture réelle du site ; aucun écran ou logo n’a été redessiné.
 
 ## Captures et confidentialité

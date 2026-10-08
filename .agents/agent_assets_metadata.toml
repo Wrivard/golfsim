@@ -28,3 +28,17 @@ mtime_ms = 1791475471933
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/f8338df9-9f4a-415c-a088-4a17233486c8/9ab0c99c-48a2-449f-b92a-041f20d6bdc1"
 storage_version_token = "1791475612729408"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "5g-MCslurTYxeJGIAdWWQ"
+uri = "file://.local/outputs/Guide-confidentiel-personnel-Golf-SIM.pdf"
+type = "pdf"
+title = "Guide du personnel — PDF confidentiel (6 pages)"
+description = "Lettre US, paysage, une page par feuille. Les accès administrateur réels figurent à la page 4. Document réservé au personnel : ne pas diffuser publiquement."
+logical_id = "32f9a537-cf5f-445e-88e8-70fe041bc54f"
+content_hash = "sha256:75165ed4ed104d2b6c4b13dfcc3329b75156409bd7947e0499edab44678fb4e6"
+size = 356380
+mtime_ms = 1791488852585
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/32f9a537-cf5f-445e-88e8-70fe041bc54f/c159dd57-c196-46b0-ad82-fc74b2c37f97"
+storage_version_token = "1791489765746115"
+content_type = "application/pdf"

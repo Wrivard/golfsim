@@ -1,1 +1,2 @@
 - [Staff training audience](staff-training.md) — printable French guide for older staff: six pages maximum and unique 1–2–3 instructions beside real screenshots.
+- [Private exports](private-export-confidentiality.md) — confidential exports must be denied by every preview server, including newly added artifacts.
