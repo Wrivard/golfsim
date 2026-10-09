@@ -63,3 +63,17 @@ mtime_ms = 1791563889405
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/b4904594-e123-4887-a8c5-5da3e005c88a/6618dbc4-6c80-481e-a117-7e747ec9f7cb"
 storage_version_token = "1791563990900931"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "rybAddU88rKyRN8E6syLO"
+uri = "file://.local/outputs/Guide-confidentiel-Golf-SIM-7-pages.pdf"
+type = "pdf"
+title = "Guide du personnel Golf SIM — 7 pages (PDF confidentiel)"
+description = "Guide imprimable mis à jour : réservation client, connexion et modification admin, puis lecture des trous du calendrier. Format Lettre paysage. Contient les accès administrateur — réservé au personnel."
+logical_id = "69973490-0371-418e-a4fa-2a1fc7cb23c7"
+content_hash = "sha256:9aebb89975c8a7bda44ea4a27078086c59de052c01eb6766575d76127d29f403"
+size = 921573
+mtime_ms = 1791567825061
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/69973490-0371-418e-a4fa-2a1fc7cb23c7/e96fe7f2-0a3b-41a4-891d-ed5df553deab"
+storage_version_token = "1791567847242330"
+content_type = "application/pdf"
