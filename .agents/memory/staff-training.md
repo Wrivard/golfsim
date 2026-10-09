@@ -21,6 +21,12 @@ Les captures doivent montrer davantage la page du site et son contexte, avec des
 
 **How to apply:** Garder les titres, la navigation et les éléments voisins visibles dans les captures principales ; ajouter des encadrés et des flèches sans répéter les numéros des instructions.
 
+Les captures du guide utilisent les vraies interfaces avec des données de démonstration, sans créer ou déplacer de réservations réelles.
+
+**Why:** Les diapositives restent accessibles en ligne ; les exemples ne doivent ni exposer les coordonnées des clients ni modifier leurs réservations.
+
+**How to apply:** Isoler les réponses utilisées pour les captures et vérifier les opérations du site séparément avec des données de test. Signaler que les exemples sont fictifs.
+
 Les accès réels du personnel peuvent figurer dans le PDF confidentiel demandé, mais jamais dans les diapositives en ligne ou les fichiers publics.
 
 **Why:** Le personnel a besoin des accès sur papier, mais les publier avec le guide exposerait le compte administrateur.

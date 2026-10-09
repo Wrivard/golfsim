@@ -3,11 +3,6 @@ version: 1
 size:
   width: 1920
   height: 1080
-background:
-  kind: solid
-  color:
-    kind: token
-    token: background
 theme:
   colors:
     background: "#F7F3E8"
@@ -18,15 +13,20 @@ theme:
   fonts:
     display: Oswald
     body: DM Sans
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
 assets:
-  p2-r1-name:
-    src: images/simple-p2-r1-name.png
-  p2-r1-email:
-    src: images/simple-p2-r1-email.png
-  p2-r2:
-    src: images/simple-p2-r2.png
-  p2-r3:
-    src: images/simple-p2-r3.png
+  details:
+    src: images/context-details.png
+  direction-1:
+    src: images/direction-client-details-1.svg
+  direction-2:
+    src: images/direction-client-details-2.svg
+  direction-3:
+    src: images/direction-client-details-3.svg
 elements:
   - id: brand
     type: text
@@ -38,7 +38,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: GOLF SIM · GUIDE DE RÉSERVATION
+            - text: GOLF SIM · GUIDE DU PERSONNEL
           defaultRunStyle:
             font:
               kind: token
@@ -49,9 +49,9 @@ elements:
               kind: token
               token: accent
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: chapter
+  - id: role
     type: text
     frame:
       x: 1560
@@ -72,7 +72,7 @@ elements:
               kind: token
               token: accent
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: title
     type: text
@@ -84,7 +84,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Client — entrer les coordonnées
+            - text: Client — remplir les coordonnées
           defaultRunStyle:
             font:
               kind: token
@@ -95,7 +95,7 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: header-rule
     type: shape
@@ -112,13 +112,13 @@ elements:
       color:
         kind: token
         token: accent
-  - id: p2-r1-name-background
+  - id: details-frame
     type: shape
     frame:
       x: 92
-      y: 303.65
-      width: 438
-      height: 132.7
+      y: 276.4375
+      width: 908
+      height: 711.125
     geometry:
       kind: preset
       preset: rect
@@ -127,27 +127,26 @@ elements:
       color:
         kind: token
         token: surface
-  - id: image-p2-r1-name
+  - id: image-details
     type: image
-    assetId: p2-r1-name
+    assetId: details
     fit: contain
     frame:
       x: 96
-      y: 307.65
-      width: 430
-      height: 124.7
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p2-r1-name-target
+      y: 280.4375
+      width: 900
+      height: 703.125
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: details-name-target
     type: shape
     frame:
-      x: 90
-      y: 342.92999999999995
-      width: 442
-      height: 87.67999999999999
+      x: 383.5
+      y: 447.17578125
+      width: 325
+      height: 40.9375
     geometry:
       kind: preset
-      preset: roundRect
-      cornerRadius: 8
+      preset: rect
     fill:
       kind: none
     stroke:
@@ -155,42 +154,67 @@ elements:
         kind: token
         token: accent
       widthPt: 2.5
-  - id: p2-r1-email-background
+  - id: details-players-target
     type: shape
     frame:
-      x: 562
-      y: 303.65
-      width: 438
-      height: 132.7
+      x: 383.5
+      y: 632.80078125
+      width: 325
+      height: 40.9375
     geometry:
       kind: preset
       preset: rect
     fill:
-      kind: solid
+      kind: none
+    stroke:
       color:
         kind: token
-        token: surface
-  - id: image-p2-r1-email
-    type: image
-    assetId: p2-r1-email
-    fit: contain
-    frame:
-      x: 566
-      y: 307.65
-      width: 430
-      height: 124.7
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p2-r1-email-target
+        token: accent
+      widthPt: 2.5
+  - id: details-continue-target
     type: shape
     frame:
-      x: 560
-      y: 342.92999999999995
-      width: 442
-      height: 87.67999999999999
+      x: 496.340576171875
+      y: 817.72265625
+      width: 212.159423828125
+      height: 36.71875
     geometry:
       kind: preset
-      preset: roundRect
-      cornerRadius: 8
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: details-email-target
+    type: shape
+    frame:
+      x: 383.5
+      y: 509.05078125
+      width: 325
+      height: 40.9375
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: details-terms-target
+    type: shape
+    frame:
+      x: 383.5
+      y: 767.80078125
+      width: 19.3603515625
+      height: 21.25
+    geometry:
+      kind: preset
+      preset: rect
     fill:
       kind: none
     stroke:
@@ -202,7 +226,7 @@ elements:
     type: shape
     frame:
       x: 1040
-      y: 340
+      y: 264
       width: 74
       height: 74
     geometry:
@@ -217,9 +241,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 350
+      y: 273
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -234,15 +258,15 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-title
     type: text
     frame:
       x: 1140
-      y: 262
+      y: 258
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
@@ -251,25 +275,25 @@ elements:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-body
     type: text
     frame:
       x: 1140
-      y: 326
+      y: 324
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Entrer le nom complet et l’adresse courriel du client.
+            - text: Entrer le nom complet et le courriel du client.
           defaultRunStyle:
             font:
               kind: token
@@ -280,86 +304,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-1-arrow
-    type: shape
-    frame:
-      x: 1016
-      y: 374.7699999999999
-      width: 18
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-0
-    type: shape
-    frame:
-      x: 96
-      y: 500
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p2-r2-background
-    type: shape
-    frame:
-      x: 91.99999999999994
-      y: 539.65625
-      width: 908.0000000000001
-      height: 162.68750000000003
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p2-r2
+  - id: direction-1
     type: image
-    assetId: p2-r2
+    assetId: direction-1
     fit: contain
     frame:
-      x: 95.99999999999994
-      y: 543.65625
-      width: 900.0000000000001
-      height: 154.68750000000003
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p2-r2-target
-    type: shape
-    frame:
-      x: 89.99999999999994
-      y: 581.8526785714286
-      width: 912.0000000000001
-      height: 100.39285714285715
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 718.5
+      y: 287
+      width: 316.5
+      height: 194.64453125
+    altText: Flèche de l’instruction 1 vers Nom et courriel.
   - id: step-2-badge
     type: shape
     frame:
       x: 1040
-      y: 586
+      y: 510
       width: 74
       height: 74
     geometry:
@@ -374,9 +335,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 596
+      y: 519
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -391,38 +352,38 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-title
     type: text
     frame:
       x: 1140
-      y: 508
+      y: 504
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Choisir les joueurs
+            - text: Nombre de joueurs
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-body
     type: text
     frame:
       x: 1140
-      y: 572
+      y: 570
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
@@ -437,86 +398,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-2-arrow
-    type: shape
-    frame:
-      x: 1016
-      y: 620.0491071428571
-      width: 18
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-1
-    type: shape
-    frame:
-      x: 96
-      y: 746
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p2-r3-background
-    type: shape
-    frame:
-      x: 143.37142857142857
-      y: 754
-      width: 805.2571428571429
-      height: 226
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p2-r3
+  - id: direction-2
     type: image
-    assetId: p2-r3
+    assetId: direction-2
     fit: contain
     frame:
-      x: 147.37142857142857
-      y: 758
-      width: 797.2571428571429
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p2-r3-target
-    type: shape
-    frame:
-      x: 141.37142857142857
-      y: 769.795918367347
-      width: 809.2571428571429
-      height: 212.20408163265307
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 718.5
+      y: 533
+      width: 316.5
+      height: 134.26953125
+    altText: Flèche de l’instruction 2 vers Nombre de joueurs.
   - id: step-3-badge
     type: shape
     frame:
       x: 1040
-      y: 832
+      y: 756
       width: 74
       height: 74
     geometry:
@@ -531,9 +429,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 842
+      y: 765
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -548,15 +446,15 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-title
     type: text
     frame:
       x: 1140
-      y: 754
+      y: 750
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
@@ -565,25 +463,25 @@ elements:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-body
     type: text
     frame:
       x: 1140
-      y: 818
+      y: 816
       width: 684
-      height: 170
+      height: 186
     body:
       paragraphs:
         - runs:
-            - text: Cocher les conditions, puis cliquer sur le bouton vert.
+            - text: Cocher les conditions, puis cliquer sur le bouton vert pour vérifier.
           defaultRunStyle:
             font:
               kind: token
@@ -594,23 +492,18 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-3-arrow
-    type: shape
+  - id: direction-3
+    type: image
+    assetId: direction-3
+    fit: contain
     frame:
-      x: 964.6285714285714
-      y: 863.8979591836735
-      width: 61.37142857142862
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
+      x: 718.5
+      y: 779
+      width: 316.5
+      height: 71.08203125
+    altText: Flèche de l’instruction 3 vers Continuer.
   - id: footer
     type: text
     frame:
@@ -621,18 +514,18 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: "Exemples fictifs : utiliser la date et les informations du client."
+            - text: "Captures du site réel · Exemples fictifs : utiliser les informations du client."
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 15
+            sizePt: 14
             weight: 400
             color:
               kind: token
               token: muted
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: pagination
     type: text
@@ -644,7 +537,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: PAGE 2 / 6
+            - text: PAGE 3 / 6
           defaultRunStyle:
             font:
               kind: token
@@ -655,5 +548,5 @@ elements:
               kind: token
               token: muted
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0

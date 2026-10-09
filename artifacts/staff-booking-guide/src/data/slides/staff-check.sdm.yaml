@@ -3,11 +3,6 @@ version: 1
 size:
   width: 1920
   height: 1080
-background:
-  kind: solid
-  color:
-    kind: token
-    token: background
 theme:
   colors:
     background: "#F7F3E8"
@@ -18,15 +13,20 @@ theme:
   fonts:
     display: Oswald
     body: DM Sans
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
 assets:
-  p6-r1:
-    src: images/simple-p6-r1.png
-  p6-r2:
-    src: images/simple-p6-r2.png
-  p6-r3-details:
-    src: images/simple-p6-r3-details.png
-  p6-r3-logout:
-    src: images/simple-p6-r3-logout.png
+  edit:
+    src: images/context-edit.png
+  direction-1:
+    src: images/direction-staff-check-1.svg
+  direction-2:
+    src: images/direction-staff-check-2.svg
+  direction-3:
+    src: images/direction-staff-check-3.svg
 elements:
   - id: brand
     type: text
@@ -38,7 +38,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: GOLF SIM · GUIDE DE RÉSERVATION
+            - text: GOLF SIM · GUIDE DU PERSONNEL
           defaultRunStyle:
             font:
               kind: token
@@ -49,9 +49,9 @@ elements:
               kind: token
               token: accent
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: chapter
+  - id: role
     type: text
     frame:
       x: 1560
@@ -72,7 +72,7 @@ elements:
               kind: token
               token: accent
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: title
     type: text
@@ -84,7 +84,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Admin — enregistrer et vérifier
+            - text: Admin — changer la date ou l’heure
           defaultRunStyle:
             font:
               kind: token
@@ -95,7 +95,7 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: header-rule
     type: shape
@@ -112,13 +112,13 @@ elements:
       color:
         kind: token
         token: accent
-  - id: p6-r1-background
+  - id: edit-frame
     type: shape
     frame:
-      x: 107.18478260869568
-      y: 262
-      width: 877.6304347826086
-      height: 226
+      x: 92
+      y: 273.4375
+      width: 908
+      height: 711.125
     geometry:
       kind: preset
       preset: rect
@@ -127,27 +127,77 @@ elements:
       color:
         kind: token
         token: surface
-  - id: image-p6-r1
+  - id: image-edit
     type: image
-    assetId: p6-r1
+    assetId: edit
     fit: contain
     frame:
-      x: 111.18478260869568
-      y: 266
-      width: 869.6304347826086
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p6-r1-target
+      x: 96
+      y: 277.4375
+      width: 900
+      height: 703.125
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: edit-date-target
     type: shape
     frame:
-      x: 125.17798913043481
-      y: 278.95652173913044
-      width: 842.6807065217391
-      height: 192.08695652173913
+      x: 377.875
+      y: 468.9609375
+      width: 336.25
+      height: 35.3125
     geometry:
       kind: preset
-      preset: roundRect
-      cornerRadius: 8
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: edit-time-target
+    type: shape
+    frame:
+      x: 377.875
+      y: 528.0234375
+      width: 111.25
+      height: 35.3125
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: edit-save-target
+    type: shape
+    frame:
+      x: 612.729736328125
+      y: 818.4140625
+      width: 101.395263671875
+      height: 36.71875
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: edit-duration-target
+    type: shape
+    frame:
+      x: 490.375
+      y: 528.0234375
+      width: 111.25
+      height: 35.3125
+    geometry:
+      kind: preset
+      preset: rect
     fill:
       kind: none
     stroke:
@@ -159,7 +209,7 @@ elements:
     type: shape
     frame:
       x: 1040
-      y: 340
+      y: 264
       width: 74
       height: 74
     geometry:
@@ -174,9 +224,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 350
+      y: 273
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -191,42 +241,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-title
     type: text
     frame:
       x: 1140
-      y: 262
+      y: 258
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Enregistrer
+            - text: Modifier la date
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-body
     type: text
     frame:
       x: 1140
-      y: 326
+      y: 324
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Cliquer une seule fois sur « Ajouter la réservation » et attendre.
+            - text: Dans « Date », choisir le nouveau jour demandé.
           defaultRunStyle:
             font:
               kind: token
@@ -237,86 +287,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-1-arrow
-    type: shape
-    frame:
-      x: 981.858695652174
-      y: 363
-      width: 44.14130434782601
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-0
-    type: shape
-    frame:
-      x: 96
-      y: 500
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p6-r2-background
-    type: shape
-    frame:
-      x: 143.78666666666663
-      y: 508
-      width: 804.4266666666667
-      height: 226
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p6-r2
+  - id: direction-1
     type: image
-    assetId: p6-r2
+    assetId: direction-1
     fit: contain
     frame:
-      x: 147.78666666666663
-      y: 512
-      width: 796.4266666666667
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p6-r2-target
-    type: shape
-    frame:
-      x: 185.38666666666663
-      y: 567.04
-      width: 692.16
-      height: 59.96
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 724.125
+      y: 287
+      width: 310.875
+      height: 213.6171875
+    altText: Flèche de l’instruction 1 vers Modifier la date.
   - id: step-2-badge
     type: shape
     frame:
       x: 1040
-      y: 586
+      y: 510
       width: 74
       height: 74
     geometry:
@@ -331,9 +318,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 596
+      y: 519
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -348,42 +335,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-title
     type: text
     frame:
       x: 1140
-      y: 508
+      y: 504
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Vérifier l’ajout
+            - text: Modifier l’horaire
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-body
     type: text
     frame:
       x: 1140
-      y: 572
+      y: 570
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Attendre « Réservation ajoutée », puis ouvrir son bloc dans le calendrier.
+            - text: Changer « Heure » et, si nécessaire, « Durée ». Vérifier aussi la baie et les joueurs.
           defaultRunStyle:
             font:
               kind: token
@@ -394,111 +381,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-2-arrow
-    type: shape
-    frame:
-      x: 891.5466666666666
-      y: 585.02
-      width: 134.45333333333338
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-1
-    type: shape
-    frame:
-      x: 96
-      y: 746
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p6-r3-details-background
-    type: shape
-    frame:
-      x: 92
-      y: 793.5882352941177
-      width: 568
-      height: 146.82352941176472
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p6-r3-details
+  - id: direction-2
     type: image
-    assetId: p6-r3-details
+    assetId: direction-2
     fit: contain
     frame:
-      x: 96
-      y: 797.5882352941177
-      width: 560
-      height: 138.82352941176472
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p6-r3-logout-background
-    type: shape
-    frame:
-      x: 692
-      y: 819.1428571428571
-      width: 308
-      height: 93.71428571428571
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p6-r3-logout
-    type: image
-    assetId: p6-r3-logout
-    fit: contain
-    frame:
-      x: 696
-      y: 823.1428571428571
-      width: 300
-      height: 85.71428571428571
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p6-r3-logout-target
-    type: shape
-    frame:
-      x: 699.375
-      y: 825.7142857142857
-      width: 294.05357142857144
-      height: 80.57142857142857
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 499.125
+      y: 531.6796875
+      width: 535.875
+      height: 29.3203125
+    altText: Flèche de l’instruction 2 vers Modifier l’horaire.
   - id: step-3-badge
     type: shape
     frame:
       x: 1040
-      y: 832
+      y: 756
       width: 74
       height: 74
     geometry:
@@ -513,9 +412,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 842
+      y: 765
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -530,42 +429,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-title
     type: text
     frame:
       x: 1140
-      y: 754
+      y: 750
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Contrôler et sortir
+            - text: Enregistrer et vérifier
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-body
     type: text
     frame:
       x: 1140
-      y: 818
+      y: 816
       width: 684
-      height: 170
+      height: 186
     body:
       paragraphs:
         - runs:
-            - text: Relire nom, date, heure, durée, baie et joueurs. Puis « Déconnexion ».
+            - text: Cliquer « Enregistrer ». Attendre « Réservation modifiée » et vérifier le bloc au nouveau jour. Puis « Déconnexion ».
           defaultRunStyle:
             font:
               kind: token
@@ -576,23 +475,18 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-3-arrow
-    type: shape
+  - id: direction-3
+    type: image
+    assetId: direction-3
+    fit: contain
     frame:
-      x: 1007.4285714285714
-      y: 854
-      width: 18.571428571428555
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
+      x: 724.125
+      y: 779
+      width: 310.875
+      height: 71.7734375
+    altText: Flèche de l’instruction 3 vers Enregistrer et vérifier.
   - id: footer
     type: text
     frame:
@@ -603,18 +497,18 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Erreur à l’enregistrement ? Prévenir le responsable. Paiement sur place.
+            - text: Après sauvegarde, vérifier le jour. Erreur ? Prévenir le responsable.
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 15
+            sizePt: 14
             weight: 400
             color:
               kind: token
               token: muted
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: pagination
     type: text
@@ -637,5 +531,5 @@ elements:
               kind: token
               token: muted
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0

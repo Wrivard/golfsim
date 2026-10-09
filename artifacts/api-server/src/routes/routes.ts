@@ -4,6 +4,7 @@ import { storage } from "../storage";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
   createCalendarEvent, 
+  updateCalendarEvent,
   deleteCalendarEvent, 
   getCalendarConnectionStatus,
   getGoogleAuthUrl,
@@ -23,6 +24,7 @@ import {
 } from "../booking-logic";
 import { getConfirmationBay } from "../confirmation-bay";
 import { isStaffSlotAvailable, isWithinPublicBookingHours } from "../staff-booking";
+import { bookingEditSchema, isEditedSlotAvailable } from "../booking-edit";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
@@ -96,7 +98,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.adminId) {
     return res.status(401).json({ ok: false, message: "Non autorisé" });
   }
-  next();
+  return next();
 }
 
 const loginRateLimiter = rateLimit({
@@ -135,7 +137,7 @@ export async function registerRoutes(
 
   app.get("/api/schedule/:date", async (req: Request, res: Response) => {
     try {
-      const dateStr = req.params.date;
+      const dateStr = String(req.params.date);
       const date = new Date(dateStr);
       const dayOfWeek = date.getUTCDay();
       const schedule = await storage.getScheduleForDay(dayOfWeek);
@@ -151,7 +153,7 @@ export async function registerRoutes(
 
   app.put("/api/admin/schedule/:dayOfWeek", requireAdmin, async (req: Request, res: Response) => {
     try {
-      const dayOfWeek = parseInt(req.params.dayOfWeek, 10);
+      const dayOfWeek = parseInt(String(req.params.dayOfWeek), 10);
       if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
         return res.status(400).json({ ok: false, message: "Jour invalide" });
       }
@@ -355,14 +357,17 @@ export async function registerRoutes(
 
   app.put("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const existing = await storage.getBooking(id);
       if (!existing) {
         return res.status(404).json({ ok: false, message: "Réservation non trouvée" });
       }
 
-      const { name, email, phone, time, duration, bayType, players, notes } = req.body;
+      const parsed = bookingEditSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ ok:false, message:"Données de modification invalides." });
+      const { name, email, phone, date, time, duration, bayType, players, notes } = parsed.data;
       const updates: Record<string, any> = {};
+      if (date !== undefined) updates.date = new Date(`${date}T00:00:00.000Z`);
 
       if (name !== undefined) {
         const sanitized = sanitizeString(name);
@@ -397,17 +402,44 @@ export async function registerRoutes(
         updates.notes = notes ? sanitizeString(notes) : null;
       }
 
-      const updated = await storage.updateBooking(id, updates);
-      return res.json({ ok: true, booking: updated });
+      const targetDate = updates.date || existing.date;
+      const dateStr = targetDate.toISOString().slice(0,10);
+      const daySchedule = await storage.getScheduleForDay(targetDate.getUTCDay());
+      let calendarChanged = false;
+      let previous: Booking | undefined;
+      try {
+        const result = await storage.updateBookingWithConflictCheck(id,updates,
+          (others,current) => {
+            const next = {...current,...updates};
+            return !isEditedSlotAvailable(id,targetDate,next.time,parseDurationToMinutes(next.duration),next.bayType,
+              formatBookingsForLogic(others,dateStr),daySchedule || undefined);
+          },
+          async (next,current) => {
+            previous = current;
+            if (current.calendarEventId) {
+              await updateCalendarEvent(current.calendarEventId,next);
+              calendarChanged = true;
+            }
+          });
+        if (result.conflict) return res.status(409).json({ok:false,message:"Ce créneau n’est pas disponible. Choisissez une autre date, heure ou baie."});
+        if (!result.booking) return res.status(404).json({ok:false,message:"Réservation non trouvée"});
+        return res.json({ ok: true, booking: result.booking });
+      } catch (error) {
+        if (calendarChanged && previous?.calendarEventId) {
+          try { await updateCalendarEvent(previous.calendarEventId,previous); }
+          catch { console.error("Calendar restoration failed after booking edit; manual reconciliation required."); }
+        }
+        throw error;
+      }
     } catch (error: any) {
       console.error("Error updating booking:", error);
-      return res.status(500).json({ ok: false, message: error.message || "Erreur lors de la modification" });
+      return res.status(500).json({ ok: false, message: "Modification non enregistrée. Vérifiez la connexion Calendar ou prévenez le responsable." });
     }
   });
 
   app.delete("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       
       const bookings = await storage.getAllBookings();
       const booking = bookings.find(b => b.id === id);
@@ -1185,7 +1217,7 @@ export async function registerRoutes(
 
   app.get("/api/availability/:date/:bayType", async (req: Request, res: Response) => {
     try {
-      const { date, bayType } = req.params;
+      const date = String(req.params.date), bayType = String(req.params.bayType);
       const bookings = await storage.getBookingsByDateAndBay(new Date(date), bayType);
       
       const bookedSlots = bookings.map((b) => ({

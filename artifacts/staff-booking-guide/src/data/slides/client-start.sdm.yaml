@@ -3,11 +3,6 @@ version: 1
 size:
   width: 1920
   height: 1080
-background:
-  kind: solid
-  color:
-    kind: token
-    token: background
 theme:
   colors:
     background: "#F7F3E8"
@@ -18,15 +13,18 @@ theme:
   fonts:
     display: Oswald
     body: DM Sans
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
 assets:
-  p1-r1:
-    src: images/simple-p1-r1.png
-  p1-r2-date:
-    src: images/simple-p1-r2-date.png
-  p1-r2-calendar:
-    src: images/simple-p1-r2-calendar.png
-  p1-r3:
-    src: images/simple-p1-r3.png
+  duration:
+    src: images/context-duration.png
+  direction-1:
+    src: images/direction-client-start-1.svg
+  direction-2:
+    src: images/direction-client-start-2.svg
 elements:
   - id: brand
     type: text
@@ -38,7 +36,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: GOLF SIM · GUIDE DE RÉSERVATION
+            - text: GOLF SIM · GUIDE DU PERSONNEL
           defaultRunStyle:
             font:
               kind: token
@@ -49,9 +47,9 @@ elements:
               kind: token
               token: accent
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: chapter
+  - id: role
     type: text
     frame:
       x: 1560
@@ -72,7 +70,7 @@ elements:
               kind: token
               token: accent
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: title
     type: text
@@ -84,7 +82,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Client — choisir le créneau
+            - text: Client — choisir la durée
           defaultRunStyle:
             font:
               kind: token
@@ -95,7 +93,7 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: header-rule
     type: shape
@@ -112,13 +110,13 @@ elements:
       color:
         kind: token
         token: accent
-  - id: p1-r1-background
+  - id: duration-frame
     type: shape
     frame:
-      x: 377.2325581395349
-      y: 262
-      width: 337.5348837209302
-      height: 226
+      x: 92
+      y: 276.4375
+      width: 908
+      height: 711.125
     geometry:
       kind: preset
       preset: rect
@@ -127,27 +125,43 @@ elements:
       color:
         kind: token
         token: surface
-  - id: image-p1-r1
+  - id: image-duration
     type: image
-    assetId: p1-r1
+    assetId: duration
     fit: contain
     frame:
-      x: 381.2325581395349
-      y: 266
-      width: 329.5348837209302
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p1-r1-target
+      x: 96
+      y: 280.4375
+      width: 900
+      height: 703.125
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: duration-reserve-target
     type: shape
     frame:
-      x: 382.83720930232556
-      y: 267.6046511627907
-      width: 326.3255813953488
-      height: 214.7906976744186
+      x: 876.93994140625
+      y: 308.24267578125
+      width: 90.31005859375
+      height: 24.765625
     geometry:
       kind: preset
-      preset: roundRect
-      cornerRadius: 8
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: duration-duration-target
+    type: shape
+    frame:
+      x: 546.625
+      y: 592.01953125
+      width: 184.375
+      height: 122.5
+    geometry:
+      kind: preset
+      preset: rect
     fill:
       kind: none
     stroke:
@@ -159,7 +173,7 @@ elements:
     type: shape
     frame:
       x: 1040
-      y: 340
+      y: 264
       width: 74
       height: 74
     geometry:
@@ -174,9 +188,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 350
+      y: 273
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -191,42 +205,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-title
     type: text
     frame:
       x: 1140
-      y: 262
+      y: 258
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Choisir la durée
+            - text: Cliquer « RÉSERVER »
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-body
     type: text
     frame:
       x: 1140
-      y: 326
+      y: 324
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Cliquer sur « RÉSERVER », puis choisir 1, 2, 3 ou 4 heures.
+            - text: Le bouton se trouve dans le menu du site.
           defaultRunStyle:
             font:
               kind: token
@@ -237,129 +251,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-1-arrow
-    type: shape
-    frame:
-      x: 723.1627906976744
-      y: 363
-      width: 302.8372093023256
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-0
-    type: shape
-    frame:
-      x: 96
-      y: 500
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p1-r2-date-background
-    type: shape
-    frame:
-      x: 92
-      y: 574.4426229508197
-      width: 456
-      height: 85.11475409836066
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p1-r2-date
+  - id: direction-1
     type: image
-    assetId: p1-r2-date
+    assetId: direction-1
     fit: contain
     frame:
-      x: 96
-      y: 578.4426229508197
-      width: 448
-      height: 77.11475409836066
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p1-r2-date-target
-    type: shape
-    frame:
-      x: 97.34426229508196
-      y: 572.4426229508197
-      width: 452.65573770491807
-      height: 81.77049180327869
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
-  - id: p1-r2-calendar-background
-    type: shape
-    frame:
-      x: 614
-      y: 508
-      width: 226
-      height: 226
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p1-r2-calendar
-    type: image
-    assetId: p1-r2-calendar
-    fit: contain
-    frame:
-      x: 618
-      y: 512
-      width: 218
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p1-r2-calendar-target
-    type: shape
-    frame:
-      x: 685.2790262172284
-      y: 578.8197565543071
-      width: 84.30945692883896
-      height: 84.30945692883896
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 977.25
+      y: 287
+      width: 57.75
+      height: 47.62548828125
+    altText: Flèche de l’instruction 1 vers Cliquer « RÉSERVER ».
   - id: step-2-badge
     type: shape
     frame:
       x: 1040
-      y: 586
+      y: 510
       width: 74
       height: 74
     geometry:
@@ -374,9 +282,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 596
+      y: 519
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -391,42 +299,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-title
     type: text
     frame:
       x: 1140
-      y: 508
+      y: 504
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Choisir la date
+            - text: Choisir la durée
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-body
     type: text
     frame:
       x: 1140
-      y: 572
+      y: 570
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Cliquer sur la date, puis choisir le jour dans le calendrier.
+            - text: "Cliquer sur 1, 2, 3 ou 4 heures. Exemple : 2 heures."
           defaultRunStyle:
             font:
               kind: token
@@ -437,86 +345,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-2-arrow
-    type: shape
-    frame:
-      x: 783.5884831460673
-      y: 608.9744850187266
-      width: 242.41151685393265
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-1
-    type: shape
-    frame:
-      x: 96
-      y: 746
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p1-r3-background
-    type: shape
-    frame:
-      x: 336.93220338983053
-      y: 754
-      width: 418.135593220339
-      height: 226
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p1-r3
+  - id: direction-2
     type: image
-    assetId: p1-r3
+    assetId: direction-2
     fit: contain
     frame:
-      x: 340.93220338983053
-      y: 758
-      width: 410.135593220339
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p1-r3-target
-    type: shape
-    frame:
-      x: 344.7853107344633
-      y: 761.8531073446328
-      width: 412.2824858757062
-      height: 210.29378531073445
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 741
+      y: 533
+      width: 294
+      height: 134.26953125
+    altText: Flèche de l’instruction 2 vers Choisir la durée.
   - id: step-3-badge
     type: shape
     frame:
       x: 1040
-      y: 832
+      y: 756
       width: 74
       height: 74
     geometry:
@@ -531,9 +376,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 842
+      y: 765
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -548,42 +393,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-title
     type: text
     frame:
       x: 1140
-      y: 754
+      y: 750
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Choisir l’heure
+            - text: Passer aux créneaux
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-body
     type: text
     frame:
       x: 1140
-      y: 818
+      y: 816
       width: 684
-      height: 170
+      height: 186
     body:
       paragraphs:
         - runs:
-            - text: Cliquer sur une heure disponible. Sinon, essayer une autre date.
+            - text: La sélection ouvre les dates et les heures. Suivre la page 2.
           defaultRunStyle:
             font:
               kind: token
@@ -594,23 +439,8 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-3-arrow
-    type: shape
-    frame:
-      x: 771.0677966101695
-      y: 855
-      width: 254.93220338983053
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
   - id: footer
     type: text
     frame:
@@ -621,18 +451,18 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: "Exemples fictifs : utiliser la date et les informations du client."
+            - text: "Captures du site réel · Exemples fictifs : utiliser les informations du client."
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 15
+            sizePt: 14
             weight: 400
             color:
               kind: token
               token: muted
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: pagination
     type: text
@@ -655,5 +485,5 @@ elements:
               kind: token
               token: muted
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0

@@ -48,3 +48,18 @@ id = "-8TuSNOw1o58qMewOP3ha"
 uri = "file://.local/outputs/Guide-de-r-servation---Personnel.pdf"
 type = "pdf"
 title = "Guide de réservation — Personnel.pdf"
+logical_id = "bb899247-f315-46db-ad7c-a91dbfcfbed4"
+
+[[outputs]]
+id = "PVd3NlUHldBXVzs6gFRbx"
+uri = "file://.local/outputs/Guide-confidentiel-reservation-modification-Golf-SIM.pdf"
+type = "pdf"
+title = "Guide du personnel — réservation et modification"
+description = "PDF confidentiel de 6 pages : 4 pages client, 2 pages connexion et modification admin. Captures du site avec données fictives, flèches et repères 1–2–3. Format Lettre paysage ; contient les accès réels du personnel."
+logical_id = "b4904594-e123-4887-a8c5-5da3e005c88a"
+content_hash = "sha256:f6c7aa23b28e409ac3b0d4a7bae6e2f74f8c59ba25f605895572e80f119ec465"
+size = 783600
+mtime_ms = 1791563889405
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/b4904594-e123-4887-a8c5-5da3e005c88a/6618dbc4-6c80-481e-a117-7e747ec9f7cb"
+storage_version_token = "1791563990900931"
+content_type = "application/pdf"

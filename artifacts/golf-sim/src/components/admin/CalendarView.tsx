@@ -248,6 +248,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
         <BookingModal
           booking={selectedBooking}
           onClose={closeModal}
+          onUpdated={updated => setSelectedDate(startOfDay(new Date(`${updated.date.split("T")[0]}T12:00:00`)))}
           onDelete={onDeleteBooking}
           isDeleting={isDeleting}
         />
@@ -268,9 +269,10 @@ async function updateBookingApi(id: string, updates: Record<string, any>) {
   return data.booking;
 }
 
-function BookingModal({ booking, onClose, onDelete, isDeleting }: {
+function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
   booking: Booking;
   onClose: () => void;
+  onUpdated?: (booking: Booking) => void;
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
 }) {
@@ -282,6 +284,7 @@ function BookingModal({ booking, onClose, onDelete, isDeleting }: {
   const [editName, setEditName] = useState(booking.name);
   const [editEmail, setEditEmail] = useState(booking.email || "");
   const [editPhone, setEditPhone] = useState(booking.phone || "");
+  const [editDate, setEditDate] = useState(String(booking.date).split("T")[0]);
   const [editTime, setEditTime] = useState(booking.time || "");
   const [editDuration, setEditDuration] = useState(booking.duration || "1h");
   const [editBay, setEditBay] = useState(booking.bayType || "1");
@@ -293,16 +296,20 @@ function BookingModal({ booking, onClose, onDelete, isDeleting }: {
       name: editName,
       email: editEmail,
       phone: editPhone,
+      date: editDate,
       time: editTime,
       duration: editDuration,
       bayType: editBay,
       players: Number(editPlayers),
       notes: editNotes,
     }),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       toast({ title: "Réservation modifiée" });
       queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+      queryClient.invalidateQueries({ queryKey: ["availability"] });
+      queryClient.invalidateQueries({ queryKey: ["optimized-slots"] });
       setIsEditing(false);
+      onUpdated?.(updated);
       onClose();
     },
     onError: (error: Error) => {
@@ -313,7 +320,7 @@ function BookingModal({ booking, onClose, onDelete, isDeleting }: {
   const colors = BAY_COLORS[isEditing ? editBay : booking.bayType] || BAY_COLORS["1"];
   const displayDuration = isEditing ? editDuration : (booking.duration || "1h");
   const price = getPriceForBooking(displayDuration);
-  const dateStr = typeof booking.date === "string" ? booking.date.split("T")[0] : "";
+  const dateStr = isEditing ? editDate : typeof booking.date === "string" ? booking.date.split("T")[0] : "";
   let formattedDate = dateStr;
   try {
     const [y, mo, d] = dateStr.split("-").map(Number);
@@ -370,6 +377,11 @@ function BookingModal({ booking, onClose, onDelete, isDeleting }: {
         <div className="px-6 py-6 space-y-6">
           {isEditing ? (
             <>
+              <div className="space-y-1.5">
+                <label htmlFor="edit-booking-date" className="text-xs font-medium text-muted-foreground">Date</label>
+                <Input id="edit-booking-date" type="date" value={editDate}
+                  onChange={e => setEditDate(e.target.value)} data-testid="input-edit-date" />
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Heure</label>
@@ -503,7 +515,7 @@ function BookingModal({ booking, onClose, onDelete, isDeleting }: {
               <Button
                 size="default"
                 className="gap-2 bg-[#2B5734] hover:bg-[#1e3d24]"
-                disabled={saveMutation.isPending || !editName.trim()}
+                disabled={saveMutation.isPending || !editName.trim() || !editDate || !editTime}
                 onClick={() => saveMutation.mutate()}
                 data-testid="button-save-booking"
               >

@@ -3,11 +3,6 @@ version: 1
 size:
   width: 1920
   height: 1080
-background:
-  kind: solid
-  color:
-    kind: token
-    token: background
 theme:
   colors:
     background: "#F7F3E8"
@@ -18,15 +13,20 @@ theme:
   fonts:
     display: Oswald
     body: DM Sans
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
 assets:
-  p3-r1:
-    src: images/simple-p3-r1.png
-  p3-r2:
-    src: images/simple-p3-r2.png
-  p3-r3-success:
-    src: images/simple-p3-r3-success.png
-  p3-r3-bay:
-    src: images/simple-p3-r3-bay.png
+  review:
+    src: images/context-review.png
+  success-panel:
+    src: images/overview-success-panel.png
+  direction-2:
+    src: images/direction-client-confirm-2.svg
+  direction-3:
+    src: images/direction-client-confirm-3.svg
 elements:
   - id: brand
     type: text
@@ -38,7 +38,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: GOLF SIM · GUIDE DE RÉSERVATION
+            - text: GOLF SIM · GUIDE DU PERSONNEL
           defaultRunStyle:
             font:
               kind: token
@@ -49,9 +49,9 @@ elements:
               kind: token
               token: accent
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: chapter
+  - id: role
     type: text
     frame:
       x: 1560
@@ -72,7 +72,7 @@ elements:
               kind: token
               token: accent
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: title
     type: text
@@ -84,7 +84,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Client — confirmer la réservation
+            - text: Client — vérifier et confirmer
           defaultRunStyle:
             font:
               kind: token
@@ -95,7 +95,7 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: header-rule
     type: shape
@@ -112,13 +112,13 @@ elements:
       color:
         kind: token
         token: accent
-  - id: p3-r1-background
+  - id: review-frame
     type: shape
     frame:
-      x: 288.9642857142857
-      y: 262
-      width: 514.0714285714286
-      height: 226
+      x: 92
+      y: 276.4375
+      width: 908
+      height: 711.125
     geometry:
       kind: preset
       preset: rect
@@ -127,21 +127,135 @@ elements:
       color:
         kind: token
         token: surface
-  - id: image-p3-r1
+  - id: image-review
     type: image
-    assetId: p3-r1
+    assetId: review
     fit: contain
     frame:
-      x: 292.9642857142857
-      y: 266
-      width: 506.07142857142856
-      height: 218
-    altText: Capture réelle de Golf SIM ; exemple fictif.
+      x: 96
+      y: 280.4375
+      width: 900
+      height: 703.125
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: review-confirm-target
+    type: shape
+    frame:
+      x: 496.02197265625
+      y: 706.62890625
+      width: 212.47802734375
+      height: 38.125
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: success-panel-frame
+    type: shape
+    frame:
+      x: 186.1826484018265
+      y: 784
+      width: 327.634703196347
+      height: 208
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-success-panel
+    type: image
+    assetId: success-panel
+    fit: contain
+    frame:
+      x: 190.1826484018265
+      y: 788
+      width: 319.634703196347
+      height: 200
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: success-panel-success-target
+    type: shape
+    frame:
+      x: 188.37899543378998
+      y: 848.4109589041096
+      width: 323.2420091324201
+      height: 26.43835616438356
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: success-panel-bay-target
+    type: shape
+    frame:
+      x: 188.37899543378998
+      y: 932.4292237442922
+      width: 323.2420091324201
+      height: 20.958904109589042
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: success-caption-bg
+    type: shape
+    frame:
+      x: 100
+      y: 733
+      width: 510
+      height: 54
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: background
+  - id: success-caption
+    type: text
+    frame:
+      x: 105
+      y: 737
+      width: 490
+      height: 48
+    body:
+      paragraphs:
+        - runs:
+            - text: Après confirmation
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: left
+          lineHeight: 1.12
+          spaceAfterPt: 0
   - id: step-1-badge
     type: shape
     frame:
       x: 1040
-      y: 340
+      y: 264
       width: 74
       height: 74
     geometry:
@@ -156,9 +270,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 350
+      y: 273
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -173,42 +287,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-title
     type: text
     frame:
       x: 1140
-      y: 262
+      y: 258
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Vérifier
+            - text: Relire les informations
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-body
     type: text
     frame:
       x: 1140
-      y: 326
+      y: 324
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Relire date, heure, durée et nom. Corriger avec « Retour ».
+            - text: Vérifier date, heure, durée et nom. Corriger avec « Retour » si nécessaire.
           defaultRunStyle:
             font:
               kind: token
@@ -219,86 +333,13 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-1-arrow
-    type: shape
-    frame:
-      x: 813.0357142857142
-      y: 363
-      width: 212.96428571428578
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-0
-    type: shape
-    frame:
-      x: 96
-      y: 500
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p3-r2-background
-    type: shape
-    frame:
-      x: 92
-      y: 543.027397260274
-      width: 908
-      height: 155.94520547945206
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p3-r2
-    type: image
-    assetId: p3-r2
-    fit: contain
-    frame:
-      x: 96
-      y: 547.027397260274
-      width: 900
-      height: 147.94520547945206
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p3-r2-target
-    type: shape
-    frame:
-      x: 102.42508561643835
-      y: 553.3561643835617
-      width: 899.5749143835616
-      height: 135.2876712328767
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
   - id: step-2-badge
     type: shape
     frame:
       x: 1040
-      y: 586
+      y: 510
       width: 74
       height: 74
     geometry:
@@ -313,9 +354,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 596
+      y: 519
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -330,42 +371,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-title
     type: text
     frame:
       x: 1140
-      y: 508
+      y: 504
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Confirmer
+            - text: Confirmer une seule fois
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-body
     type: text
     frame:
       x: 1140
-      y: 572
+      y: 570
       width: 684
-      height: 170
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Cliquer une seule fois sur « Confirmer » et attendre.
+            - text: Cliquer sur « Confirmer », puis attendre sans fermer la page.
           defaultRunStyle:
             font:
               kind: token
@@ -376,129 +417,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-2-arrow
-    type: shape
-    frame:
-      x: 1015.9999999999999
-      y: 609
-      width: 18
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-1
-    type: shape
-    frame:
-      x: 96
-      y: 746
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p3-r3-success-background
-    type: shape
-    frame:
-      x: 91.99999999999994
-      y: 778.137026239067
-      width: 908.0000000000001
-      height: 65.72594752186589
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p3-r3-success
+  - id: direction-2
     type: image
-    assetId: p3-r3-success
+    assetId: direction-2
     fit: contain
     frame:
-      x: 95.99999999999994
-      y: 782.137026239067
-      width: 900.0000000000001
-      height: 57.72594752186589
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p3-r3-success-target
-    type: shape
-    frame:
-      x: 89.99999999999994
-      y: 781.3848396501458
-      width: 912.0000000000001
-      height: 59.23032069970846
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
-  - id: p3-r3-bay-background
-    type: shape
-    frame:
-      x: 91.99999999999994
-      y: 888.0087463556852
-      width: 908.0000000000001
-      height: 49.98250728862974
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p3-r3-bay
-    type: image
-    assetId: p3-r3-bay
-    fit: contain
-    frame:
-      x: 95.99999999999994
-      y: 892.0087463556852
-      width: 900.0000000000001
-      height: 41.98250728862974
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p3-r3-bay-target
-    type: shape
-    frame:
-      x: 89.99999999999994
-      y: 891.2565597667639
-      width: 912.0000000000001
-      height: 43.48688046647231
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 718.5
+      y: 533
+      width: 316.5
+      height: 206.69140625
+    altText: Flèche de l’instruction 2 vers Confirmer une seule fois.
   - id: step-3-badge
     type: shape
     frame:
       x: 1040
-      y: 832
+      y: 756
       width: 74
       height: 74
     geometry:
@@ -513,9 +448,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 842
+      y: 765
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -530,42 +465,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-title
     type: text
     frame:
       x: 1140
-      y: 754
+      y: 750
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Vérifier le succès
+            - text: Vérifier la confirmation
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-body
     type: text
     frame:
       x: 1140
-      y: 818
+      y: 816
       width: 684
-      height: 170
+      height: 186
     body:
       paragraphs:
         - runs:
-            - text: Attendre « Réservation Confirmée ! » et noter la baie. Paiement sur place.
+            - text: Attendre « Réservation Confirmée ! » et noter la baie confirmée. Paiement sur place.
           defaultRunStyle:
             font:
               kind: token
@@ -576,23 +511,18 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-3-arrow
-    type: shape
+  - id: direction-3
+    type: image
+    assetId: direction-3
+    fit: contain
     frame:
-      x: 1016
-      y: 901
-      width: 18
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
+      x: 521.6210045662101
+      y: 779
+      width: 513.3789954337899
+      height: 96.63013698630141
+    altText: Flèche de l’instruction 3 vers Vérifier la confirmation.
   - id: footer
     type: text
     frame:
@@ -603,18 +533,18 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: "Exemples fictifs : utiliser la date et les informations du client."
+            - text: "Captures du site réel · Exemples fictifs : utiliser les informations du client."
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 15
+            sizePt: 14
             weight: 400
             color:
               kind: token
               token: muted
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: pagination
     type: text
@@ -626,7 +556,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: PAGE 3 / 6
+            - text: PAGE 4 / 6
           defaultRunStyle:
             font:
               kind: token
@@ -637,5 +567,5 @@ elements:
               kind: token
               token: muted
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0

@@ -17,7 +17,7 @@ try {
   }
   const pdf = await PDFDocument.load(await fs.readFile(file));
   if (pdf.getPageCount() !== 6) throw new Error("Expected six pages.");
-  const page = pdf.getPage(3);
+  const page = pdf.getPage(4);
   if (page.getWidth() !== 792 || page.getHeight() !== 612) throw new Error("Expected Letter landscape.");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const mono = await pdf.embedFont(StandardFonts.CourierBold);
@@ -26,7 +26,7 @@ try {
   const box = (x,y,width,height)=>({x:offsetX+x*scale,y:offsetY+(1080-y-height)*scale,width:width*scale,height:height*scale});
   const cream = rgb(247/255,243/255,232/255);
   const ink = rgb(27/255,26/255,24/255);
-  const field = box(1140,326,684,170);
+  const field = box(1140,324,684,278);
   page.drawRectangle({...field,color:cream});
   const top = field.y+field.height-15;
   function accessLine(label,value,y) {

@@ -3,11 +3,6 @@ version: 1
 size:
   width: 1920
   height: 1080
-background:
-  kind: solid
-  color:
-    kind: token
-    token: background
 theme:
   colors:
     background: "#F7F3E8"
@@ -18,13 +13,22 @@ theme:
   fonts:
     display: Oswald
     body: DM Sans
+background:
+  kind: solid
+  color:
+    kind: token
+    token: background
 assets:
-  p5-r1:
-    src: images/simple-p5-r1.png
-  p5-r2:
-    src: images/simple-p5-r2.png
-  p5-r3:
-    src: images/simple-p5-r3.png
+  time:
+    src: images/context-time.png
+  calendar-popup:
+    src: images/overview-calendar-popup.png
+  direction-1:
+    src: images/direction-client-time-1.svg
+  direction-2:
+    src: images/direction-client-time-2.svg
+  direction-3:
+    src: images/direction-client-time-3.svg
 elements:
   - id: brand
     type: text
@@ -36,7 +40,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: GOLF SIM · GUIDE DE RÉSERVATION
+            - text: GOLF SIM · GUIDE DU PERSONNEL
           defaultRunStyle:
             font:
               kind: token
@@ -47,9 +51,9 @@ elements:
               kind: token
               token: accent
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: chapter
+  - id: role
     type: text
     frame:
       x: 1560
@@ -59,7 +63,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: ADMIN
+            - text: CLIENT
           defaultRunStyle:
             font:
               kind: token
@@ -70,7 +74,7 @@ elements:
               kind: token
               token: accent
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: title
     type: text
@@ -82,7 +86,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: Admin — remplir la réservation
+            - text: Client — choisir la date et l’heure
           defaultRunStyle:
             font:
               kind: token
@@ -93,7 +97,7 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: header-rule
     type: shape
@@ -110,13 +114,13 @@ elements:
       color:
         kind: token
         token: accent
-  - id: p5-r1-background
+  - id: time-frame
     type: shape
     frame:
       x: 92
-      y: 276.78008298755185
+      y: 276.4375
       width: 908
-      height: 142.43983402489627
+      height: 711.125
     geometry:
       kind: preset
       preset: rect
@@ -125,27 +129,26 @@ elements:
       color:
         kind: token
         token: surface
-  - id: image-p5-r1
+  - id: image-time
     type: image
-    assetId: p5-r1
+    assetId: time
     fit: contain
     frame:
       x: 96
-      y: 280.78008298755185
+      y: 280.4375
       width: 900
-      height: 134.43983402489627
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p5-r1-target
+      height: 703.125
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: time-date-target
     type: shape
     frame:
-      x: 108.67219917012449
-      y: 321.46058091286307
-      width: 874.655601659751
-      height: 79.21991701244814
+      x: 613.421875
+      y: 521.70703125
+      width: 178.75
+      height: 36.71875
     geometry:
       kind: preset
-      preset: roundRect
-      cornerRadius: 8
+      preset: rect
     fill:
       kind: none
     stroke:
@@ -153,11 +156,108 @@ elements:
         kind: token
         token: accent
       widthPt: 2.5
+  - id: time-time-target
+    type: shape
+    frame:
+      x: 299.828125
+      y: 584.98828125
+      width: 124.2578125
+      height: 66.6015625
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: calendar-popup-frame
+    type: shape
+    frame:
+      x: 149.36304062909568
+      y: 720
+      width: 261.27391874180864
+      height: 272
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: surface
+  - id: image-calendar-popup
+    type: image
+    assetId: calendar-popup
+    fit: contain
+    frame:
+      x: 153.36304062909568
+      y: 724
+      width: 253.27391874180867
+      height: 264
+    altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
+  - id: calendar-popup-day-target
+    type: shape
+    frame:
+      x: 259.68938401048496
+      y: 860.5799475753604
+      width: 40.642857142857146
+      height: 40.642857142857146
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: none
+    stroke:
+      color:
+        kind: token
+        token: accent
+      widthPt: 2.5
+  - id: popup-caption-bg
+    type: shape
+    frame:
+      x: 100
+      y: 670
+      width: 590
+      height: 54
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: background
+  - id: popup-caption
+    type: text
+    frame:
+      x: 105
+      y: 674
+      width: 560
+      height: 48
+    body:
+      paragraphs:
+        - runs:
+            - text: Calendrier après un clic sur la date
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 15
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: left
+          lineHeight: 1.12
+          spaceAfterPt: 0
   - id: step-1-badge
     type: shape
     frame:
       x: 1040
-      y: 313
+      y: 264
       width: 74
       height: 74
     geometry:
@@ -172,9 +272,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 323
+      y: 273
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -189,42 +289,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-title
     type: text
     frame:
       x: 1140
-      y: 262
+      y: 258
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Date et heure
+            - text: Ouvrir le calendrier
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-1-body
     type: text
     frame:
       x: 1140
-      y: 326
+      y: 324
       width: 684
-      height: 116
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Choisir la date et l’heure demandées par le client.
+            - text: Cliquer sur la date, en haut du panneau de réservation.
           defaultRunStyle:
             font:
               kind: token
@@ -235,86 +335,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-1-arrow
-    type: shape
-    frame:
-      x: 997.3278008298755
-      y: 349.07053941908714
-      width: 28.672199170124486
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-0
-    type: shape
-    frame:
-      x: 96
-      y: 446
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p5-r2-background
-    type: shape
-    frame:
-      x: 147.3625
-      y: 460
-      width: 797.275
-      height: 270
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p5-r2
+  - id: direction-1
     type: image
-    assetId: p5-r2
+    assetId: direction-1
     fit: contain
     frame:
-      x: 151.3625
-      y: 464
-      width: 789.275
-      height: 262
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p5-r2-target
-    type: shape
-    frame:
-      x: 161.7375
-      y: 498.9375
-      width: 768.525
-      height: 216.6875
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 802.171875
+      y: 287
+      width: 232.828125
+      height: 267.06640625
+    altText: Flèche de l’instruction 1 vers Ouvrir le calendrier.
   - id: step-2-badge
     type: shape
     frame:
       x: 1040
-      y: 560
+      y: 510
       width: 74
       height: 74
     geometry:
@@ -329,9 +366,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 570
+      y: 519
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -346,42 +383,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-title
     type: text
     frame:
       x: 1140
-      y: 460
+      y: 504
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Durée, baie, joueurs
+            - text: Choisir le jour
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-2-body
     type: text
     frame:
       x: 1140
-      y: 524
+      y: 570
       width: 684
-      height: 214
+      height: 164
     body:
       paragraphs:
         - runs:
-            - text: Choisir 1 à 4 heures, la baie et le nombre de joueurs (1 à 4).
+            - text: Dans le calendrier, cliquer sur le jour demandé par le client.
           defaultRunStyle:
             font:
               kind: token
@@ -392,86 +429,23 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-2-arrow
-    type: shape
-    frame:
-      x: 944.2625
-      y: 595.28125
-      width: 81.73749999999995
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
-  - id: row-rule-1
-    type: shape
-    frame:
-      x: 96
-      y: 742
-      width: 1728
-      height: 1
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: muted
-  - id: p5-r3-background
-    type: shape
-    frame:
-      x: 92
-      y: 794.9792531120332
-      width: 908
-      height: 148.04149377593362
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: surface
-  - id: image-p5-r3
+  - id: direction-2
     type: image
-    assetId: p5-r3
+    assetId: direction-2
     fit: contain
     frame:
-      x: 96
-      y: 798.9792531120332
-      width: 900
-      height: 140.04149377593362
-    altText: Capture réelle de Golf SIM ; exemple fictif.
-  - id: p5-r3-target
-    type: shape
-    frame:
-      x: 108.67219917012449
-      y: 848.0622406639004
-      width: 874.655601659751
-      height: 79.21991701244814
-    geometry:
-      kind: preset
-      preset: roundRect
-      cornerRadius: 8
-    fill:
-      kind: none
-    stroke:
-      color:
-        kind: token
-        token: accent
-      widthPt: 2.5
+      x: 310.3322411533421
+      y: 533
+      width: 724.6677588466579
+      height: 361.90137614678895
+    altText: Flèche de l’instruction 2 vers Choisir le jour.
   - id: step-3-badge
     type: shape
     frame:
       x: 1040
-      y: 834
+      y: 756
       width: 74
       height: 74
     geometry:
@@ -486,9 +460,9 @@ elements:
     type: text
     frame:
       x: 1040
-      y: 844
+      y: 765
       width: 74
-      height: 56
+      height: 58
     body:
       paragraphs:
         - runs:
@@ -503,42 +477,42 @@ elements:
               kind: token
               token: surface
           align: center
-          lineHeight: 1.05
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-title
     type: text
     frame:
       x: 1140
-      y: 756
+      y: 750
       width: 684
-      height: 64
+      height: 60
     body:
       paragraphs:
         - runs:
-            - text: Nom du client
+            - text: Choisir l’heure
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 24
+            sizePt: 23
             weight: 700
             color:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.1
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: step-3-body
     type: text
     frame:
       x: 1140
-      y: 820
+      y: 816
       width: 684
-      height: 170
+      height: 186
     body:
       paragraphs:
         - runs:
-            - text: Entrer le nom. Courriel, téléphone et notes sont facultatifs.
+            - text: Cliquer sur une heure disponible. Aucun choix ? Essayer un autre jour.
           defaultRunStyle:
             font:
               kind: token
@@ -549,23 +523,18 @@ elements:
               kind: token
               token: foreground
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
-  - id: step-3-arrow
-    type: shape
+  - id: direction-3
+    type: image
+    assetId: direction-3
+    fit: contain
     frame:
-      x: 997.3278008298755
-      y: 875.6721991701245
-      width: 28.672199170124486
-      height: 24
-    geometry:
-      kind: preset
-      preset: leftArrow
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: accent
+      x: 434.0859375
+      y: 604.2890625
+      width: 600.9140625
+      height: 202.7109375
+    altText: Flèche de l’instruction 3 vers Choisir l’heure.
   - id: footer
     type: text
     frame:
@@ -576,18 +545,18 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: "Exemples fictifs : utiliser la date et les informations du client."
+            - text: "Captures du site réel · Exemples fictifs : utiliser les informations du client."
           defaultRunStyle:
             font:
               kind: token
               token: body
-            sizePt: 15
+            sizePt: 14
             weight: 400
             color:
               kind: token
               token: muted
           align: left
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0
   - id: pagination
     type: text
@@ -599,7 +568,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: PAGE 5 / 6
+            - text: PAGE 2 / 6
           defaultRunStyle:
             font:
               kind: token
@@ -610,5 +579,5 @@ elements:
               kind: token
               token: muted
           align: right
-          lineHeight: 1.2
+          lineHeight: 1.12
           spaceAfterPt: 0

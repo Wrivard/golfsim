@@ -17,6 +17,11 @@ export interface IStorage {
   getBookingByCalendarEventId(calendarEventId: string): Promise<Booking | undefined>;
   updateBookingByCalendarEventId(calendarEventId: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
   updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
+  updateBookingWithConflictCheck(
+    id: string, updates: Partial<InsertBooking>,
+    checkConflict: (existingBookings: Booking[], current: Booking) => boolean,
+    beforeSave: (next: Booking, current: Booking) => Promise<void>,
+  ): Promise<{ booking: Booking | null; conflict: boolean }>;
   deleteBooking(id: string): Promise<void>;
   createBookingWithConflictCheck(
     booking: InsertBooking,
@@ -91,6 +96,30 @@ export class DatabaseStorage implements IStorage {
   async updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking | undefined> {
     const [updated] = await db.update(bookings).set(updates).where(eq(bookings.id, id)).returning();
     return updated;
+  }
+
+  async updateBookingWithConflictCheck(
+    id: string, updates: Partial<InsertBooking>,
+    checkConflict: (existingBookings: Booking[], current: Booking) => boolean,
+    beforeSave: (next: Booking, current: Booking) => Promise<void>,
+  ): Promise<{ booking: Booking | null; conflict: boolean }> {
+    return db.transaction(async tx => {
+      // Serialize changes to the same reservation; date locks also serialize with creation.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`booking-edit:${id}`}))`);
+      const [current] = await tx.select().from(bookings).where(eq(bookings.id,id)).for("update");
+      if (!current) return { booking:null, conflict:false };
+      const next = { ...current, ...updates };
+      const dates = [...new Set([current.date.toISOString().slice(0,10),next.date.toISOString().slice(0,10)])].sort();
+      for (const date of dates)
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bookings:${date}`}))`);
+      const start = new Date(next.date); start.setHours(0,0,0,0);
+      const end = new Date(start); end.setDate(end.getDate()+1);
+      const others = await tx.select().from(bookings).where(and(gte(bookings.date,start),lt(bookings.date,end)));
+      if (checkConflict(others,current)) return { booking:null, conflict:true };
+      await beforeSave(next,current);
+      const [updated] = await tx.update(bookings).set(updates).where(eq(bookings.id,id)).returning();
+      return { booking:updated, conflict:false };
+    });
   }
 
   async deleteBooking(id: string): Promise<void> {

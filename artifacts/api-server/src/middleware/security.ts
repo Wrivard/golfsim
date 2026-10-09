@@ -131,7 +131,7 @@ export function validateContentType(req: Request, res: Response, next: NextFunct
       }
     }
   }
-  next();
+  return next();
 }
 
 setInterval(() => {

@@ -207,7 +207,7 @@ async function getConfiguredCalendarId(): Promise<string> {
   }
 }
 
-export async function createCalendarEvent(booking: {
+function calendarEventForBooking(booking: {
   name: string;
   email: string;
   phone?: string | null;
@@ -218,9 +218,6 @@ export async function createCalendarEvent(booking: {
   players: number;
   notes?: string | null;
 }) {
-  const calendar = await getGoogleCalendarClient();
-  const calendarId = await getConfiguredCalendarId();
-  
   const dateStr = booking.date instanceof Date 
     ? booking.date.toISOString().split('T')[0]
     : new Date(booking.date).toISOString().split('T')[0];
@@ -290,12 +287,24 @@ ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     },
   };
 
+  return event;
+}
+
+export async function createCalendarEvent(booking: Parameters<typeof calendarEventForBooking>[0]) {
+  const calendar = await getGoogleCalendarClient();
+  const calendarId = await getConfiguredCalendarId();
   const response = await calendar.events.insert({
     calendarId: calendarId,
-    requestBody: event,
+    requestBody: calendarEventForBooking(booking),
   });
 
   return response.data.id || null;
+}
+
+export async function updateCalendarEvent(eventId: string, booking: Parameters<typeof calendarEventForBooking>[0]) {
+  const calendar = await getGoogleCalendarClient();
+  const calendarId = await getConfiguredCalendarId();
+  await calendar.events.patch({ calendarId, eventId, requestBody: calendarEventForBooking(booking) });
 }
 
 export async function deleteCalendarEvent(eventId: string) {
