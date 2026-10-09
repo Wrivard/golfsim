@@ -10,6 +10,8 @@ const pagePaths = [
 export function seoPlugin(): Plugin {
   return {
     name: "golf-sim-seo",
+    // Vite's HTML build plugin must emit index.html before we copy it.
+    enforce: "post",
     transformIndexHtml: {
       order: "post",
       handler(html, context) {
