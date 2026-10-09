@@ -15,6 +15,12 @@ Utiliser un fond blanc et conserver seulement des accents de couleur pour les re
 
 **How to apply:** Garder le fond des pages et des zones d’accès du PDF blanc. Préserver les captures authentiques du site et les annotations utiles en couleur.
 
+Réduire les marges inutiles du PDF imprimable et agrandir le contenu sans déformer les captures.
+
+**Why:** L’utilisateur a trouvé les grandes zones blanches autour du guide trop importantes et le contenu trop petit.
+
+**How to apply:** Éviter de cumuler le padding des diapositives et les marges d’impression. Garder une marge sûre pour le papier Lettre et vérifier l’alignement des accès confidentiels après tout changement de mise à l’échelle.
+
 Le guide compte sept pages : quatre pour réserver côté client, deux pour se connecter et modifier une réservation existante, puis une dernière pour repérer les trous dans le calendrier admin et comprendre « Meilleur choix » côté client. Utiliser des instructions simples « 1, 2, 3 », avec chaque numéro une seule fois et son texte juste à côté. Retirer les étapes évidentes comme ouvrir le site.
 
 **Why:** Le personnel doit pouvoir suivre rapidement le guide imprimé. Après avoir demandé six pages, l’utilisateur a explicitement ajouté une septième page avec un exemple de calendrier rempli et de trous disponibles.

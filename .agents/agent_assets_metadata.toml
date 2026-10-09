@@ -105,3 +105,17 @@ mtime_ms = 1791568108481
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/8faa6dc9-8612-46ac-808f-ba68e5d92438/c5750a4d-63a8-4adf-911e-80340b221be1"
 storage_version_token = "1791568429737838"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "ksMFRf8Z8oCi8Wev0SOou"
+uri = "file://.local/outputs/Golf-SIM-guide-confidentiel-agrandi.pdf"
+type = "pdf"
+title = "Download — Golf SIM staff guide, larger print (PDF)"
+description = "Seven-page confidential guide: content enlarged by 12%, reduced margins, white background and larger login credentials on page 5. Print Letter landscape at 100%."
+logical_id = "7a5a308e-eaa5-432e-8b4c-aed114e8da4d"
+content_hash = "sha256:984467fada18c72786cbda9f3e71d6bb0f70d17166eab1479210ce4bb288e756"
+size = 921506
+mtime_ms = 1791568776767
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/7a5a308e-eaa5-432e-8b4c-aed114e8da4d/0e4fe955-8379-4d78-8df3-0e42c6cef986"
+storage_version_token = "1791568810467570"
+content_type = "application/pdf"
