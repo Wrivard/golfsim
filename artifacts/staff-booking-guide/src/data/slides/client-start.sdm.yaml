@@ -174,11 +174,11 @@ elements:
     assetId: direction-1
     fit: contain
     frame:
-      x: 975.25
-      y: 306.62548828125
-      width: 34
-      height: 28
-    altText: Flèche courte vers le champ encadré.
+      x: 956.25
+      y: 296
+      width: 83.75
+      height: 53.62548828125
+    altText: Flèche reliant directement l’étape 1 au contrôle ou au calendrier.
   - id: step-1-badge
     type: shape
     frame:
@@ -268,49 +268,11 @@ elements:
     assetId: direction-2
     fit: contain
     frame:
-      x: 739
-      y: 639.26953125
-      width: 34
-      height: 28
-    altText: Flèche courte vers 2 heures.
-  - id: direction-2-label-bg
-    type: shape
-    frame:
-      x: 779
-      y: 629.26953125
-      width: 188
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-2-label
-    type: text
-    frame:
-      x: 787
-      y: 636.26953125
-      width: 172
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: 2 heures
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: left
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 720
+      y: 542
+      width: 320
+      height: 140.26953125
+    altText: Flèche reliant directement l’étape 2 au contrôle ou au calendrier.
   - id: step-2-badge
     type: shape
     frame:

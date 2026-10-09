@@ -21,11 +21,11 @@ Les captures doivent montrer davantage la page du site et son contexte, avec des
 
 **How to apply:** Garder les titres, la navigation et les éléments voisins visibles dans les captures principales ; ajouter des encadrés et des flèches sans répéter les numéros des instructions.
 
-Garder les flèches courtes et près des contrôles. Placer les captures complémentaires à côté de leur propre étape, sans longs connecteurs qui traversent la liste.
+Relier directement chaque numéro au contrôle à cliquer. Garder les trajets séparés et placer les captures complémentaires à côté de leur propre étape.
 
-**Why:** L’utilisateur a trouvé les flèches réparties et croisées difficiles à suivre et a demandé de réorganiser les étapes pour garder le guide clair.
+**Why:** L’utilisateur a trouvé les flèches croisées difficiles à suivre, puis a jugé les flèches locales sans connexion aux numéros moins intuitives. Il veut conserver des flèches, mieux organisées.
 
-**How to apply:** Associer les champs par leur libellé ; ne pas relier les numéros éloignés par des lignes verticales. Conserver l’ordre de lecture 1–2–3.
+**How to apply:** Ne pas remplacer les connexions par des libellés que le lecteur doit associer lui-même. Conserver l’ordre 1–2–3, éviter les croisements et faire passer les lignes dans les zones libres plutôt que sur d’autres boutons.
 
 Les captures du guide utilisent les vraies interfaces avec des données de démonstration, sans créer ou déplacer de réservations réelles.
 

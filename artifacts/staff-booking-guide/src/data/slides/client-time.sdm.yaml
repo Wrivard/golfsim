@@ -176,10 +176,10 @@ elements:
   - id: calendar-popup-frame
     type: shape
     frame:
-      x: 1569.6723460026212
+      x: 1582.1441677588466
       y: 496
-      width: 228.65530799475752
-      height: 238
+      width: 203.71166448230667
+      height: 212
     geometry:
       kind: preset
       preset: rect
@@ -193,18 +193,18 @@ elements:
     assetId: calendar-popup
     fit: contain
     frame:
-      x: 1573.6723460026212
+      x: 1586.1441677588466
       y: 500
-      width: 220.65530799475752
-      height: 230
+      width: 195.71166448230667
+      height: 204
     altText: Page réelle de Golf SIM, données fictives, contexte de navigation conservé.
   - id: calendar-popup-day-target
     type: shape
     frame:
-      x: 1665.6612057667103
-      y: 618.3461664482306
-      width: 36.69642857142857
-      height: 36.69642857142857
+      x: 1667.1690694626475
+      y: 604.4026867627786
+      width: 33.67857142857143
+      height: 33.67857142857143
     geometry:
       kind: preset
       preset: rect
@@ -220,49 +220,11 @@ elements:
     assetId: direction-1
     fit: contain
     frame:
-      x: 571.421875
-      y: 526.06640625
-      width: 34
-      height: 28
-    altText: Flèche courte vers Date.
-  - id: direction-1-label-bg
-    type: shape
-    frame:
-      x: 425.421875
-      y: 516.06640625
-      width: 140
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-1-label
-    type: text
-    frame:
-      x: 433.421875
-      y: 523.06640625
-      width: 124
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Date
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 781.171875
+      y: 296
+      width: 258.828125
+      height: 273.06640625
+    altText: Flèche reliant directement l’étape 1 au contrôle ou au calendrier.
   - id: step-1-badge
     type: shape
     frame:
@@ -352,11 +314,11 @@ elements:
     assetId: direction-2
     fit: contain
     frame:
-      x: 1710.357634338139
-      y: 622.694380733945
-      width: 34
-      height: 28
-    altText: Flèche courte vers le champ encadré.
+      x: 1072
+      y: 589
+      width: 641
+      height: 152
+    altText: Flèche reliant directement l’étape 2 au contrôle ou au calendrier.
   - id: step-2-badge
     type: shape
     frame:
@@ -446,49 +408,11 @@ elements:
     assetId: direction-3
     fit: contain
     frame:
-      x: 257.828125
-      y: 604.2890625
-      width: 34
-      height: 28
-    altText: Flèche courte vers Heure.
-  - id: direction-3-label-bg
-    type: shape
-    frame:
-      x: 111.828125
-      y: 594.2890625
-      width: 140
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-3-label
-    type: text
-    frame:
-      x: 119.828125
-      y: 601.2890625
-      width: 124
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Heure
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 342.95703125
+      y: 640.58984375
+      width: 697.04296875
+      height: 157.41015625
+    altText: Flèche reliant directement l’étape 3 au contrôle ou au calendrier.
   - id: step-3-badge
     type: shape
     frame:

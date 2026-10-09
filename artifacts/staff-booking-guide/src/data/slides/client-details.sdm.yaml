@@ -227,49 +227,11 @@ elements:
     assetId: direction-1
     fit: contain
     frame:
-      x: 341.5
-      y: 453.64453125
-      width: 34
-      height: 28
-    altText: Flèche courte vers Nom.
-  - id: direction-1-label-bg
-    type: shape
-    frame:
-      x: 195.5
-      y: 443.64453125
-      width: 140
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-1-label
-    type: text
-    frame:
-      x: 203.5
-      y: 450.64453125
-      width: 124
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Nom
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 697.5
+      y: 296
+      width: 342.5
+      height: 200.64453125
+    altText: Flèche reliant directement l’étape 1 au contrôle ou au calendrier.
   - id: step-1-badge
     type: shape
     frame:
@@ -359,49 +321,11 @@ elements:
     assetId: direction-2
     fit: contain
     frame:
-      x: 341.5
-      y: 639.26953125
-      width: 34
-      height: 28
-    altText: Flèche courte vers Joueurs.
-  - id: direction-2-label-bg
-    type: shape
-    frame:
-      x: 166
-      y: 629.26953125
-      width: 169.5
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-2-label
-    type: text
-    frame:
-      x: 174
-      y: 636.26953125
-      width: 153.5
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Joueurs
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 697.5
+      y: 542
+      width: 342.5
+      height: 140.26953125
+    altText: Flèche reliant directement l’étape 2 au contrôle ou au calendrier.
   - id: step-2-badge
     type: shape
     frame:
@@ -491,49 +415,11 @@ elements:
     assetId: direction-3
     fit: contain
     frame:
-      x: 454.340576171875
-      y: 822.08203125
-      width: 34
-      height: 28
-    altText: Flèche courte vers Continuer.
-  - id: direction-3-label-bg
-    type: shape
-    frame:
-      x: 241.840576171875
-      y: 812.08203125
-      width: 206.5
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-3-label
-    type: text
-    frame:
-      x: 249.840576171875
-      y: 819.08203125
-      width: 190.5
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Continuer
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 697.5
+      y: 788
+      width: 342.5
+      height: 77.08203125
+    altText: Flèche reliant directement l’étape 3 au contrôle ou au calendrier.
   - id: step-3-badge
     type: shape
     frame:

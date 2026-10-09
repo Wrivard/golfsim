@@ -210,49 +210,11 @@ elements:
     assetId: direction-1
     fit: contain
     frame:
-      x: 335.875
-      y: 472.6171875
-      width: 34
-      height: 28
-    altText: Flèche courte vers Date.
-  - id: direction-1-label-bg
-    type: shape
-    frame:
-      x: 189.875
-      y: 462.6171875
-      width: 140
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-1-label
-    type: text
-    frame:
-      x: 197.875
-      y: 469.6171875
-      width: 124
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Date
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 703.125
+      y: 296
+      width: 336.875
+      height: 219.6171875
+    altText: Flèche reliant directement l’étape 1 au contrôle ou au calendrier.
   - id: step-1-badge
     type: shape
     frame:
@@ -342,49 +304,11 @@ elements:
     assetId: direction-2
     fit: contain
     frame:
-      x: 335.875
-      y: 531.6796875
-      width: 34
-      height: 28
-    altText: Flèche courte vers Heure.
-  - id: direction-2-label-bg
-    type: shape
-    frame:
-      x: 189.875
-      y: 521.6796875
-      width: 140
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-2-label
-    type: text
-    frame:
-      x: 197.875
-      y: 528.6796875
-      width: 124
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Heure
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: right
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 414.5
+      y: 542
+      width: 625.5
+      height: 51.3359375
+    altText: Flèche reliant directement l’étape 2 au contrôle ou au calendrier.
   - id: step-2-badge
     type: shape
     frame:
@@ -474,49 +398,11 @@ elements:
     assetId: direction-3
     fit: contain
     frame:
-      x: 722.125
-      y: 822.7734375
-      width: 34
-      height: 28
-    altText: Flèche courte vers Enregistrer.
-  - id: direction-3-label-bg
-    type: shape
-    frame:
-      x: 762.125
-      y: 812.7734375
-      width: 243.5
-      height: 48
-    geometry:
-      kind: preset
-      preset: rect
-    fill:
-      kind: solid
-      color:
-        kind: token
-        token: background
-  - id: direction-3-label
-    type: text
-    frame:
-      x: 770.125
-      y: 819.7734375
-      width: 227.5
-      height: 38
-    body:
-      paragraphs:
-        - runs:
-            - text: Enregistrer
-          defaultRunStyle:
-            font:
-              kind: token
-              token: body
-            sizePt: 14.4
-            weight: 700
-            color:
-              kind: token
-              token: accent
-          align: left
-          lineHeight: 1.12
-          spaceAfterPt: 0
+      x: 703.125
+      y: 788
+      width: 336.875
+      height: 77.7734375
+    altText: Flèche reliant directement l’étape 3 au contrôle ou au calendrier.
   - id: step-3-badge
     type: shape
     frame:

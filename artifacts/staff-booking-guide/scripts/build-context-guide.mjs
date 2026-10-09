@@ -31,24 +31,32 @@ function cropControl(name,key,pad=14){
   const left=Math.max(0,Math.floor(b.x-pad)),top=Math.max(0,Math.floor(b.y-pad));
   return {left,top,width:Math.min(m.width-left,Math.ceil(b.width+2*pad)),height:Math.min(m.height-top,Math.ceil(b.height+2*pad))};
 }
-async function localPointer(doc,pageId,n,target,label,side="left"){
+async function connectedPointer(doc,pageId,n,target,y,mode="right"){
   if(!target)return;
-  const mid=target.y+target.height/2;
-  const gap=8,length=34;
-  const x=side==="left"?target.x-gap-length:target.x+target.width+gap;
+  const start=mode==="inset"?{x:1077,y:y+90}:{x:1035,y:y+43};
+  const upward=mode!=="right";
+  const tip=upward
+    ? {x:target.x+target.width/2,y:target.y+target.height+(mode==="tight"?1:8)}
+    : {x:target.x+target.width+8,y:target.y+target.height/2};
+  const routeY=mode==="inset"?736:mode==="tight"?target.y+target.height+3:upward?target.y+target.height+32:tip.y;
+  const points=mode==="inset"
+    ? [start,{x:start.x,y:routeY},{x:tip.x,y:routeY},{x:tip.x,y:tip.y+12}]
+    : [start,{x:1020,y:start.y},{x:1020,y:routeY},{x:upward?tip.x:tip.x+14,y:routeY},...(upward?[{x:tip.x,y:tip.y+(mode==="tight"?9:12)}]:[])];
+  const minX=Math.min(...points.map(p=>p.x),tip.x-14)-5;
+  const minY=Math.min(...points.map(p=>p.y),tip.y-14)-5;
+  const maxX=Math.max(...points.map(p=>p.x),tip.x+24)+5;
+  const maxY=Math.max(...points.map(p=>p.y),tip.y+24)+5;
+  const width=maxX-minX,height=maxY-minY;
+  const d=points.map((p,i)=>`${i?"L":"M"} ${p.x-minX} ${p.y-minY}`).join(" ");
+  const tx=tip.x-minX,ty=tip.y-minY;
+  const head=upward
+    ? `M ${tx} ${ty} L ${tx-10} ${ty+(mode==="tight"?12:20)} L ${tx+10} ${ty+(mode==="tight"?12:20)} Z`
+    : `M ${tx} ${ty} L ${tx+20} ${ty-11} L ${tx+20} ${ty+11} Z`;
   const file=`direction-${pageId}-${n}.svg`;
-  const flip=side==="left";
-  const d=flip?"M 0 14 H 20":"M 34 14 H 14";
-  const head=flip?"M 34 14 L 15 3 L 15 25 Z":"M 0 14 L 19 3 L 19 25 Z";
-  await fs.writeFile(path.join(images,file),`<svg xmlns="http://www.w3.org/2000/svg" width="34" height="28" viewBox="0 0 34 28"><path d="${d}" fill="none" stroke="#ffffff" stroke-width="9"/><path d="${d}" fill="none" stroke="#2B5734" stroke-width="5"/><path d="${head}" fill="#2B5734"/></svg>`);
+  await fs.writeFile(path.join(images,file),`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><path d="${d}" fill="none" stroke="#ffffff" stroke-width="${mode==="tight"?5:9}" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#2B5734" stroke-width="${mode==="tight"?3:5}" stroke-linejoin="round"/><path d="${head}" fill="#2B5734"/></svg>`);
   const id=`direction-${n}`;doc.assets[id]={src:"images/"+file};
-  doc.elements.push({id,type:"image",assetId:id,fit:"contain",frame:{x,y:mid-14,width:34,height:28},altText:`Flèche courte vers ${label||"le champ encadré"}.`});
-  if(label){
-    const width=Math.max(140,label.length*18.5+40);
-    const frame={x:side==="left"?x-width-6:x+length+6,y:mid-24,width,height:48};
-    doc.elements.push(rect(`${id}-label-bg`,frame,"background"));
-    doc.elements.push(txt(`${id}-label`,{x:frame.x+8,y:frame.y+7,width:frame.width-16,height:38},label,14.4,{weight:700,color:"accent",align:side==="left"?"right":"left"}));
-  }
+  doc.elements.push({id,type:"image",assetId:id,fit:"contain",frame:{x:minX,y:minY,width,height},altText:`Flèche reliant directement l’étape ${n} au contrôle ou au calendrier.`});
+  return {n,points,tip};
 }
 function step(doc,n,y,height,title,body,compact=false){
   doc.elements.push(rect(`step-${n}-badge`,{x:1040,y:y+6,width:74,height:74},"accent",false,"ellipse"));
@@ -94,8 +102,9 @@ for(let p=0;p<pages.length;p++){
  if(p===1){
    const v=await shot(doc,"time","time",{x:96,y:274,width:900,height:716});targets[0]=mark(doc,v,"date");targets[2]=mark(doc,v,"time");
    // The calendar belongs beside instruction 2, not over the page or below instruction 3.
-   const popup=await shot(doc,"date","calendar-popup",{x:1544,y:500,width:280,height:230},cropControl("date","calendar"));
-   targets[1]=mark(doc,popup,"day");
+   const popup=await shot(doc,"date","calendar-popup",{x:1544,y:500,width:280,height:204},cropControl("date","calendar"));
+   mark(doc,popup,"day");
+   targets[1]=popup.box;
  }
  if(p===2){const v=await shot(doc,"details","details",{x:96,y:274,width:900,height:716});targets.push(mark(doc,v,"name"),mark(doc,v,"players"),mark(doc,v,"continue"));mark(doc,v,"email");mark(doc,v,"terms");}
  if(p===3){
@@ -117,18 +126,24 @@ for(let p=0;p<pages.length;p++){
  }
  const rows=p===4?[{y:258,h:350},{y:610,h:216},{y:842,h:166}]:[{y:258,h:230},{y:504,h:230},{y:750,h:252}];
  if(p===4){page.steps[1][1]="« Vue calendrier » : choisir le jour avec les flèches.";page.steps[2][1]="Cliquer le bloc, puis « Modifier ».";}
- const labels=[
-   [null,"2 heures",null],
-   ["Date",null,"Heure"],
-   ["Nom","Joueurs","Continuer"],
-   [null,"Confirmer",null],
-   ["Connexion","Jour","Client"],
-   ["Date","Heure","Enregistrer"],
- ][p];
+ const routes=[];
  for(let n=0;n<3;n++){
-   const right=p===0||p===1&&n===1||p===4&&n===2||p===5&&n===2;
-   await localPointer(doc,page.id,n+1,targets[n],labels[n],right?"right":"left");
+   const mode=p===1&&n===1?"inset":p===1&&n===2?"below":p===5&&n===1?"tight":"right";
+   const route=await connectedPointer(doc,page.id,n+1,targets[n],rows[n].y,mode);
+   if(route)routes.push(route);
    step(doc,n+1,rows[n].y,rows[n].h,...page.steps[n],p===1&&n===1);
+ }
+ // Connector paths must not intersect: staff should follow a single unambiguous line.
+ function intersects(a,b,c,d){
+   const cross=(p,q,r)=>(q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x);
+   const within=(p,q,r)=>Math.min(p.x,q.x)<=r.x&&r.x<=Math.max(p.x,q.x)&&Math.min(p.y,q.y)<=r.y&&r.y<=Math.max(p.y,q.y);
+   const x=cross(a,b,c),y=cross(a,b,d),u=cross(c,d,a),v=cross(c,d,b);
+   return x*y<0&&u*v<0||x===0&&within(a,b,c)||y===0&&within(a,b,d)||u===0&&within(c,d,a)||v===0&&within(c,d,b);
+ }
+ for(let i=0;i<routes.length;i++)for(let j=i+1;j<routes.length;j++){
+   const a=routes[i].points,b=routes[j].points;
+   for(let x=1;x<a.length;x++)for(let z=1;z<b.length;z++)
+     if(intersects(a[x-1],a[x],b[z-1],b[z]))throw new Error(`Crossing arrows on ${page.id}: ${routes[i].n}/${routes[j].n}`);
  }
  const foot=p===5?"Après sauvegarde, vérifier le jour. Erreur ? Prévenir le responsable.":"Captures du site réel · Exemples fictifs : utiliser les informations du client.";
  doc.elements.push(txt("footer",{x:96,y:1015,width:1430,height:52},foot,14,{color:"muted"}));
