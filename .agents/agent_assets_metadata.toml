@@ -42,3 +42,9 @@ mtime_ms = 1791488852585
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/32f9a537-cf5f-445e-88e8-70fe041bc54f/c159dd57-c196-46b0-ad82-fc74b2c37f97"
 storage_version_token = "1791489765746115"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "-8TuSNOw1o58qMewOP3ha"
+uri = "file://.local/outputs/Guide-de-r-servation---Personnel.pdf"
+type = "pdf"
+title = "Guide de réservation — Personnel.pdf"
