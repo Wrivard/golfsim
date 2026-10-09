@@ -91,3 +91,17 @@ mtime_ms = 1791568108481
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/79b9de6d-0b25-4bae-945d-bf8dbc2488cc/1ba2af1a-6813-467c-b6e1-9d1f6c7258f2"
 storage_version_token = "1791568123083385"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "w2LJn_eFyIeP50wsBdh-B"
+uri = "file://.local/outputs/Golf-SIM-guide-personnel-confidentiel-a-imprimer.pdf"
+type = "pdf"
+title = "Download — Golf SIM staff guide (confidential PDF)"
+description = "Seven pages, white background, Letter landscape. Real login credentials on page 5. Staff use only."
+logical_id = "8faa6dc9-8612-46ac-808f-ba68e5d92438"
+content_hash = "sha256:7b51969aecfa79e39f137fe3b55fbc589bda49d47d50f5a9409922c301011512"
+size = 921328
+mtime_ms = 1791568108481
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/8faa6dc9-8612-46ac-808f-ba68e5d92438/c5750a4d-63a8-4adf-911e-80340b221be1"
+storage_version_token = "1791568429737838"
+content_type = "application/pdf"
