@@ -31,24 +31,30 @@ function cropControl(name,key,pad=14){
   const left=Math.max(0,Math.floor(b.x-pad)),top=Math.max(0,Math.floor(b.y-pad));
   return {left,top,width:Math.min(m.width-left,Math.ceil(b.width+2*pad)),height:Math.min(m.height-top,Math.ceil(b.height+2*pad))};
 }
-async function step(doc,pageId,n,y,height,title,body,target){
+async function localPointer(doc,pageId,n,target,label,side="left"){
+  if(!target)return;
+  const mid=target.y+target.height/2;
+  const gap=8,length=34;
+  const x=side==="left"?target.x-gap-length:target.x+target.width+gap;
+  const file=`direction-${pageId}-${n}.svg`;
+  const flip=side==="left";
+  const d=flip?"M 0 14 H 20":"M 34 14 H 14";
+  const head=flip?"M 34 14 L 15 3 L 15 25 Z":"M 0 14 L 19 3 L 19 25 Z";
+  await fs.writeFile(path.join(images,file),`<svg xmlns="http://www.w3.org/2000/svg" width="34" height="28" viewBox="0 0 34 28"><path d="${d}" fill="none" stroke="#ffffff" stroke-width="9"/><path d="${d}" fill="none" stroke="#2B5734" stroke-width="5"/><path d="${head}" fill="#2B5734"/></svg>`);
+  const id=`direction-${n}`;doc.assets[id]={src:"images/"+file};
+  doc.elements.push({id,type:"image",assetId:id,fit:"contain",frame:{x,y:mid-14,width:34,height:28},altText:`Flèche courte vers ${label||"le champ encadré"}.`});
+  if(label){
+    const width=Math.max(140,label.length*18.5+40);
+    const frame={x:side==="left"?x-width-6:x+length+6,y:mid-24,width,height:48};
+    doc.elements.push(rect(`${id}-label-bg`,frame,"background"));
+    doc.elements.push(txt(`${id}-label`,{x:frame.x+8,y:frame.y+7,width:frame.width-16,height:38},label,14.4,{weight:700,color:"accent",align:side==="left"?"right":"left"}));
+  }
+}
+function step(doc,n,y,height,title,body,compact=false){
   doc.elements.push(rect(`step-${n}-badge`,{x:1040,y:y+6,width:74,height:74},"accent",false,"ellipse"));
   doc.elements.push(txt(`step-${n}-number`,{x:1040,y:y+15,width:74,height:58},String(n),24,{weight:700,color:"surface",align:"center"}));
-  doc.elements.push(txt(`step-${n}-title`,{x:1140,y,width:684,height:60},title,23,{weight:700}));
-  doc.elements.push(txt(`step-${n}-body`,{x:1140,y:y+66,width:684,height:height-66},body,20));
-  if(target){
-    const left=target.x+target.width+10;
-    if(left<1027){
-      const startY=y+43,endY=target.y+target.height/2;
-      const top=Math.min(startY,endY)-14,width=1035-left,height=Math.abs(startY-endY)+28;
-      const routeX=1003+n*8-left;
-      const d=`M ${width} ${startY-top} H ${routeX} V ${endY-top} H 18`;
-      const file=`direction-${pageId}-${n}.svg`;
-      await fs.writeFile(path.join(images,file),`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><path d="${d}" fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#2B5734" stroke-width="5" stroke-linejoin="round"/><path d="M 0 ${endY-top} L 21 ${endY-top-12} L 21 ${endY-top+12} Z" fill="#2B5734"/></svg>`);
-      const id=`direction-${n}`;doc.assets[id]={src:"images/"+file};
-      doc.elements.push({id,type:"image",assetId:id,fit:"contain",frame:{x:left,y:top,width,height},altText:`Flèche de l’instruction ${n} vers ${title}.`});
-    }
-  }
+  doc.elements.push(txt(`step-${n}-title`,{x:1140,y,width:compact?380:684,height:60},title,23,{weight:700}));
+  doc.elements.push(txt(`step-${n}-body`,{x:1140,y:y+66,width:compact?380:684,height:height-66},body,20));
 }
 const pages=[
  {id:"client-start",title:"Client — choisir la durée",role:"CLIENT",steps:[
@@ -57,7 +63,7 @@ const pages=[
    ["Passer aux créneaux","La sélection ouvre les dates et les heures. Suivre la page 2."]]},
  {id:"client-time",title:"Client — choisir la date et l’heure",role:"CLIENT",steps:[
    ["Ouvrir le calendrier","Cliquer sur la date, en haut du panneau de réservation."],
-   ["Choisir le jour","Dans le calendrier, cliquer sur le jour demandé par le client."],
+   ["Choisir le jour","Cliquer le jour demandé."],
    ["Choisir l’heure","Cliquer sur une heure disponible. Aucun choix ? Essayer un autre jour."]]},
  {id:"client-details",title:"Client — remplir les coordonnées",role:"CLIENT",steps:[
    ["Nom et courriel","Entrer le nom complet et le courriel du client."],
@@ -87,10 +93,9 @@ for(let p=0;p<pages.length;p++){
  if(p===0){const v=await shot(doc,"duration","duration",{x:96,y:274,width:900,height:716});targets.push(mark(doc,v,"reserve"),mark(doc,v,"duration"),null);}
  if(p===1){
    const v=await shot(doc,"time","time",{x:96,y:274,width:900,height:716});targets[0]=mark(doc,v,"date");targets[2]=mark(doc,v,"time");
-   const popup=await shot(doc,"date","calendar-popup",{x:105,y:724,width:350,height:264},cropControl("date","calendar"));
+   // The calendar belongs beside instruction 2, not over the page or below instruction 3.
+   const popup=await shot(doc,"date","calendar-popup",{x:1544,y:500,width:280,height:230},cropControl("date","calendar"));
    targets[1]=mark(doc,popup,"day");
-   doc.elements.push(rect("popup-caption-bg",{x:100,y:670,width:590,height:54},"background"));
-   doc.elements.push(txt("popup-caption",{x:105,y:674,width:560,height:48},"Calendrier après un clic sur la date",15,{weight:700,color:"accent"}));
  }
  if(p===2){const v=await shot(doc,"details","details",{x:96,y:274,width:900,height:716});targets.push(mark(doc,v,"name"),mark(doc,v,"players"),mark(doc,v,"continue"));mark(doc,v,"email");mark(doc,v,"terms");}
  if(p===3){
@@ -112,7 +117,19 @@ for(let p=0;p<pages.length;p++){
  }
  const rows=p===4?[{y:258,h:350},{y:610,h:216},{y:842,h:166}]:[{y:258,h:230},{y:504,h:230},{y:750,h:252}];
  if(p===4){page.steps[1][1]="« Vue calendrier » : choisir le jour avec les flèches.";page.steps[2][1]="Cliquer le bloc, puis « Modifier ».";}
- for(let n=0;n<3;n++)await step(doc,page.id,n+1,rows[n].y,rows[n].h,...page.steps[n],targets[n]);
+ const labels=[
+   [null,"2 heures",null],
+   ["Date",null,"Heure"],
+   ["Nom","Joueurs","Continuer"],
+   [null,"Confirmer",null],
+   ["Connexion","Jour","Client"],
+   ["Date","Heure","Enregistrer"],
+ ][p];
+ for(let n=0;n<3;n++){
+   const right=p===0||p===1&&n===1||p===4&&n===2||p===5&&n===2;
+   await localPointer(doc,page.id,n+1,targets[n],labels[n],right?"right":"left");
+   step(doc,n+1,rows[n].y,rows[n].h,...page.steps[n],p===1&&n===1);
+ }
  const foot=p===5?"Après sauvegarde, vérifier le jour. Erreur ? Prévenir le responsable.":"Captures du site réel · Exemples fictifs : utiliser les informations du client.";
  doc.elements.push(txt("footer",{x:96,y:1015,width:1430,height:52},foot,14,{color:"muted"}));
  doc.elements.push(txt("pagination",{x:1600,y:1015,width:224,height:52},`PAGE ${p+1} / 6`,15,{color:"muted",align:"right"}));

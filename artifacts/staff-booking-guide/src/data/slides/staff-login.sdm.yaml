@@ -266,6 +266,54 @@ elements:
         kind: token
         token: accent
       widthPt: 2.5
+  - id: direction-1
+    type: image
+    assetId: direction-1
+    fit: contain
+    frame:
+      x: 429
+      y: 470.69999999999993
+      width: 34
+      height: 28
+    altText: Flèche courte vers Connexion.
+  - id: direction-1-label-bg
+    type: shape
+    frame:
+      x: 216.5
+      y: 460.69999999999993
+      width: 206.5
+      height: 48
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: background
+  - id: direction-1-label
+    type: text
+    frame:
+      x: 224.5
+      y: 467.69999999999993
+      width: 190.5
+      height: 38
+    body:
+      paragraphs:
+        - runs:
+            - text: Connexion
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 14.4
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: right
+          lineHeight: 1.12
+          spaceAfterPt: 0
   - id: step-1-badge
     type: shape
     frame:
@@ -353,16 +401,54 @@ elements:
           align: left
           lineHeight: 1.12
           spaceAfterPt: 0
-  - id: direction-1
+  - id: direction-2
     type: image
-    assetId: direction-1
+    assetId: direction-2
     fit: contain
     frame:
-      x: 631
-      y: 287
-      width: 404
-      height: 211.69999999999993
-    altText: "Flèche de l’instruction 1 vers Se connecter : /login."
+      x: 621.74609375
+      y: 707.5
+      width: 34
+      height: 28
+    altText: Flèche courte vers Jour.
+  - id: direction-2-label-bg
+    type: shape
+    frame:
+      x: 475.74609375
+      y: 697.5
+      width: 140
+      height: 48
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: background
+  - id: direction-2-label
+    type: text
+    frame:
+      x: 483.74609375
+      y: 704.5
+      width: 124
+      height: 38
+    body:
+      paragraphs:
+        - runs:
+            - text: Jour
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 14.4
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: right
+          lineHeight: 1.12
+          spaceAfterPt: 0
   - id: step-2-badge
     type: shape
     frame:
@@ -447,16 +533,54 @@ elements:
           align: left
           lineHeight: 1.12
           spaceAfterPt: 0
-  - id: direction-2
+  - id: direction-3
     type: image
-    assetId: direction-2
+    assetId: direction-3
     fit: contain
     frame:
-      x: 731.8
-      y: 639
-      width: 303.20000000000005
-      height: 96.5
-    altText: Flèche de l’instruction 2 vers Afficher le bon jour.
+      x: 567.05
+      y: 810.4
+      width: 34
+      height: 28
+    altText: Flèche courte vers Client.
+  - id: direction-3-label-bg
+    type: shape
+    frame:
+      x: 607.05
+      y: 800.4
+      width: 151
+      height: 48
+    geometry:
+      kind: preset
+      preset: rect
+    fill:
+      kind: solid
+      color:
+        kind: token
+        token: background
+  - id: direction-3-label
+    type: text
+    frame:
+      x: 615.05
+      y: 807.4
+      width: 135
+      height: 38
+    body:
+      paragraphs:
+        - runs:
+            - text: Client
+          defaultRunStyle:
+            font:
+              kind: token
+              token: body
+            sizePt: 14.4
+            weight: 700
+            color:
+              kind: token
+              token: accent
+          align: left
+          lineHeight: 1.12
+          spaceAfterPt: 0
   - id: step-3-badge
     type: shape
     frame:
@@ -541,16 +665,6 @@ elements:
           align: left
           lineHeight: 1.12
           spaceAfterPt: 0
-  - id: direction-3
-    type: image
-    assetId: direction-3
-    fit: contain
-    frame:
-      x: 569.05
-      y: 810.4
-      width: 465.95000000000005
-      height: 88.60000000000002
-    altText: Flèche de l’instruction 3 vers Ouvrir la réservation.
   - id: footer
     type: text
     frame:
