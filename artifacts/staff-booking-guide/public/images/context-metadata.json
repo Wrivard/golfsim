@@ -255,5 +255,36 @@
         "height": 256
       }
     }
+  },
+  "calendar-gaps": {
+    "file": "context-calendar-gaps.png",
+    "width": 2560,
+    "height": 2000,
+    "controls": {
+      "date": {
+        "x": 1981.40625,
+        "y": 428,
+        "width": 274.59375,
+        "height": 64
+      },
+      "gapTwo": {
+        "x": 820,
+        "y": 1176,
+        "width": 506,
+        "height": 256
+      },
+      "gapOther": {
+        "x": 1344,
+        "y": 1304,
+        "width": 506,
+        "height": 256
+      },
+      "gapShort": {
+        "x": 296,
+        "y": 1048,
+        "width": 506,
+        "height": 128
+      }
+    }
   }
 }

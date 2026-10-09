@@ -112,5 +112,24 @@
         "Cliquer « Enregistrer ». Attendre « Réservation modifiée » et vérifier le bloc au nouveau jour. Puis « Déconnexion »."
       ]
     ]
+  },
+  {
+    "id": "staff-gaps",
+    "title": "Admin — repérer les trous libres",
+    "role": "ADMIN",
+    "steps": [
+      [
+        "Lire la bonne journée",
+        "Vérifier la date et la baie. Blocs colorés = réservés ; espaces blancs = libres."
+      ],
+      [
+        "Trouver un trou assez long",
+        "Exemple : 12 h à 14 h, baie 2 = 2 h libres. Un trou de 1 h ne suffit pas pour 2 h."
+      ],
+      [
+        "Comparer les meilleurs choix",
+        "Côté client, les trous sont généralement mis dans « Meilleur choix ». Utiliser ces suggestions ou comparer ici."
+      ]
+    ]
   }
 ]

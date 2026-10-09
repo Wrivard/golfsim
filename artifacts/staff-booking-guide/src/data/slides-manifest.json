@@ -52,5 +52,14 @@
     "title": "Admin — changer la date ou l’heure",
     "description": "Guide imprimable avec contexte de page, flèches et trois repères uniques.",
     "speakerNotes": ""
+  },
+  {
+    "id": "staff-gaps",
+    "position": 7,
+    "kind": "sdm",
+    "filepath": "src/data/slides/staff-gaps.sdm.yaml",
+    "title": "Admin — repérer les trous libres",
+    "description": "Guide imprimable avec contexte de page, flèches et trois repères uniques.",
+    "speakerNotes": ""
   }
 ]

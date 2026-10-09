@@ -1,6 +1,6 @@
 /**
  * Private print export only. No credential enters public slides or public assets.
- * The source must already be the six-page Letter landscape PDF.
+ * The source must already be the seven-page Letter landscape PDF.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -16,7 +16,7 @@ try {
     throw new Error("A private output path and secure password are required.");
   }
   const pdf = await PDFDocument.load(await fs.readFile(file));
-  if (pdf.getPageCount() !== 6) throw new Error("Expected six pages.");
+  if (pdf.getPageCount() !== 7) throw new Error("Expected seven pages.");
   const page = pdf.getPage(4);
   if (page.getWidth() !== 792 || page.getHeight() !== 612) throw new Error("Expected Letter landscape.");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -45,14 +45,14 @@ try {
     x:footer.x,y:footer.y+footer.height-12,size:11.5,font,color:ink,
   });
   pdf.setTitle("Golf SIM - Guide confidentiel du personnel");
-  pdf.setSubject("Six pages pour le personnel. Contient les accès administrateur : ne pas diffuser.");
+  pdf.setSubject("Sept pages pour le personnel. Contient les accès administrateur : ne pas diffuser.");
   await fs.writeFile(file,await pdf.save(),{mode:0o600});
   await fs.chmod(file,0o600);
   const text = spawnSync("pdftotext",["-raw",file,"-"],{encoding:"utf8"});
   if (text.status !== 0 || !text.stdout.includes(username) || !text.stdout.includes(password)) {
     throw new Error("Private PDF access-field verification failed.");
   }
-  console.log(JSON.stringify({privatePdfReady:true,pages:6,letterLandscape:true,identifierVerified:true,passwordFieldVerified:true}));
+  console.log(JSON.stringify({privatePdfReady:true,pages:7,letterLandscape:true,identifierVerified:true,passwordFieldVerified:true}));
 } catch {
   console.error("Private PDF preparation failed; no credentials were logged.");
   process.exitCode = 1;

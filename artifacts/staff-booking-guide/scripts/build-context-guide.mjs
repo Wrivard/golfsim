@@ -88,7 +88,11 @@ const pages=[
  {id:"staff-check",title:"Admin — changer la date ou l’heure",role:"ADMIN",steps:[
    ["Modifier la date","Dans « Date », choisir le nouveau jour demandé."],
    ["Modifier l’horaire","Changer « Heure » et, si nécessaire, « Durée ». Vérifier aussi la baie et les joueurs."],
-   ["Enregistrer et vérifier","Cliquer « Enregistrer ». Attendre « Réservation modifiée » et vérifier le bloc au nouveau jour. Puis « Déconnexion »."]]}
+   ["Enregistrer et vérifier","Cliquer « Enregistrer ». Attendre « Réservation modifiée » et vérifier le bloc au nouveau jour. Puis « Déconnexion »."]]},
+ {id:"staff-gaps",title:"Admin — repérer les trous libres",role:"ADMIN",steps:[
+   ["Lire la bonne journée","Vérifier la date et la baie. Blocs colorés = réservés ; espaces blancs = libres."],
+   ["Trouver un trou assez long","Exemple : 12 h à 14 h, baie 2 = 2 h libres. Un trou de 1 h ne suffit pas pour 2 h."],
+   ["Comparer les meilleurs choix","Côté client, les trous sont généralement mis dans « Meilleur choix ». Utiliser ces suggestions ou comparer ici."]]}
 ];
 const manifest=[];
 for(let p=0;p<pages.length;p++){
@@ -124,6 +128,17 @@ for(let p=0;p<pages.length;p++){
    const edit=await shot(doc,"edit","edit",{x:96,y:267,width:900,height:724});
    targets.push(mark(doc,edit,"date"),mark(doc,edit,"time"),mark(doc,edit,"save"));mark(doc,edit,"duration");
  }
+ if(p===6){
+   const v=await shot(doc,"calendar-gaps","calendar-gaps",{x:96,y:274,width:900,height:716});
+   targets.push(mark(doc,v,"date"),mark(doc,v,"gapTwo"),null);
+   const other=mark(doc,v,"gapOther");
+   const short=captures[v.name].controls.gapShort;
+   const shortBox={x:v.box.x+short.x*v.scale,y:v.box.y+short.y*v.scale,width:short.width*v.scale,height:short.height*v.scale};
+   doc.elements.push(rect("gap-short",shortBox,null,true));
+   for(const [i,b,label] of [[1,targets[1],"2 h"],[2,other,"2 h"],[3,shortBox,"1 h"]]){
+     doc.elements.push(txt(`gap-duration-${i}`,{x:b.x+8,y:b.y+(b.height-40)/2,width:b.width-16,height:40},label,14,{weight:700,color:i===3?"muted":"accent",align:"center"}));
+   }
+ }
  const rows=p===4?[{y:258,h:350},{y:610,h:216},{y:842,h:166}]:[{y:258,h:230},{y:504,h:230},{y:750,h:252}];
  if(p===4){page.steps[1][1]="« Vue calendrier » : choisir le jour avec les flèches.";page.steps[2][1]="Cliquer le bloc, puis « Modifier ».";}
  const routes=[];
@@ -145,12 +160,12 @@ for(let p=0;p<pages.length;p++){
    for(let x=1;x<a.length;x++)for(let z=1;z<b.length;z++)
      if(intersects(a[x-1],a[x],b[z-1],b[z]))throw new Error(`Crossing arrows on ${page.id}: ${routes[i].n}/${routes[j].n}`);
  }
- const foot=p===5?"Après sauvegarde, vérifier le jour. Erreur ? Prévenir le responsable.":"Captures du site réel · Exemples fictifs : utiliser les informations du client.";
+ const foot=p===6?"Exemple fictif · Le trou doit être continu dans une seule baie.":p===5?"Après sauvegarde, vérifier le jour. Erreur ? Prévenir le responsable.":"Captures du site réel · Exemples fictifs : utiliser les informations du client.";
  doc.elements.push(txt("footer",{x:96,y:1015,width:1430,height:52},foot,14,{color:"muted"}));
- doc.elements.push(txt("pagination",{x:1600,y:1015,width:224,height:52},`PAGE ${p+1} / 6`,15,{color:"muted",align:"right"}));
+ doc.elements.push(txt("pagination",{x:1600,y:1015,width:224,height:52},`PAGE ${p+1} / ${pages.length}`,15,{color:"muted",align:"right"}));
  await fs.writeFile(path.join(root,`src/data/slides/${page.id}.sdm.yaml`),YAML.stringify(doc,{lineWidth:0}));
  manifest.push({id:page.id,position:p+1,kind:"sdm",filepath:`src/data/slides/${page.id}.sdm.yaml`,title:page.title,description:"Guide imprimable avec contexte de page, flèches et trois repères uniques.",speakerNotes:""});
 }
 await fs.writeFile(path.join(root,"src/data/slides-manifest.json"),JSON.stringify(manifest,null,2)+"\n");
 await fs.writeFile(path.join(root,"docs/approved-outline.json"),JSON.stringify(pages,null,2)+"\n");
-console.log("Built six pages: four client bookings, two login/edit, contextual screenshots.");
+console.log(`Built ${pages.length} pages: four client bookings, two login/edit, and a calendar-gap example.`);

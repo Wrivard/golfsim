@@ -520,7 +520,7 @@ elements:
     body:
       paragraphs:
         - runs:
-            - text: PAGE 6 / 6
+            - text: PAGE 6 / 7
           defaultRunStyle:
             font:
               kind: token
