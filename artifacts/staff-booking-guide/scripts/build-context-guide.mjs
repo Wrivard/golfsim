@@ -4,7 +4,7 @@ import sharp from "sharp";
 import YAML from "yaml";
 const root=path.resolve("artifacts/staff-booking-guide"),images=path.join(root,"public/images");
 const captures=JSON.parse(await fs.readFile(path.join(images,"context-metadata.json"),"utf8"));
-const theme={colors:{background:"#F7F3E8",foreground:"#1B1A18",accent:"#2B5734",surface:"#FFFFFF",muted:"#70695C"},fonts:{display:"Oswald",body:"DM Sans"}};
+const theme={colors:{background:"#FFFFFF",foreground:"#1B1A18",accent:"#2B5734",surface:"#FFFFFF",muted:"#70695C"},fonts:{display:"Oswald",body:"DM Sans"}};
 const token=token=>({kind:"token",token}),fill=color=>({kind:"solid",color:token(color)});
 const rect=(id,frame,color="surface",stroke=false,preset="rect")=>({id,type:"shape",frame,geometry:{kind:"preset",preset},fill:color?fill(color):{kind:"none"},...(stroke?{stroke:{color:token("accent"),widthPt:2.5}}:{})});
 const txt=(id,frame,value,size=20,opts={})=>({id,type:"text",frame,body:{paragraphs:[{runs:[{text:value}],defaultRunStyle:{font:token(opts.font||"body"),sizePt:size,weight:opts.weight||400,color:token(opts.color||"foreground")},align:opts.align||"left",lineHeight:1.12,spaceAfterPt:0}]}});

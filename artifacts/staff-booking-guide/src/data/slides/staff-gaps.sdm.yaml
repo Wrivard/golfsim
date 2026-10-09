@@ -5,7 +5,7 @@ size:
   height: 1080
 theme:
   colors:
-    background: "#F7F3E8"
+    background: "#FFFFFF"
     foreground: "#1B1A18"
     accent: "#2B5734"
     surface: "#FFFFFF"

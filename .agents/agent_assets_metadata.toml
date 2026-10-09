@@ -77,3 +77,17 @@ mtime_ms = 1791567825061
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/69973490-0371-418e-a4fa-2a1fc7cb23c7/e96fe7f2-0a3b-41a4-891d-ed5df553deab"
 storage_version_token = "1791567847242330"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "Sjn5ULIJReGp11wDHxpV8"
+uri = "file://.local/outputs/Guide-confidentiel-Golf-SIM-7-pages-fond-blanc.pdf"
+type = "pdf"
+title = "Guide du personnel — fond blanc, accès en page 5 (PDF)"
+description = "Seven-page confidential staff guide with the real login credentials on page 5. White background, Letter landscape. Staff use only; do not distribute publicly."
+logical_id = "79b9de6d-0b25-4bae-945d-bf8dbc2488cc"
+content_hash = "sha256:7b51969aecfa79e39f137fe3b55fbc589bda49d47d50f5a9409922c301011512"
+size = 921328
+mtime_ms = 1791568108481
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/79b9de6d-0b25-4bae-945d-bf8dbc2488cc/1ba2af1a-6813-467c-b6e1-9d1f6c7258f2"
+storage_version_token = "1791568123083385"
+content_type = "application/pdf"

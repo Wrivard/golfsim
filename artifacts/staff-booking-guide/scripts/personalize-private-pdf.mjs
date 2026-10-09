@@ -24,10 +24,10 @@ try {
   const scale = (792-2*25.2)/1920;
   const offsetX = 25.2, offsetY = (612-1080*scale)/2;
   const box = (x,y,width,height)=>({x:offsetX+x*scale,y:offsetY+(1080-y-height)*scale,width:width*scale,height:height*scale});
-  const cream = rgb(247/255,243/255,232/255);
+  const paper = rgb(1,1,1);
   const ink = rgb(27/255,26/255,24/255);
   const field = box(1140,324,684,278);
-  page.drawRectangle({...field,color:cream});
+  page.drawRectangle({...field,color:paper});
   const top = field.y+field.height-15;
   function accessLine(label,value,y) {
     const labelWidth = font.widthOfTextAtSize(label,13.5);
@@ -40,7 +40,7 @@ try {
   accessLine("Mot de passe : ",password,top-20);
   page.drawText("Puis « Se connecter ».",{x:field.x,y:top-40,size:13.5,font,color:ink});
   const footer = box(96,1015,1430,52);
-  page.drawRectangle({...footer,color:cream});
+  page.drawRectangle({...footer,color:paper});
   page.drawText("ACCÈS RÉELS - Document réservé au personnel. Ne pas diffuser.",{
     x:footer.x,y:footer.y+footer.height-12,size:11.5,font,color:ink,
   });

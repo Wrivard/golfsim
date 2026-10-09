@@ -9,6 +9,12 @@ The user said some staff are older and the booking instructions must be very cle
 
 **How to apply:** When updating this staff guide, preserve French instructions, large printable text and visible click annotations. Do not rely on hover tooltips or online-only interactions to communicate a required action.
 
+Utiliser un fond blanc et conserver seulement des accents de couleur pour les repères et les flèches du guide.
+
+**Why:** L’utilisateur fera imprimer en couleur, mais veut économiser l’encre tout en gardant une présentation soignée.
+
+**How to apply:** Garder le fond des pages et des zones d’accès du PDF blanc. Préserver les captures authentiques du site et les annotations utiles en couleur.
+
 Le guide compte sept pages : quatre pour réserver côté client, deux pour se connecter et modifier une réservation existante, puis une dernière pour repérer les trous dans le calendrier admin et comprendre « Meilleur choix » côté client. Utiliser des instructions simples « 1, 2, 3 », avec chaque numéro une seule fois et son texte juste à côté. Retirer les étapes évidentes comme ouvrir le site.
 
 **Why:** Le personnel doit pouvoir suivre rapidement le guide imprimé. Après avoir demandé six pages, l’utilisateur a explicitement ajouté une septième page avec un exemple de calendrier rempli et de trous disponibles.
