@@ -47,3 +47,8 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.vercel/
+/generated-artifacts/
+.env
+.env.*
+!.env.example

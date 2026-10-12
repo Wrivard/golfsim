@@ -10,5 +10,8 @@ export * from './bookingUpdate';
 export * from './bookingUpdateBayType';
 export * from './bookingUpdateDuration';
 export * from './bookingUpdateResult';
+export * from './contactInput';
+export * from './contactInputPlayers';
+export * from './contactResult';
 export * from './healthStatus';
 export * from './reservation';

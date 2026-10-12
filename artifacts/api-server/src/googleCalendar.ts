@@ -1,9 +1,23 @@
-import { google } from 'googleapis';
+import { google, type calendar_v3 } from 'googleapis';
 import { storage } from './storage';
 import crypto from 'crypto';
+import { externalCalendarAllowed, previewRuntime, publicOrigin, durableRuntime } from "./runtime/config";
+import { readState, writeState } from "./runtime/state";
+import { torontoSlot } from "./calendar-time";
+import { listCalendarWindow } from "./calendar-pages";
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CLIENT_ID = previewRuntime() ? process.env.PREVIEW_GOOGLE_CLIENT_ID : process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = previewRuntime() ? process.env.PREVIEW_GOOGLE_CLIENT_SECRET : process.env.GOOGLE_CLIENT_SECRET;
+const tokenProvider = previewRuntime() ? "google-preview" : "google";
+google.options({ timeout: 15000 });
+function providerFailure(error: unknown) {
+  // Gaxios errors include OAuth request secrets; only a numeric status may escape.
+  const source = error as { code?: unknown; response?: { status?: unknown } } | null;
+  const status = source?.response?.status ?? source?.code;
+  return Object.assign(new Error("Google Calendar request failed; verify connection and permissions."), {
+    code: typeof status === "number" ? status : undefined,
+  });
+}
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',
@@ -11,14 +25,18 @@ const SCOPES = [
 ];
 
 function getOAuth2Client(redirectUri?: string) {
-  return new google.auth.OAuth2(
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    redirectUri
-  );
+  return new google.auth.OAuth2({
+    clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET, redirectUri,
+    transporterOptions: { timeout: 15000 },
+  });
 }
 
 function getRedirectUri(req: { protocol: string; get: (name: string) => string | undefined }) {
+  if (previewRuntime()) {
+    if (!process.env.PREVIEW_GOOGLE_REDIRECT_URI) throw new Error("Preview Google redirect URI is required.");
+    return process.env.PREVIEW_GOOGLE_REDIRECT_URI;
+  }
+  if (publicOrigin()) return `${publicOrigin()}/oauth/google/callback`;
   const host = req.get('host') || 'localhost:5000';
   const protocol = host.includes('localhost') ? 'http' : 'https';
   return `${protocol}://${host}/oauth/google/callback`;
@@ -29,6 +47,7 @@ export function generateOAuthState(): string {
 }
 
 export function getGoogleAuthUrl(redirectUri: string, state: string): string {
+  if (!externalCalendarAllowed()) throw new Error("Calendar access is disabled for this deployment.");
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     throw new Error('Google OAuth credentials not configured');
   }
@@ -44,29 +63,30 @@ export function getGoogleAuthUrl(redirectUri: string, state: string): string {
 }
 
 export async function exchangeCodeForTokens(code: string, redirectUri: string) {
+  if (!externalCalendarAllowed()) throw new Error("Calendar access is disabled for this deployment.");
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     throw new Error('Google OAuth credentials not configured');
   }
 
   const oauth2Client = getOAuth2Client(redirectUri);
-  const { tokens } = await oauth2Client.getToken(code);
+  const { tokens } = await oauth2Client.getToken(code).catch(error => { throw providerFailure(error); });
   
   oauth2Client.setCredentials(tokens);
   
   const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-  const userInfo = await oauth2.userinfo.get();
+  const userInfo = await oauth2.userinfo.get().catch(error => { throw providerFailure(error); });
   
   const expiresAt = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
   
   await storage.saveOAuthToken({
-    provider: 'google',
+    provider: tokenProvider,
     accessToken: tokens.access_token!,
     refreshToken: tokens.refresh_token || null,
     expiresAt: expiresAt,
     scope: tokens.scope || SCOPES.join(' '),
     tokenType: tokens.token_type || 'Bearer',
     email: userInfo.data.email || null,
-  });
+  }).catch(() => { throw new Error("OAuth credentials could not be saved."); });
   
   return {
     email: userInfo.data.email,
@@ -75,7 +95,7 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string) {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  const tokenData = await storage.getOAuthToken('google');
+  const tokenData = await storage.getOAuthToken(tokenProvider);
   
   if (!tokenData?.refreshToken) {
     return null;
@@ -91,20 +111,20 @@ async function refreshAccessToken(): Promise<string | null> {
     
     const expiresAt = credentials.expiry_date ? new Date(credentials.expiry_date) : null;
     
-    await storage.updateOAuthToken('google', {
+    await storage.updateOAuthToken(tokenProvider, {
       accessToken: credentials.access_token!,
       expiresAt: expiresAt,
     });
     
     return credentials.access_token!;
   } catch (error) {
-    console.error('Failed to refresh access token:', error);
+    console.error('Failed to refresh access token.');
     return null;
   }
 }
 
 async function getValidAccessToken(): Promise<string> {
-  const tokenData = await storage.getOAuthToken('google');
+  const tokenData = await storage.getOAuthToken(tokenProvider);
   
   if (!tokenData) {
     throw new Error('Google Calendar not connected');
@@ -125,6 +145,7 @@ async function getValidAccessToken(): Promise<string> {
 }
 
 export async function getGoogleCalendarClient() {
+  if (!externalCalendarAllowed()) throw new Error("Calendar access is disabled for this deployment.");
   const accessToken = await getValidAccessToken();
 
   const oauth2Client = new google.auth.OAuth2();
@@ -148,7 +169,7 @@ export async function getCalendarConnectionStatus(): Promise<{
   }
   
   try {
-    const tokenData = await storage.getOAuthToken('google');
+    const tokenData = await storage.getOAuthToken(tokenProvider);
     
     if (!tokenData) {
       return { connected: false, configured: true };
@@ -161,7 +182,7 @@ export async function getCalendarConnectionStatus(): Promise<{
       configured: true,
     };
   } catch (error) {
-    console.error('Failed to get calendar connection status:', error);
+    console.error('Failed to get calendar connection status.');
     return { connected: false, configured: true };
   }
 }
@@ -177,37 +198,41 @@ export async function listCalendars(): Promise<Array<{ id: string; summary: stri
       primary: cal.primary || false,
     }));
   } catch (error) {
-    console.error('Failed to list calendars:', error);
-    throw error;
+    console.error('Failed to list calendars.');
+    throw providerFailure(error);
   }
 }
 
 export async function revokeGoogleAccess(): Promise<void> {
-  const tokenData = await storage.getOAuthToken('google');
+  if (!externalCalendarAllowed()) throw new Error("Calendar access is disabled for this deployment.");
+  const tokenData = await storage.getOAuthToken(tokenProvider);
   
   if (tokenData?.accessToken) {
     try {
       const oauth2Client = getOAuth2Client();
       await oauth2Client.revokeToken(tokenData.accessToken);
     } catch (error) {
-      console.error('Failed to revoke token with Google:', error);
+      console.error('Failed to revoke token with Google.');
     }
   }
   
-  await storage.deleteOAuthToken('google');
+  await storage.deleteOAuthToken(tokenProvider);
 }
 
 async function getConfiguredCalendarId(): Promise<string> {
-  try {
-    const settings = await storage.getCalendarSettings();
-    return settings?.calendarId || 'primary';
-  } catch (error) {
-    console.error('Failed to get calendar settings, using primary:', error);
-    return 'primary';
+  const settings = await storage.getCalendarSettings();
+  if (previewRuntime()) {
+    const id = process.env.PREVIEW_CALENDAR_ID;
+    if (!id || id === "primary" || id === settings?.calendarId) {
+      throw new Error("An explicitly isolated preview calendar is required.");
+    }
+    return id;
   }
+  return settings?.calendarId || 'primary';
 }
 
 function calendarEventForBooking(booking: {
+  id?: string;
   name: string;
   email: string;
   phone?: string | null;
@@ -277,6 +302,7 @@ Durée: ${booking.duration}
 ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     `.trim(),
     colorId: BAY_COLORS[booking.bayType] || "10",
+    ...(booking.id ? { extendedProperties: { private: { golfSimBookingId: booking.id } } } : {}),
     start: {
       dateTime: startTimeStr,
       timeZone: 'America/Toronto',
@@ -296,7 +322,7 @@ export async function createCalendarEvent(booking: Parameters<typeof calendarEve
   const response = await calendar.events.insert({
     calendarId: calendarId,
     requestBody: calendarEventForBooking(booking),
-  });
+  }).catch(error => { throw providerFailure(error); });
 
   return response.data.id || null;
 }
@@ -304,7 +330,7 @@ export async function createCalendarEvent(booking: Parameters<typeof calendarEve
 export async function updateCalendarEvent(eventId: string, booking: Parameters<typeof calendarEventForBooking>[0]) {
   const calendar = await getGoogleCalendarClient();
   const calendarId = await getConfiguredCalendarId();
-  await calendar.events.patch({ calendarId, eventId, requestBody: calendarEventForBooking(booking) });
+  await calendar.events.patch({ calendarId, eventId, requestBody: calendarEventForBooking(booking) }).catch(error => { throw providerFailure(error); });
 }
 
 export async function deleteCalendarEvent(eventId: string) {
@@ -314,7 +340,7 @@ export async function deleteCalendarEvent(eventId: string) {
   await calendar.events.delete({
     calendarId: calendarId,
     eventId: eventId,
-  });
+  }).catch(error => { throw providerFailure(error); });
 }
 
 export interface CalendarSyncResult {
@@ -339,17 +365,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
   const result: CalendarSyncResult = { imported: 0, updated: 0, deleted: 0, skipped: 0, errors: 0 };
   
   try {
-    const response = await calendar.events.list({
-      calendarId: calendarId,
-      timeMin: timeMin.toISOString(),
-      timeMax: timeMax.toISOString(),
-      singleEvents: true,
-      orderBy: 'startTime',
-      maxResults: 500,
-      showDeleted: true,
-    });
-    
-    const events = response.data.items || [];
+    const events = await listCalendarWindow(calendar, calendarId, timeMin.toISOString(), timeMax.toISOString());
     const existingBookings = await storage.getAllBookings();
     const calendarBookingsMap = new Map<string, typeof existingBookings[0]>();
     for (const b of existingBookings) {
@@ -369,7 +385,15 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
       seenCalendarEventIds.add(event.id);
 
       const isCancelled = event.status === 'cancelled';
-      const existingBooking = calendarBookingsMap.get(event.id);
+      const linkedId = event.extendedProperties?.private?.golfSimBookingId;
+      const linkedBooking = linkedId ? existingBookings.find(b => b.id === linkedId) : undefined;
+      // A deleted/compensated app booking must not be recreated from an orphan event.
+      if (linkedId && !linkedBooking) { result.skipped++; continue; }
+      if (linkedBooking?.calendarEventId && linkedBooking.calendarEventId !== event.id) { result.skipped++; continue; }
+      const existingBooking = calendarBookingsMap.get(event.id) || linkedBooking;
+      if (linkedBooking && !linkedBooking.calendarEventId) {
+        await storage.updateBookingCalendarEventId(linkedBooking.id, event.id);
+      }
 
       if (isCancelled) {
         if (existingBooking) {
@@ -407,12 +431,12 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
               const durationMin = Math.round(diffMs / 60000);
               const hours = Math.floor(durationMin / 60);
               const mins = durationMin % 60;
-              const timeStr = `${String(localStart.getHours()).padStart(2, '0')}:${String(localStart.getMinutes()).padStart(2, '0')}`;
+              const slot = torontoSlot(event.start!.dateTime!);
+              const timeStr = slot.time;
               const durationStr = mins > 0 ? `${hours}h${String(mins).padStart(2, '0')}` : `${hours}h00`;
-              const dateOnly = new Date(localStart);
-              dateOnly.setHours(0, 0, 0, 0);
+              const dateOnly = slot.date;
               
-              const dateChanged = new Date(existingBooking.date).toDateString() !== dateOnly.toDateString();
+              const dateChanged = new Date(existingBooking.date).toISOString().slice(0, 10) !== slot.day;
               const timeChanged = existingBooking.time !== timeStr;
               const durationChanged = existingBooking.duration !== durationStr;
 
@@ -438,7 +462,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
         }
 
         if (existingBooking) {
-          const dateChanged = new Date(existingBooking.date).toDateString() !== new Date(parsed.date).toDateString();
+          const dateChanged = new Date(existingBooking.date).toISOString().slice(0, 10) !== new Date(parsed.date).toISOString().slice(0, 10);
           const timeChanged = existingBooking.time !== parsed.time;
           const durationChanged = existingBooking.duration !== parsed.duration;
           const bayChanged = existingBooking.bayType !== parsed.bayType;
@@ -510,7 +534,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
       }
     }
   } catch (error) {
-    console.error('Error fetching calendar events for sync:', error);
+    console.error('Error fetching calendar events for sync.');
     throw error;
   }
   
@@ -551,13 +575,9 @@ function parseCalendarEvent(event: any): {
       ? `${durationHours}h` 
       : `${durationHours}h`;
     
-    const localStart = new Date(startDateTime.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-    const hours = localStart.getHours();
-    const minutes = localStart.getMinutes();
-    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    
-    const dateOnly = new Date(localStart);
-    dateOnly.setHours(0, 0, 0, 0);
+    const slot = torontoSlot(event.start.dateTime);
+    const timeStr = slot.time;
+    const dateOnly = slot.date;
     
     let bayType = '1';
     const summary = event.summary || '';
@@ -619,40 +639,27 @@ function parseCalendarEvent(event: any): {
   }
 }
 
-let activeWatchChannelId: string | null = null;
-let activeWatchResourceId: string | null = null;
-let watchRenewalTimer: ReturnType<typeof setTimeout> | null = null;
-const watchToken = crypto.randomBytes(32).toString('hex');
-
-export function getActiveWatchChannelId(): string | null {
-  return activeWatchChannelId;
+export interface CalendarWatch {
+  id: string; resourceId: string; expires: number; url: string; tokenDigest: string;
 }
-
-export function getActiveWatchResourceId(): string | null {
-  return activeWatchResourceId;
+const localWatchSecret = crypto.randomBytes(32).toString("hex");
+export async function getCalendarWatch() {
+  return readState<CalendarWatch>("calendar-watch");
 }
-
 export function getWatchToken(): string {
-  return watchToken;
+  const secret = process.env.CALENDAR_WEBHOOK_SECRET || (durableRuntime() ? undefined : localWatchSecret);
+  if (!secret) throw new Error("CALENDAR_WEBHOOK_SECRET is required for durable watches.");
+  return crypto.createHmac("sha256", secret).update("gsim-calendar-v1").digest("hex");
 }
 
 export async function setupCalendarWatch(webhookUrl: string): Promise<boolean> {
   try {
     const calendar = await getGoogleCalendarClient();
-    const settings = await storage.getCalendarSettings();
-    const calendarId = settings?.calendarId || 'primary';
-
-    if (activeWatchChannelId && activeWatchResourceId) {
-      try {
-        await calendar.channels.stop({
-          requestBody: {
-            id: activeWatchChannelId,
-            resourceId: activeWatchResourceId,
-          },
-        });
-      } catch (e) {
-      }
-    }
+    const calendarId = await getConfiguredCalendarId();
+    const old = await getCalendarWatch();
+    const token = getWatchToken();
+    const tokenDigest = crypto.createHash("sha256").update(token).digest("hex");
+    if (old && old.url === webhookUrl && old.tokenDigest === tokenDigest && old.expires > Date.now() + 3600000) return true;
 
     const channelId = crypto.randomUUID();
     const expiration = Date.now() + 7 * 24 * 60 * 60 * 1000;
@@ -663,49 +670,38 @@ export async function setupCalendarWatch(webhookUrl: string): Promise<boolean> {
         id: channelId,
         type: 'web_hook',
         address: webhookUrl,
-        token: watchToken,
+        token,
         expiration: expiration.toString(),
       },
     });
 
-    activeWatchChannelId = channelId;
-    activeWatchResourceId = response.data.resourceId || null;
-
-    const renewIn = Math.max((expiration - Date.now()) - 10 * 60 * 1000, 60 * 1000);
-    if (watchRenewalTimer) clearTimeout(watchRenewalTimer);
-    watchRenewalTimer = setTimeout(() => {
-      setupCalendarWatch(webhookUrl).catch(err => {
-        console.error('[Calendar Watch] Failed to renew watch channel:', err);
+    if (!response.data.resourceId) throw new Error("Watch response missing resource ID.");
+    try {
+      await writeState("calendar-watch", {
+        id: channelId, resourceId: response.data.resourceId,
+        expires: Number(response.data.expiration || expiration), url: webhookUrl, tokenDigest,
       });
-    }, renewIn);
-
-    console.log(`[Calendar Watch] Watching calendar "${calendarId}" (channel ${channelId}, renews in ${Math.round(renewIn / 60000)}min)`);
+    } catch (error) {
+      try { await calendar.channels.stop({ requestBody: { id: channelId, resourceId: response.data.resourceId } }); } catch {}
+      throw error;
+    }
+    if (old) {
+      try { await calendar.channels.stop({ requestBody: { id: old.id, resourceId: old.resourceId } }); } catch {}
+    }
+    console.info("[Calendar Watch] Watch registered/renewed.");
     return true;
   } catch (error: any) {
-    console.error('[Calendar Watch] Failed to set up push notifications:', error.message || error);
+    console.error('[Calendar Watch] Failed to register watch.');
     return false;
   }
 }
 
 export async function stopCalendarWatch(): Promise<void> {
-  if (watchRenewalTimer) {
-    clearTimeout(watchRenewalTimer);
-    watchRenewalTimer = null;
-  }
-  if (activeWatchChannelId && activeWatchResourceId) {
-    try {
-      const calendar = await getGoogleCalendarClient();
-      await calendar.channels.stop({
-        requestBody: {
-          id: activeWatchChannelId,
-          resourceId: activeWatchResourceId,
-        },
-      });
-    } catch (e) {
-    }
-    activeWatchChannelId = null;
-    activeWatchResourceId = null;
-  }
+  const watch = await getCalendarWatch();
+  if (!watch) return;
+  const calendar = await getGoogleCalendarClient();
+  await calendar.channels.stop({ requestBody: { id: watch.id, resourceId: watch.resourceId } }).catch(error => { throw providerFailure(error); });
+  await writeState("calendar-watch", null);
 }
 
 export { getRedirectUri };

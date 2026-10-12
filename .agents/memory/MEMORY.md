@@ -4,3 +4,4 @@
 - [Publishing verification](publishing-verification.md) — a working development preview does not validate build-only production HTML generation.
 - [Business dates](business-dates.md) — the user stated that the site enters operational use on October 15, 2026.
 - [Hosting target](hosting-target.md) — the user wants the real-domain Golf SIM site hosted on Vercel with its integrations connected.
+- [Browser testing](browser-testing.md) — documented testing helpers may be unavailable; use local browser checks with mocked email responses, not live sends.

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile --prod=false",
+  "buildCommand": "pnpm run build:vercel",
+  "outputDirectory": "artifacts/golf-sim/dist/public",
+  "functions": {
+    "api/index.ts": { "maxDuration": 300 }
+  },
+  "crons": [
+    { "path": "/api/jobs/calendar", "schedule": "*/5 * * * *" }
+  ],
+  "rewrites": [
+    { "source": "/.local/:path*", "destination": "/api/index" },
+    { "source": "/.agents/:path*", "destination": "/api/index" },
+    { "source": "/.git/:path*", "destination": "/api/index" },
+    { "source": "/.env", "destination": "/api/index" },
+    { "source": "/.env.:suffix", "destination": "/api/index" },
+    { "source": "/generated-artifacts/:path*", "destination": "/api/index" },
+    { "source": "/@fs/:path*", "destination": "/api/index" },
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/oauth/google/callback", "destination": "/api/index" },
+    { "source": "/robots.txt", "destination": "/api/index" },
+    { "source": "/sitemap.xml", "destination": "/api/index" },
+    { "source": "/about", "destination": "/about/index.html" },
+    { "source": "/rates", "destination": "/rates/index.html" },
+    { "source": "/gallery", "destination": "/gallery/index.html" },
+    { "source": "/contact", "destination": "/contact/index.html" },
+    { "source": "/booking", "destination": "/booking/index.html" },
+    { "source": "/login", "destination": "/login/index.html" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/politique-de-confidentialite", "destination": "/politique-de-confidentialite/index.html" },
+    { "source": "/politique-de-cookies", "destination": "/politique-de-cookies/index.html" },
+    { "source": "/:path*", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}

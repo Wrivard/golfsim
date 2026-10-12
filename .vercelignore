@@ -1,0 +1,14 @@
+.git
+.local
+.agents
+.cache
+generated-artifacts
+artifacts/mockup-sandbox
+**/node_modules
+**/.tsbuildinfo
+**/*.test.ts
+**/*.test.mjs
+**/dist
+**/.env
+**/.env.*
+!docs/vercel.env.example

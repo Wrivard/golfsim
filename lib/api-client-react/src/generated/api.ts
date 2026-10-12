@@ -22,6 +22,8 @@ import type {
 import type {
   BookingUpdate,
   BookingUpdateResult,
+  ContactInput,
+  ContactResult,
   HealthStatus
 } from './api.schemas';
 
@@ -51,6 +53,94 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getSendContactRequestUrl = () => {
+
+
+
+
+  return `/api/contact`
+}
+
+/**
+ * @summary Envoyer une demande de groupe avec Resend (pas une réservation)
+ */
+export const sendContactRequest = async (contactInput: ContactInput, options?: Parameters<typeof customFetch>[1]): Promise<ContactResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ContactResult>(getSendContactRequestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(contactInput)
+  }
+);}
+
+
+
+
+
+export const getSendContactRequestMutationKey = () => ['sendContactRequest'] as const;
+
+export const getSendContactRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendContactRequest>>, TError,SendContactRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendContactRequest>>, TError,SendContactRequestMutationVariables, TContext> => {
+
+const mutationKey = getSendContactRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendContactRequest>>, SendContactRequestMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendContactRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendContactRequestMutationResult = NonNullable<Awaited<ReturnType<typeof sendContactRequest>>>
+    export type SendContactRequestMutationBody = BodyType<ContactInput>
+    export type SendContactRequestMutationError = ErrorType<void>
+    export type SendContactRequestMutationVariables = {data: BodyType<ContactInput>}
+
+    /**
+ * @summary Envoyer une demande de groupe avec Resend (pas une réservation)
+ */
+export const useSendContactRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendContactRequest>>, TError,SendContactRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendContactRequest>>,
+        TError,
+        SendContactRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendContactRequestMutationOptions(options));
+    }
 
 export const getEditAdminBookingUrl = (id: string,) => {
 

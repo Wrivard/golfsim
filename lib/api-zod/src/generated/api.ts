@@ -9,6 +9,42 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Envoyer une demande de groupe avec Resend (pas une réservation)
+ */
+export const sendContactRequestBodyNameMin = 2;
+export const sendContactRequestBodyNameMax = 150;
+
+export const sendContactRequestBodyEmailMax = 254;
+
+export const sendContactRequestBodyPhoneMax = 30;
+
+export const sendContactRequestBodyDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+export const sendContactRequestBodyMessageMin = 2;
+export const sendContactRequestBodyMessageMax = 2000;
+
+export const sendContactRequestBodyWebsiteMax = 0;
+
+
+
+export const SendContactRequestBody = zod.object({
+  "name": zod.string().min(sendContactRequestBodyNameMin).max(sendContactRequestBodyNameMax),
+  "email": zod.string().email().max(sendContactRequestBodyEmailMax),
+  "phone": zod.string().max(sendContactRequestBodyPhoneMax).optional(),
+  "date": zod.string().regex(sendContactRequestBodyDateRegExp).optional(),
+  "players": zod.union([zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4)]),
+  "message": zod.string().min(sendContactRequestBodyMessageMin).max(sendContactRequestBodyMessageMax),
+  "requestId": zod.string().uuid(),
+  "website": zod.string().max(sendContactRequestBodyWebsiteMax).optional().describe('Anti-spam; doit rester vide')
+})
+
+export const SendContactRequestResponse = zod.object({
+  "ok": zod.boolean(),
+  "message": zod.string(),
+  "id": zod.string()
+})
+
+
+/**
  * @summary Modifier une réservation existante, y compris sa date
  */
 export const EditAdminBookingParams = zod.object({

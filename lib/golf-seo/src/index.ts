@@ -3,6 +3,14 @@ import type { Express, Request, Response } from "express";
 const SITE_NAME = "Golf SIM Sorel-Tracy";
 
 function getSiteDomain(): string {
+  if (process.env.SITE_URL) {
+    const url = new URL(process.env.SITE_URL);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/") {
+      throw new Error("SITE_URL must be an HTTPS origin.");
+    }
+    return url.origin;
+  }
+  if (process.env.VERCEL === "1") throw new Error("SITE_URL is required on Vercel.");
   if (process.env.REPLIT_DEPLOYMENT_URL) {
     return process.env.REPLIT_DEPLOYMENT_URL.replace(/\/$/, "");
   }
@@ -320,7 +328,7 @@ export function injectSeoMeta(html: string, path: string): string {
   headInjection += `    <meta name="description" content="${meta.description}" />\n`;
   headInjection += `    <link rel="canonical" href="${canonicalUrl}" />\n`;
 
-  if (meta.noindex) {
+  if (meta.noindex || process.env.VERCEL_ENV === "preview") {
     headInjection += `    <meta name="robots" content="noindex, nofollow" />\n`;
   }
 
@@ -370,6 +378,7 @@ export function injectSeoMeta(html: string, path: string): string {
 
 export function registerSeoRoutes(app: Express) {
   app.get("/robots.txt", (_req: Request, res: Response) => {
+    if (process.env.VERCEL_ENV === "preview") return res.type("text/plain").send("User-agent: *\nDisallow: /\n");
     const siteUrl = getSiteUrl();
     const robotsTxt = `User-agent: *
 Allow: /
@@ -379,7 +388,7 @@ Disallow: /login
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;
-    res.type("text/plain").send(robotsTxt);
+    return res.type("text/plain").send(robotsTxt);
   });
 
   app.get("/sitemap.xml", (_req: Request, res: Response) => {

@@ -34,7 +34,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== 'production' ? [runtimeErrorOverlay()] : []),
     metaImagesPlugin(),
     seoPlugin(),
     ...(process.env.NODE_ENV !== 'production' &&

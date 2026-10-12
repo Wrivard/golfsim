@@ -6,21 +6,40 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { useRef } from "react";
+import { sendContactRequest, type ContactInput } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import headerBg from "@assets/20260105-6-06_1790696495857.webp";
 
 export default function Contact() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<Omit<ContactInput, "requestId">>({
+    defaultValues: { name: "", email: "", phone: "", date: "", message: "", website: "" },
+  });
   const { toast } = useToast();
+  const submission = useRef<{ fingerprint: string; id: string } | null>(null);
 
-  const onSubmit = (data: any) => {
-    console.log(data);
-    toast({
-      title: "Demande envoyée",
-      description: "Nous vous contacterons sous peu pour confirmer votre réservation.",
-    });
-    reset();
+  const onSubmit = async (data: Omit<ContactInput, "requestId">) => {
+    const cleaned = {
+      ...data, name: data.name.trim(), email: data.email.trim().toLowerCase(),
+      phone: data.phone?.trim() || undefined, date: data.date || undefined, message: data.message.trim(),
+    };
+    const fingerprint = JSON.stringify(cleaned);
+    if (submission.current?.fingerprint !== fingerprint) {
+      submission.current = { fingerprint, id: crypto.randomUUID() };
+    }
+    try {
+      const result = await sendContactRequest({ ...cleaned, requestId: submission.current!.id });
+      if (!result.ok || !result.id) throw new Error("La transmission n'a pas pu être confirmée.");
+      toast({ title: "Demande envoyée", description: result.message });
+      reset();
+      submission.current = null;
+    } catch (error) {
+      toast({
+        title: "Demande non confirmée", variant: "destructive",
+        description: error instanceof Error ? error.message : "Réessayez ou téléphonez au (450) 561-3815.",
+      });
+    }
   };
 
   return (
@@ -49,20 +68,25 @@ export default function Contact() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="absolute -left-[9999px]" aria-hidden="true">
+                <label htmlFor="contact-website">Site web</label>
+                <input id="contact-website" autoComplete="off" tabIndex={-1} {...register("website")} />
+              </div>
+              {Object.keys(errors).length > 0 && <p role="alert" className="text-red-700">Vérifiez votre nom, votre courriel, les joueurs et les notes.</p>}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="uppercase font-bold text-xs tracking-wider">Nom complet</Label>
-                  <Input id="name" placeholder="Jean Dupont" {...register("name")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
+                  <Input id="name" placeholder="Jean Dupont" required minLength={2} maxLength={150} autoComplete="name" {...register("name", { required: true, validate: value => value.trim().length >= 2 })} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="uppercase font-bold text-xs tracking-wider">Téléphone</Label>
-                  <Input id="phone" placeholder="(450) 561-3815" {...register("phone")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
+                  <Input id="phone" type="tel" maxLength={30} autoComplete="tel" placeholder="(450) 561-3815" {...register("phone")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email" className="uppercase font-bold text-xs tracking-wider">Courriel</Label>
-                <Input id="email" type="email" placeholder="jean@exemple.com" {...register("email")} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
+                <Input id="email" type="email" required maxLength={254} autoComplete="email" placeholder="jean@exemple.com" {...register("email", { required: true })} className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
@@ -72,8 +96,8 @@ export default function Contact() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="players" className="uppercase font-bold text-xs tracking-wider">Joueurs</Label>
-                  <Select>
-                    <SelectTrigger className="rounded-none border-foreground/20 h-12 bg-transparent">
+                  <Controller control={control} name="players" rules={{ required: true }} render={({ field }) => <Select value={field.value ? String(field.value) : ""} onValueChange={value => field.onChange(Number(value))}>
+                    <SelectTrigger id="players" aria-invalid={!!errors.players} className="rounded-none border-foreground/20 h-12 bg-transparent">
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
                     <SelectContent>
@@ -82,18 +106,19 @@ export default function Contact() {
                       <SelectItem value="3">3 Joueurs</SelectItem>
                       <SelectItem value="4">4 Joueurs</SelectItem>
                     </SelectContent>
-                  </Select>
+                  </Select>} />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="message" className="uppercase font-bold text-xs tracking-wider">Notes</Label>
-                <Textarea id="message" placeholder="Demandes spéciales ?" className="min-h-[120px] rounded-none border-foreground/20 focus:border-primary bg-transparent" {...register("message")} />
+                <Textarea id="message" required minLength={2} maxLength={2000} placeholder="Demandes spéciales ?" className="min-h-[120px] rounded-none border-foreground/20 focus:border-primary bg-transparent" {...register("message", { required: true, validate: value => value.trim().length >= 2 })} />
               </div>
 
-              <Button type="submit" className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary hover:bg-primary/90 text-white">
-                Envoyer la demande
+              <Button type="submit" disabled={isSubmitting} className="w-full rounded-full h-14 text-sm font-bold uppercase tracking-wider bg-primary hover:bg-primary/90 text-white">
+                {isSubmitting ? "Envoi en cours…" : "Envoyer la demande"}
               </Button>
+              <p className="text-sm text-muted-foreground">Une demande de groupe n’est pas une réservation confirmée.</p>
             </form>
           </div>
 

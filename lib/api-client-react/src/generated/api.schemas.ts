@@ -5,6 +5,48 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type ContactInputPlayers = typeof ContactInputPlayers[keyof typeof ContactInputPlayers];
+
+
+export const ContactInputPlayers = {
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+  NUMBER_4: 4,
+} as const;
+
+export interface ContactInput {
+  /**
+     * @minLength 2
+     * @maxLength 150
+     */
+  name: string;
+  /** @maxLength 254 */
+  email: string;
+  /** @maxLength 30 */
+  phone?: string;
+  /** @pattern ^\d{4}-\d{2}-\d{2}$ */
+  date?: string;
+  players: ContactInputPlayers;
+  /**
+     * @minLength 2
+     * @maxLength 2000
+     */
+  message: string;
+  requestId: string;
+  /**
+     * Anti-spam; doit rester vide
+     * @maxLength 0
+     */
+  website?: string;
+}
+
+export interface ContactResult {
+  ok: boolean;
+  message: string;
+  id: string;
+}
+
 export type BookingUpdateDuration = typeof BookingUpdateDuration[keyof typeof BookingUpdateDuration];
 
 

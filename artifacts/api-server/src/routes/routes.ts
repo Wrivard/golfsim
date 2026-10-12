@@ -12,11 +12,7 @@ import {
   exchangeCodeForTokens,
   revokeGoogleAccess,
   getRedirectUri,
-  listCalendars,
-  syncCalendarToDatabase,
-  setupCalendarWatch,
-  getActiveWatchChannelId,
-  getWatchToken
+  listCalendars
 } from "../googleCalendar";
 import { 
   getOptimizedStartTimes, 
@@ -28,6 +24,8 @@ import { bookingEditSchema, isEditedSlotAvailable } from "../booking-edit";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
+import { registerContact } from "../contact";
+import { registerCalendarJobs, runCalendarMaintenance } from "../calendar-jobs";
 
 declare module "express-session" {
   interface SessionData {
@@ -102,12 +100,14 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 const loginRateLimiter = rateLimit({
+  scope: "staff-login",
   windowMs: 15 * 60 * 1000,
   maxRequests: 5,
   message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
 });
 
 const bookingRateLimiter = rateLimit({
+  scope: "public-booking",
   windowMs: 60 * 1000,
   maxRequests: 10,
   message: 'Trop de réservations. Veuillez réessayer dans une minute.',
@@ -117,12 +117,12 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  registerContact(app);
+  registerCalendarJobs(app);
 
-  try {
+  // Existing Vercel databases must already have the business schedule.
+  if (process.env.VERCEL !== "1") {
     await storage.initializeDefaultSchedule();
-    console.log("[schedule] Default operating schedule initialized");
-  } catch (error) {
-    console.error("[schedule] Failed to initialize default schedule:", error);
   }
 
   app.get("/api/schedule", async (_req: Request, res: Response) => {
@@ -194,7 +194,9 @@ export async function registerRoutes(
         return res.status(401).json({ ok: false, message: "Identifiants invalides" });
       }
 
+      await new Promise<void>((resolve, reject) => req.session.regenerate(err => err ? reject(err) : resolve()));
       req.session.adminId = admin.id;
+      await new Promise<void>((resolve, reject) => req.session.save(err => err ? reject(err) : resolve()));
       
       return res.json({ 
         ok: true, 
@@ -550,7 +552,9 @@ export async function registerRoutes(
 
   app.post("/api/admin/calendar/sync", requireAdmin, async (_req: Request, res: Response) => {
     try {
-      const result = await syncCalendarToDatabase();
+      const result = await runCalendarMaintenance();
+      if (!result) return res.status(409).json({ ok: false, message: "Une synchronisation est déjà en cours." });
+      if (result.errors) return res.status(503).json({ ok: false, message: "La synchronisation est partielle. Prévenir le responsable.", ...result });
       return res.json({ ok: true, ...result });
     } catch (error: any) {
       console.error("Error syncing calendar:", error);
@@ -1234,77 +1238,6 @@ export async function registerRoutes(
       });
     }
   });
-
-  let lastWebhookSync = 0;
-  const WEBHOOK_DEBOUNCE_MS = 5000;
-
-  app.post("/api/calendar/webhook", async (req: Request, res: Response) => {
-    res.status(200).end();
-
-    const channelId = req.headers['x-goog-channel-id'] as string | undefined;
-    const token = req.headers['x-goog-channel-token'] as string | undefined;
-    const resourceState = req.headers['x-goog-resource-state'] as string | undefined;
-
-    if (!channelId || !token || token !== getWatchToken()) return;
-    if (channelId !== getActiveWatchChannelId()) return;
-    if (resourceState === 'sync') return;
-
-    const now = Date.now();
-    if (now - lastWebhookSync < WEBHOOK_DEBOUNCE_MS) return;
-    lastWebhookSync = now;
-
-    try {
-      const result = await syncCalendarToDatabase();
-      const changes = [
-        result.imported > 0 && `imported ${result.imported}`,
-        result.updated > 0 && `updated ${result.updated}`,
-        result.deleted > 0 && `deleted ${result.deleted}`,
-      ].filter(Boolean);
-      if (changes.length > 0) {
-        console.log(`[Calendar Watch] Webhook sync: ${changes.join(', ')} booking(s)`);
-      }
-    } catch (error) {
-    }
-  });
-
-  const SYNC_INTERVAL_MS = 5 * 60 * 1000;
-  
-  async function runBackgroundSync() {
-    try {
-      const result = await syncCalendarToDatabase();
-      const changes = [
-        result.imported > 0 && `imported ${result.imported}`,
-        result.updated > 0 && `updated ${result.updated}`,
-        result.deleted > 0 && `deleted ${result.deleted}`,
-      ].filter(Boolean);
-      if (changes.length > 0) {
-        console.log(`[Calendar Sync] ${changes.join(', ')} booking(s) from Google Calendar`);
-      }
-    } catch (error) {
-    }
-  }
-
-  async function initCalendarWatch() {
-    try {
-      const status = await getCalendarConnectionStatus();
-      if (!status.connected) return;
-
-      const host = process.env.REPLIT_DEV_DOMAIN || process.env.REPL_SLUG;
-      if (!host) return;
-
-      const protocol = 'https';
-      const webhookUrl = `${protocol}://${host}/api/calendar/webhook`;
-      const success = await setupCalendarWatch(webhookUrl);
-      if (success) {
-        console.log(`[Calendar Watch] Real-time notifications active → ${webhookUrl}`);
-      }
-    } catch (error) {
-    }
-  }
-  
-  setTimeout(runBackgroundSync, 30000);
-  setInterval(runBackgroundSync, SYNC_INTERVAL_MS);
-  setTimeout(initCalendarWatch, 35000);
 
   return httpServer;
 }
