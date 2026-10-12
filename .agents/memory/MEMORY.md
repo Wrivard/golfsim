@@ -3,3 +3,4 @@
 - [Artifact lifecycle](artifact-lifecycle.md) — managed workflows belong to their artifact; removing the scoped artifact directory removes its registration and service.
 - [Publishing verification](publishing-verification.md) — a working development preview does not validate build-only production HTML generation.
 - [Business dates](business-dates.md) — the user stated that the site enters operational use on October 15, 2026.
+- [Hosting target](hosting-target.md) — the user wants the real-domain Golf SIM site hosted on Vercel with its integrations connected.
