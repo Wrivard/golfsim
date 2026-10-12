@@ -83,7 +83,7 @@ export function registerCalendarJobs(app: Express) {
       return res.status(result?.errors ? 503 : 200).end();
     } catch { return res.status(503).end(); }
   });
-  // Long-running Replit compatibility only. Vercel exclusively uses Cron.
+  // Long-running Replit compatibility only. Vercel uses an authenticated external scheduler.
   if (process.env.VERCEL !== "1" && process.env.NODE_ENV === "production" && externalCalendarAllowed()) {
     const run = () => runCalendarMaintenance().catch(() => console.error("[Calendar] Background reconciliation failed."));
     setTimeout(run, 30000).unref();

@@ -13,20 +13,26 @@ Confirmed by the owner:
 | --- | --- |
 | Custom domain | `golfsimsorel.ca` |
 | DNS management | Web Hosting Canada |
-| Current Vercel plan | Hobby — launch blocked pending hosting decision |
+| Selected Vercel plan | Hobby/free — owner confirmed; no paid upgrade authorized |
 | Contact inbox | `golfsim.soreltracy@gmail.com` |
 | Planned primary origin | `https://golfsimsorel.ca` — not a verified live deployment |
 
-**Hosting gate:** Vercel Hobby is restricted to non-commercial personal use.
-It also rejects cron schedules more frequent than once daily during deployment.
-The configured five-minute Calendar reconciliation requires Pro/Enterprise.
-Do not silently remove reconciliation to make a Hobby deployment pass, or
-purchase/upgrade a plan without the owner's action. If a different host is
-chosen, review its runtime and scheduler before adapting the launch plan.
+**Policy warning:** Vercel restricts Hobby to non-commercial personal use.
+The owner has chosen Hobby despite this warning. Technical compatibility with
+its limits is not permission for commercial use, and preparation does not
+guarantee Vercel will allow continued hosting of this business site.
+
+**Technical choice:** Hobby rejects frequent native cron during deployment.
+`vercel.json` therefore has no native cron. Five-minute reconciliation is retained
+through the separate free Cloudflare Worker in `ops/calendar-scheduler/`.
+It is prepared but not connected or enabled. Do not describe synchronization as
+operational until the actual scheduled calls and their outcomes are verified.
+No paid subscription or domain transfer is authorized.
 
 Still required:
 
-- Confirm the Vercel project/team, Git repository connection and eligible plan.
+- Confirm the Vercel project/team and Git repository connection.
+- Configure and verify the free external scheduler before launch.
 - Confirm whether `www.golfsimsorel.ca` should redirect to the planned apex origin.
 - Confirm the Resend account and verified sending subdomain.
 - Approve the isolated Neon staging branch and test Google Calendar.
@@ -44,7 +50,7 @@ Still required:
 | Build | `pnpm run build:vercel` |
 | Output | `artifacts/golf-sim/dist/public` |
 | API | Node function `api/index.ts`, complete Express API |
-| Cron | `/api/jobs/calendar`, every five minutes, UTC |
+| Scheduler | Free external Cloudflare Worker calls `/api/jobs/calendar` every five minutes, UTC |
 
 Frontend assets are served by the CDN. `/api/*`, OAuth callback, robots and
 sitemap go to the backend; page URLs have their own generated SEO HTML.
@@ -85,8 +91,41 @@ The test Calendar ID must differ from any copied live Calendar setting.
 Preview email cannot fall back to the business inbox: it requires
 `PREVIEW_CONTACT_EMAIL_TO`, an owner-authorized test recipient.
 Keep `CONTACT_EMAIL_ENABLED=false` until email testing is authorized.
-Vercel cron runs on production deployments only; invoke the authenticated job
-manually during staging tests rather than assuming preview cron runs.
+There is no Vercel cron. Invoke the authenticated job manually in staging, or use
+an explicitly isolated test scheduler. Never point a staging worker at production.
+
+### Free scheduler setup
+
+Use a Cloudflare **Workers Free** account for the tiny scheduled caller only.
+Do not move WHC nameservers or the website to Cloudflare. At five-minute intervals,
+there are approximately 288 ticks/day. Cloudflare currently includes five Cron
+Triggers and 100,000 Worker requests/day; the free CPU budget is 10 ms per tick.
+Only the HTTPS call and small response check run there; the actual synchronization
+runs in Vercel. Network wait time is not CPU time, and scheduled wall time permits
+waiting for the Vercel function's maximum duration. Verify actual CPU usage,
+Vercel quotas and Neon usage during staging; this is not an unlimited free SLA.
+
+1. Create a Worker using `ops/calendar-scheduler/worker.mjs` and its
+   `wrangler.json` configuration, or the equivalent dashboard settings.
+   Use the Free plan, turn off public Worker/preview URLs, and do not upgrade.
+2. Set `SITE_ORIGIN` to the exact HTTPS origin of the intended deployment.
+   Keep `SCHEDULER_ENABLED=false` until the owner approves activation.
+3. In Cloudflare's encrypted secret settings, set `CRON_SECRET` to the **same**
+   value as the Vercel job secret. Enter it privately; never put it in source,
+   a URL, screenshots or chat. No Google credentials or database URL belong there.
+4. Set the Cron Trigger to `*/5 * * * *` (UTC). Scheduling changes can take time
+   to propagate. Keep the production Worker disabled while testing staging.
+5. After the migration, Calendar owner row, Google authorization and custom
+   domain are verified and cutover is approved, enable the server Calendar and
+   set the Worker flag to `true`. Confirm a scheduled tick, active successful
+   response, watch renewal and latest-sync timestamp. Check Cron Events/logs
+   for failures; HTTP rejection, disabled Calendar and invalid responses fail
+   explicitly. Configure monitoring/alerts in the owner account.
+
+The caller does not follow redirects, preventing a secret from being forwarded
+to another hostname. Choose the final canonical origin. The existing database
+lease protects overlapping webhook/manual/scheduled calls. A failed tick is not
+a completed sync; diagnose it and verify recovery on subsequent ticks.
 
 ## 4. Google Calendar configuration and ownership
 
@@ -97,7 +136,7 @@ Use Google Console production/testing consent settings appropriate to a real
 operational account; verify refresh-token longevity and reconnect behavior.
 
 The planned push endpoint is `https://golfsimsorel.ca/api/calendar/webhook`. Watches and
-their expiry survive function instances in PostgreSQL. Cron renews watches
+their expiry survive function instances in PostgreSQL. Scheduled maintenance renews watches
 before expiry and reconciles the complete three-month event window, including
 all pages. Webhook work is awaited before responding and validated against
 channel, resource and a stable secret. Five-minute reconciliation covers missed
@@ -201,15 +240,15 @@ Do not use the existing parking address as a Vercel destination.
    records, choose one canonical hostname, configure the other to redirect,
    and verify domain ownership and TLS. No guessed IP addresses.
 5. Coordinate retiring old Calendar workers and assigning the new sync owner,
-   then enable production Calendar and the verified contact sender.
+   then enable production Calendar, the external scheduler and the verified contact sender.
 6. After DNS propagates, test the actual custom domain on desktop/mobile and
    authorize a small, clearly labelled live smoke-test booking/email.
 7. Verify Calendar identity, persistent staff login and mailbox receipt;
    remove only specifically created test records, never the October 14 demo set.
-8. Monitor Vercel 5xx/latency, Neon connections, cron status, latest sync time/watch
+8. Monitor Vercel 5xx/latency and quotas, Neon connections/usage, external scheduler status, latest sync time/watch
    expiry, Resend delivery/bounces and business-inbox receipt.
 
-Rollback: owner restores the previous DNS/deployment, disables the new workers,
+Rollback: owner restores the previous DNS/deployment, disables the Cloudflare scheduler and new workers,
 reassigns synchronization ownership if needed, and restores old service settings.
 Keep additive tables and customer records; do not restore an old database snapshot
 over newly accepted bookings without explicit review.
@@ -222,3 +261,6 @@ over newly accepted bookings without explicit review.
 - https://vercel.com/docs/plans/hobby
 - https://resend.com/docs/add-a-domain
 - https://resend.com/docs/dashboard/emails/idempotency-keys
+- https://developers.cloudflare.com/workers/configuration/cron-triggers/
+- https://developers.cloudflare.com/workers/platform/limits/
+- https://developers.cloudflare.com/workers/platform/pricing/

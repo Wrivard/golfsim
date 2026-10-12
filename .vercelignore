@@ -4,6 +4,7 @@
 .cache
 generated-artifacts
 artifacts/mockup-sandbox
+ops/calendar-scheduler
 **/node_modules
 **/.tsbuildinfo
 **/*.test.ts
