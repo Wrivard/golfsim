@@ -14,3 +14,9 @@ Do not treat Vercel environment-list values as plaintext, even with a decrypt qu
 **Why:** The list endpoint returned ciphertext, which looked populated and passed length checks but was not a usable connection string.
 
 **How to apply:** Use list results only for metadata. When an authorized runtime check requires a credential, use the documented per-variable retrieval endpoint inside the authenticated runtime and consume it there; return only sanitized diagnostic results. Sensitive variables may not be retrievable.
+
+Preserve Preview when changing a production setting shared across environment targets.
+
+**Why:** A public-origin variable can be stored as sensitive and shared between Production and Preview; replacing its value in place would also change Preview.
+
+**How to apply:** Separate the production target into its own variable while preserving the existing Preview value without reading it. Restore the original targets if creation of the production variable fails. These configuration changes still require a new deployment to take effect.
