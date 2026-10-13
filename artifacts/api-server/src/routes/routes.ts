@@ -2,6 +2,9 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "../storage";
 import { calendarScopedRoutes, markSourcePending } from "../calendar-source";
+import { activeCalendarSource } from "../calendar-source";
+import { createHash } from "node:crypto";
+import { recurrenceDates } from "../recurrence";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
   createCalendarEvent, 
@@ -303,6 +306,30 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/bookings/recurrence-preview", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const rule = z.object({start:z.string(),end:z.string(),days:z.array(z.number()),interval:z.number().int().min(1).max(4)}).parse(req.body);
+      const dates = recurrenceDates(rule.start,rule.end,rule.days,rule.interval);
+      const input = staffBookingSchema.parse({...req.body,date:dates[0]});
+      const sync = await syncCalendarToDatabase(new Date(rule.end));
+      if (sync.errors) return res.status(503).json({ok:false,message:"Synchronisation incomplète. Aucun créneau ne peut être confirmé."});
+      const conflicts:string[]=[];
+      const periodBookings=await storage.getBookingsByDateRange(new Date(rule.start),new Date(Date.parse(rule.end)+86400000-1));
+      const schedules=new Map<number,Awaited<ReturnType<typeof storage.getScheduleForDay>>>();
+      for (const day of dates) {
+        const date=new Date(day);
+        if (!schedules.has(date.getUTCDay())) schedules.set(date.getUTCDay(),await storage.getScheduleForDay(date.getUTCDay()));
+        const schedule=schedules.get(date.getUTCDay());
+        const existing=periodBookings.filter(b=>new Date(b.date).toISOString().slice(0,10)===day);
+        if (!isStaffSlotAvailable(date,input.time,parseDurationToMinutes(input.duration),input.bayType,formatBookingsForLogic(existing,day),schedule || undefined)) conflicts.push(day);
+      }
+      const source=createHash("sha256").update(await activeCalendarSource()).digest("hex");
+      return res.json({ok:true,dates,conflicts,source});
+    } catch {
+      return res.status(400).json({ok:false,message:"Vérification impossible. Vérifiez la période (maximum un an / 104 séances), les jours, les coordonnées et la connexion Google."});
+    }
+  });
+
   app.post("/api/admin/bookings", requireAdmin, async (req: Request, res: Response) => {
     const parsed = staffBookingSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -315,6 +342,19 @@ export async function registerRoutes(
       return res.status(400).json({ ok: false, message: "Les réservations doivent commencer à partir de 8h et se terminer au plus tard à 22h." });
     }
     try {
+      let seriesMarker="";
+      if (req.body.seriesId !== undefined) {
+        const series=z.object({seriesId:z.string().uuid(),source:z.string().regex(/^[a-f0-9]{64}$/)}).safeParse(req.body);
+        if (!series.success) return res.status(400).json({ok:false,message:"Référence de série invalide."});
+        const source=createHash("sha256").update(await activeCalendarSource()).digest("hex");
+        if (series.data.source!==source) return res.status(409).json({ok:false,message:"Le calendrier connecté a changé. Arrêtez cette série et vérifiez la connexion."});
+        seriesMarker=`[Série ${series.data.seriesId} / ${input.date}]`;
+        const previous=(await storage.getBookingsByDateRange(date,new Date(+date+86400000-1))).find(b=>b.notes?.includes(seriesMarker));
+        if (previous) {
+          if (!previous.calendarEventId) return res.status(409).json({ok:false,message:"Séance déjà en cours de sauvegarde. Vérifiez-la avant de continuer."});
+          return res.json({ok:true,booking:previous});
+        }
+      }
       const daySchedule = await storage.getScheduleForDay(date.getUTCDay());
       const schedule = daySchedule ? {
         openHour: daySchedule.openHour, openMinute: daySchedule.openMinute,
@@ -330,7 +370,7 @@ export async function registerRoutes(
         duration: input.duration,
         bayType: input.bayType,
         players: input.players,
-        notes: input.notes ? sanitizeString(input.notes) : null,
+        notes: [input.notes ? sanitizeString(input.notes) : "",seriesMarker].filter(Boolean).join("\n") || null,
       };
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,

@@ -371,11 +371,11 @@ export interface CalendarSyncResult {
   errors: number;
 }
 
-export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
-  return withCalendarSource(syncActiveCalendar, true);
+export async function syncCalendarToDatabase(until?: Date): Promise<CalendarSyncResult> {
+  return withCalendarSource(() => syncActiveCalendar(until), true);
 }
 
-async function syncActiveCalendar(): Promise<CalendarSyncResult> {
+async function syncActiveCalendar(until?: Date): Promise<CalendarSyncResult> {
   await markSourcePending();
   const calendar = await getGoogleCalendarClient();
   const calendarId = await getConfiguredCalendarId();
@@ -386,6 +386,7 @@ async function syncActiveCalendar(): Promise<CalendarSyncResult> {
   
   const timeMax = new Date(now);
   timeMax.setMonth(timeMax.getMonth() + 3);
+  if (until && until > timeMax) timeMax.setTime(until.getTime() + 86400000);
   const stored = await storage.getAllBookings();
   // Reconcile the entire cached future horizon when returning to an old source.
   for (const booking of stored) {

@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { parseDurationToMinutes } from "./calendarDuration";
 import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
+import RecurringBookingDialog from "./RecurringBookingDialog";
 
 interface Booking {
   id: string;
@@ -58,6 +59,7 @@ const TIME_COL_WIDTH = 56;
 
 export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const [recurring, setRecurring] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [createPrefill, setCreatePrefill] = useState<BookingPrefill | null>(null);
   const openCreate = (bayType = "1", time = "08:00") => setCreatePrefill({
@@ -101,6 +103,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
 
   return (
     <>
+      {recurring && <RecurringBookingDialog date={format(selectedDate,"yyyy-MM-dd")} onClose={()=>setRecurring(false)}/>}
       <Card className="shadow-lg border-none" data-testid="card-calendar-view">
         <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -112,6 +115,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
               <Button size="sm" onClick={() => openCreate()} className="bg-[#2B5734] hover:bg-[#23482b] text-white gap-1.5">
                 <Plus className="w-4 h-4" /> Ajouter
               </Button>
+              <Button size="sm" onClick={()=>setRecurring(true)} className="bg-[#2B5734] hover:bg-[#23482b] text-white" data-testid="button-recurring">Réservation récurrente</Button>
               <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-prev-day">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
