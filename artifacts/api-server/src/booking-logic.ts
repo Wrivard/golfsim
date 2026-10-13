@@ -76,7 +76,8 @@ const DEFAULT_SCHEDULE: DaySchedule = {
   closeHour: 23, closeMinute: 0,
 };
 
-const HALF_HOUR_BAY_IDS = new Set(["3", "4"]);
+// Every production bay accepts starts on the hour and half-hour.
+const HALF_HOUR_BAY_IDS = new Set(["1", "2", "3", "4"]);
 
 function getBayGranularity(bayId: string): number {
   return HALF_HOUR_BAY_IDS.has(bayId) ? 30 : 60;

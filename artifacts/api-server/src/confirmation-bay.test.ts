@@ -41,7 +41,10 @@ test("confirmation rejects an unavailable time, even if a bay was proposed earli
   assert.equal(getConfirmationBay(date, "21:30", 60, [], schedule), null);
 });
 
-test("confirmation respects bay-specific half-hour granularity", () => {
-  const final = getConfirmationBay(date, "10:30", 60, [], schedule);
-  assert.ok(final === "3" || final === "4");
+test("half-hour confirmation can use any bay, including bays 1 and 2", () => {
+  for (const bay of ["1", "2", "3", "4"]) {
+    const occupiedOthers = ["1", "2", "3", "4"].filter(id => id !== bay)
+      .map(id => occupied(id, "10:00", "12:00"));
+    assert.equal(getConfirmationBay(date, "10:30", 60, occupiedOthers, schedule), bay);
+  }
 });

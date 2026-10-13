@@ -392,7 +392,7 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Heure</label>
-                  <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-time" />
+                  <Input type="time" step={1800} value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-time" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Durée</label>

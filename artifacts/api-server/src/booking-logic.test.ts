@@ -64,13 +64,25 @@ const time = (iso: string) => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-test("original valid slot/bay sets remain identical; baseline vs new deterministic rankings", () => {
+test("half-hour availability matches an independent overlap oracle and retains original slots", () => {
   let baselineWaste = 0;
   let newWaste = 0;
   for (const row of baseline) {
     const { schedule, bays, bookings } = fixtures(row);
     const slots = getOptimizedStartTimes(date, row.duration, bookings, bays, schedule);
-    assert.deepEqual(slots.flatMap(s => s.allBays!.filter(b => b.isValid).map(b => `${time(s.time)}:${b.bayId}`)), row.valid, row.name);
+    const actual = slots.flatMap(s => s.allBays!.filter(b => b.isValid).map(b => `${time(s.time)}:${b.bayId}`));
+    const expected: string[] = [];
+    for (let minute = schedule.openHour * 60; minute <= schedule.lastBookingHour * 60; minute += 30) {
+      if (minute + row.duration > schedule.closeHour * 60) continue;
+      for (const bay of bays) {
+        const start = addMinutes(at("00:00"), minute);
+        const end = addMinutes(start, row.duration);
+        if (!bookings.some(b => b.simulatorId === bay.id && new Date(b.startTime) < end && new Date(b.endTime) > start))
+          expected.push(`${time(start.toISOString())}:${bay.id}`);
+      }
+    }
+    assert.deepEqual(actual, expected, row.name);
+    for (const original of row.valid) assert.ok(actual.includes(original), `${row.name}: preserves ${original}`);
     const ranked = slots.slice().sort((a, b) => b.score - a.score || a.time.localeCompare(b.time));
     for (const entry of row.ranked) {
       const [h, m, bayId, rawScore] = entry.split(":");
@@ -118,15 +130,15 @@ test("30-minute orphan determines the chosen bay at the same requested time", ()
   assert.equal(slot.assignedBayId, "4");
 });
 
-test("preexisting waste is not charged as newly created", () => {
+test("half-hour starts make the original 90-minute gap sellable before placement", () => {
   const { schedule, bays, bookings } = fixtures(baseline[2]);
   const slot = getOptimizedStartTimes(date, 60, bookings, bays, schedule).find(s => time(s.time) === "08:00")!;
-  assert.equal(slot.allBays![0].metrics!.existingUnsellableMinutes, 30);
+  assert.equal(slot.allBays![0].metrics!.existingUnsellableMinutes, 0);
   assert.equal(slot.allBays![0].metrics!.remainingUnsellableMinutes, 30);
-  assert.equal(slot.allBays![0].metrics!.newlyUnsellableMinutes, 0);
+  assert.equal(slot.allBays![0].metrics!.newlyUnsellableMinutes, 30);
 });
 
-test("start grid distinguishes hourly and half-hour bays, including sellable minutes", () => {
+test("all four bays use half-hour starts while scoring measures actual sellable minutes", () => {
   const start = at("08:30"), end = at("09:30");
   const args = [start, end, at("08:00"), at("11:00"), at("08:00"), at("12:00"), at("13:00")] as const;
   const hourly = measurePlacement(...args, 60);
@@ -135,20 +147,20 @@ test("start grid distinguishes hourly and half-hour bays, including sellable min
   assert.equal(hourly.newlyUnsellableMinutes, 60);
   assert.equal(halfHourly.newlyUnsellableMinutes, 30);
   const slots = getOptimizedStartTimes(date, 60, [], [{ id: "1", name: "1" }, { id: "3", name: "3" }]);
-  assert.deepEqual(slots.find(s => time(s.time) === "08:30")!.allBays!.map(b => b.bayId), ["3"]);
-  assert.equal(validateBayAssignment(date, "08:30", 60, "1", [], [{ id: "1", name: "1" }, { id: "3", name: "3" }]).valid, false);
+  assert.deepEqual(slots.find(s => time(s.time) === "08:30")!.allBays!.map(b => b.bayId), ["1", "3"]);
+  assert.equal(validateBayAssignment(date, "08:30", 60, "1", [], [{ id: "1", name: "1" }, { id: "3", name: "3" }]).valid, true);
 });
 
 test("240-minute offers retain bay grids, last-start and closing boundaries", () => {
   const bays = [{ id: "2", name: "2" }, { id: "4", name: "4" }];
   const slots = getOptimizedStartTimes(date, 240, [], bays);
-  assert.deepEqual(slots.find(s => time(s.time) === "08:30")!.allBays!.map(b => b.bayId), ["4"]);
+  assert.deepEqual(slots.find(s => time(s.time) === "08:30")!.allBays!.map(b => b.bayId), ["2", "4"]);
   assert.deepEqual(slots.find(s => time(s.time) === "19:00")!.allBays!.map(b => b.bayId), ["2", "4"]);
   assert.equal(slots.some(s => time(s.time) === "19:30"), false);
   assert.equal(validateBayAssignment(date, "19:00", 240, "2", [], bays).valid, true);
 });
 
-test("nonzero opening minute preserves original wall-clock eligibility quirk", () => {
+test("half-hour opening exposes both hourly and half-hour starts on all four bays", () => {
   const bays: Simulator[] = [1, 2, 3, 4].map(n => ({ id: String(n), name: String(n) }));
   const schedule: DaySchedule = {
     openHour: 8, openMinute: 30, lastBookingHour: 11, lastBookingMinute: 30,
@@ -160,13 +172,13 @@ test("nonzero opening minute preserves original wall-clock eligibility quirk", (
   }];
   const slots = getOptimizedStartTimes(date, 60, bookings, bays, schedule);
   assert.deepEqual(slots.map(s => `${time(s.time)}:${s.allBays!.filter(b => b.isValid).map(b => b.bayId).join(",")}`), [
-    "08:30:4", "09:00:1,2,4", "09:30:4", "10:00:1,2,3,4",
-    "10:30:3,4", "11:00:1,2,3,4", "11:30:3,4",
+    "08:30:1,2,4", "09:00:1,2,4", "09:30:1,2,4", "10:00:1,2,3,4",
+    "10:30:1,2,3,4", "11:00:1,2,3,4", "11:30:1,2,3,4",
   ]);
   assert.deepEqual(slots.map(s => s.allBays!.map(b => b.bayId).join(",")), [
-    "3,4", "1,2,3,4", "3,4", "1,2,3,4", "3,4", "1,2,3,4", "3,4",
+    "1,2,3,4", "1,2,3,4", "1,2,3,4", "1,2,3,4", "1,2,3,4", "1,2,3,4", "1,2,3,4",
   ]);
-  assert.equal(validateBayAssignment(date, "08:30", 60, "1", bookings, bays, schedule).valid, false);
+  assert.equal(validateBayAssignment(date, "08:30", 60, "1", bookings, bays, schedule).valid, true);
   assert.equal(validateBayAssignment(date, "09:00", 60, "1", bookings, bays, schedule).valid, true);
   const gridArgs = [at("08:30"), at("12:30"), at("08:30"), at("11:30"), at("12:30"), 60] as const;
   assert.equal(measureFreeSegment(...gridArgs).startsByDuration[0], 0);
@@ -223,7 +235,7 @@ function inventory(bookings: BookingRecord[], day: Date): Omit<Inventory, "accep
     for (const next of [...ordered, null]) {
       const boundary = next ? new Date(next.startTime) : close;
       assert.ok(cursor <= boundary, "simulation must not overlap reservations");
-      const free = measureFreeSegment(cursor, boundary, open, last, close, Number(bay.id) <= 2 ? 60 : 30);
+      const free = measureFreeSegment(cursor, boundary, open, last, close, 30);
       result.unsellableMinutes += free.unsellable;
       result.bookableCoverageMinutes += (boundary.getTime() - cursor.getTime()) / 60000 - free.unsellable;
       free.startsByDuration.forEach((count, index) => result.remainingStarts[index] += count);
