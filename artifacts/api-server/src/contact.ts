@@ -80,7 +80,12 @@ export function registerContact(app: Express) {
   app.post("/api/contact", limit, async (req, res) => {
     let data: ReturnType<typeof parseContact>;
     try { data = parseContact(req.body); } catch { data = null; }
-    if (!data) return res.status(400).json({ ok: false, message: "Vérifiez les champs du formulaire." });
+    if (!data) return res.status(400).json({
+      ok: false,
+      message: !SendContactRequestBody.shape.players.safeParse(req.body?.players).success
+        ? "Joueurs : inscrivez un nombre entier obligatoire, au moins 1, représentable sans perte de précision."
+        : "Vérifiez les champs du formulaire.",
+    });
     try {
       const id = await deliverContact(data, mailConfig());
       return res.status(202).json({

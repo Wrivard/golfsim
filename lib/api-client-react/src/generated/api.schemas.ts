@@ -17,7 +17,11 @@ export interface ContactInput {
   phone?: string;
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date?: string;
-  /** @minimum 1 */
+  /**
+     * Nombre total de joueurs du groupe, entier positif représentable sans perte de précision (limite technique JavaScript, pas une capacité).
+     * @minimum 1
+     * @maximum 9007199254740991
+     */
   players: number;
   /**
      * @minLength 2

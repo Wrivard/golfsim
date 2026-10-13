@@ -95,11 +95,11 @@ export default function Contact() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="players" className="uppercase font-bold text-xs tracking-wider">Joueurs</Label>
-                  <Input id="players" type="number" inputMode="numeric" min={1} step={1}
+                  <Input id="players" type="number" inputMode="numeric" min={1} step={1} required
                     placeholder="Ex. : 24" aria-invalid={!!errors.players} aria-describedby="players-help"
                     {...register("players", {
                       valueAsNumber: true,
-                      validate: value => Number.isSafeInteger(value) && value >= 1 || "Inscrivez un nombre entier de joueurs, au moins 1.",
+                      validate: value => Number.isSafeInteger(value) && value >= 1 || "Inscrivez un nombre entier de joueurs, au moins 1, représentable sans perte de précision.",
                     })}
                     className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
                   <p id="players-help" className="text-sm text-muted-foreground">

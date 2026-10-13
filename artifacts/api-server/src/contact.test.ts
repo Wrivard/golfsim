@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deliverContact, parseContact, mailConfig } from "./contact";
+import express from "express";
+import { deliverContact, parseContact, mailConfig, registerContact } from "./contact";
 
 const valid = {
   name: "Client de test", email: "test@example.invalid", players: 24,
@@ -9,9 +10,9 @@ const valid = {
 };
 test("contact accepts large groups and requires a positive whole player count", () => {
   assert.ok(parseContact(valid));
-  for (const players of [1, 5, 24, 150, 1000]) assert.equal(parseContact({ ...valid, players })?.players, players);
+   for (const players of [1, 5, 12, 20, 24, 50, 150, 1000, Number.MAX_SAFE_INTEGER]) assert.equal(parseContact({ ...valid, players })?.players, players);
   for (const body of [
-    ...["3", 0, -1, 1.5, null, undefined, NaN, Infinity].map(players => ({ ...valid, players })),
+    ...["", "abc", "3", 0, -1, 1.5, null, undefined, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1].map(players => ({ ...valid, players })),
     { ...valid, email: "bad" },
     { ...valid, website: "spam" }, { ...valid, name: "  " },
     { ...valid, message: " " }, { ...valid, date: "2026-02-30" },
@@ -42,6 +43,44 @@ test("Resend payload uses trusted sender/recipient, reply-to, every form field, 
   assert.equal(await deliverContact(valid, config, fetcher), "test-provider-id");
   assert.equal(calls, 4);
 });
+test("both email summaries preserve exact group counts with a simulated transport", async () => {
+  for (const players of [5, 12, 20, 50, Number.MAX_SAFE_INTEGER]) {
+    let calls = 0;
+    await deliverContact({ ...valid, players }, {
+      apiKey: "fixture", from: "contact@example.invalid", to: "owner@example.invalid",
+    }, async (_url, init) => {
+      calls++;
+      const body = JSON.parse(init!.body as string);
+      assert.ok(body.text.includes(`Joueurs : ${players}\n`));
+      assert.match(body.html, new RegExp(`>Joueurs</td><td[^>]*>${players}</td>`));
+      return new Response(JSON.stringify({ id: "simulated" }), { status: 200 });
+    });
+    assert.equal(calls, 2);
+  }
+});
+
+test("invalid API player counts return an explanatory 400 before any delivery", async () => {
+  const app = express();
+  app.use(express.json());
+  registerContact(app);
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise<void>(resolve => server.once("listening", resolve));
+  try {
+    const address = server.address() as { port: number };
+    for (const players of [null, 0, 1.5]) {
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/contact`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...valid, players }),
+      });
+      assert.equal(response.status, 400);
+      const body = await response.json() as { message: string };
+      assert.match(body.message, /Joueurs.*entier.*au moins 1/);
+    }
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
+
 test("provider failure, network timeout and missing acceptance ID never report success", async () => {
   const config = { apiKey: "fixture", from: "contact@example.invalid", to: "inbox@example.invalid" };
   await assert.rejects(deliverContact(valid, config, async () => new Response("{}", { status: 429 })));
