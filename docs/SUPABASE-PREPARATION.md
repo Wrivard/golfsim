@@ -119,6 +119,38 @@ Le dépôt ne lance **aucune** de ces opérations au démarrage ou à la compila
 Ne pas imprimer les lignes de `oauth_tokens` ou les hashes pour les comparer.
 Un comptage seul ne suffit pas à prouver que toutes les données sont identiques.
 
+### Outil manuel de copie vers une cible vide
+
+Après autorisation de la copie et confirmation de la Data API désactivée :
+
+```sh
+pnpm --filter @workspace/scripts exec tsx ../lib/db/ops/copy-neon-to-supabase.ts \
+  --execute --confirmed-data-api-disabled \
+  --target-project-ref=REFERENCE_DU_PROJET \
+  --pooler-host=HOTE_PARTAGE_CONFIRME.pooler.supabase.com
+```
+
+Les secrets restent dans l'environnement du processus. L'outil garde Neon en
+lecture seule, exporte un snapshot cohérent des cinq tables et refuse toute cible
+non vide. Il utilise le Session pooler `5432` pour la restauration. Une seule
+transaction crée les neuf tables, applique RLS et les révocations **avant**
+l'insertion des données, puis compare les empreintes SHA-256 complètes avant
+validation. Les quatre tables techniques restent vides. Aucune bascule, publication
+ou modification des variables sauvegardées n'est effectuée.
+
+La sauvegarde AES-256-GCM et le rapport privé sont dans
+`.local/outputs/database-backups/`, exclu de Git et des déploiements et refusé par
+les serveurs de prévisualisation. Conserver le **SESSION_SECRET original** dans
+les secrets : il est nécessaire à la récupération de cette sauvegarde, même après
+une rotation du secret de session. Aucun fichier de sauvegarde en clair n'est écrit.
+Le format binaire est `GSIMDB01` (8 octets), sel (32), IV (12), tag (16), puis
+archive chiffrée. La clé de 32 octets est dérivée avec HKDF-SHA256, le secret
+original et l'info `golfsim-neon-backup/v1` ; l'AAD GCM est `GSIMDB01`.
+
+Cette copie est un instantané : les nouvelles écritures dans Neon après la copie
+ne sont pas synchronisées automatiquement. Prévoir une réconciliation approuvée
+avant la bascule ; ne pas relancer cet outil sur une cible remplie.
+
 ## 4. Tests avant la production
 
 - Déploiement Vercel Preview : vraie connexion PostgreSQL à la cible de test.

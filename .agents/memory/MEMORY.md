@@ -7,3 +7,4 @@
 - [Browser testing](browser-testing.md) — documented testing helpers may be unavailable; use local browser checks with mocked email responses, not live sends.
 - [Supabase connection modes](supabase-connection-modes.md) — dedicated pooler is not a direct connection; Free + Vercel needs the shared transaction pooler.
 - [Integration secret transfers](integration-secret-transfers.md) — transfer secrets inside authenticated runtime code; remote error payloads can echo submitted values.
+- [File-write verification](file-write-verification.md) — verify operational scripts exist and type-check before trusting an edit tool’s success response.
