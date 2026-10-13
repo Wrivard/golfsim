@@ -5,6 +5,11 @@ is considered verified until the owner supplies the details and the actual
 deployment is tested. Do not switch DNS while any launch gate below is pending.
 Preserve the existing Neon database, staff accounts and October 14 demo bookings.
 
+**Database update:** The owner approved preparation for **Supabase Free**.
+See `docs/SUPABASE-PREPARATION.md` for the staged copy and privacy checklist.
+Neon is still active; adding a Supabase secret does not authorize or trigger
+cutover. The PostgreSQL client supports both providers.
+
 ## 1. Owner inputs
 
 Confirmed by the owner:
@@ -35,7 +40,7 @@ Still required:
 - Configure and verify the free external scheduler before launch.
 - Confirm whether `www.golfsimsorel.ca` should redirect to the planned apex origin.
 - Confirm the Resend account and verified sending subdomain.
-- Approve the isolated Neon staging branch and test Google Calendar.
+- Create the isolated Supabase Free test project and test Google Calendar.
 - Approve backup, additive infrastructure migration and eventual cutover.
   Preparing this guide does not apply migrations or authorize live test records.
 
@@ -67,18 +72,24 @@ Changing session secrets logs staff out; preserve the existing staff credentials
 
 ## 3. Database and staging isolation
 
-Keep the existing user-managed Neon production branch. Prefer its provider-issued
-pooled URL. Connection pools are bounded; no tables are created on startup.
+Keep the existing user-managed Neon production branch until the separately
+approved Supabase cutover. Follow `docs/SUPABASE-PREPARATION.md` for that target;
+do not replace Neon just by copying an environment variable. Connection pools
+are bounded; no tables are created on startup.
 
 1. Take a provider backup/snapshot and record a **read-only** data baseline.
-2. Create/choose an isolated staging branch using the owner's Neon account.
+2. Create/choose an isolated test database. The selected new target is a separate
+   Supabase Free project; an existing Neon staging branch remains a rollback option.
 3. Review and run `docs/migrations/001-vercel-runtime.sql` in staging first.
    It adds sessions, distributed rate limits, leases and runtime state only.
 4. Configure **Preview** with `PREVIEW_DATABASE_URL`, not the live connection.
    The app refuses to fall back to production or to use the same known branch
-   hostname, including pooled/direct variants.
+   identity, including pooled/direct variants. Supabase isolation compares project
+   references, not the shared pooler hostname. Set its production project reference
+   in all Vercel scopes, without sharing the production password with Preview.
 5. After authorization and staging validation, deliberately apply the same
-   additive migration to the confirmed production branch. Do not use
+   additive migration to the confirmed target database. Supabase also requires
+   the private-table protection script and a disabled Data API. Do not use
    `push-force`, reset, reseed, or an automatic build migration.
 
 Preview Calendar uses separate `google-preview` token records, not cloned
@@ -143,7 +154,7 @@ channel, resource and a stable secret. Five-minute reconciliation covers missed
 or debounced notifications; do not promise instant inbound synchronization.
 
 Exactly one durable deployment is allowed to renew/synchronize Calendar. Set its
-approved origin in the **correct** database, after approval, using Neon SQL:
+approved origin in the **correct** database, after approval, using its SQL editor:
 
 ```sql
 -- Production only, after explicit cutover approval. Use a separate origin in staging.

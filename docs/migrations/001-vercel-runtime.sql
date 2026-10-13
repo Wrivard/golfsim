@@ -1,5 +1,5 @@
 -- OWNER-REVIEWED, ADDITIVE ONLY. Run in the confirmed isolated staging DB first.
--- Take a backup before deliberately applying to the existing external Neon DB.
+-- Take a backup before applying to the confirmed external PostgreSQL DB.
 -- This file is NOT executed at build/startup/request time.
 BEGIN;
 CREATE TABLE IF NOT EXISTS gsim_sessions (

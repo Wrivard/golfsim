@@ -1,10 +1,10 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import * as schema from "@workspace/db/schema";
-import ws from "ws";
-import { databaseConnection } from "@workspace/db/connection";
+import { pool } from "@workspace/db";
+import { logger } from "../lib/logger";
 
-neonConfig.webSocketConstructor = ws;
+// A single ordinary PostgreSQL pool supports both Neon and Supabase.
+// Parameterized queries remain unnamed: no session-bound prepared statements.
+pool.on("error", () => {
+  logger.warn("An idle database connection failed; the pool will replace it.");
+});
 
-export const pool = new Pool({ connectionString: databaseConnection(), max: 3, idleTimeoutMillis: 10000, connectionTimeoutMillis: 10000 });
-export const db = drizzle(pool, { schema });
+export { db, pool } from "@workspace/db";
