@@ -31,9 +31,18 @@ désactivée, y compris après la migration.
 
 ## 2. Connexions sécurisées, sans bascule automatique
 
-Dans le bouton **Connect**, copier la connexion **Transaction pooler**, port
-**6543**, pour Vercel. Utiliser l'hôte et l'utilisateur affichés par Supabase :
-ne pas les deviner. Ce pooler fonctionne en IPv4 sur Free.
+Dans le bouton **Connect**, copier la connexion **Shared pooler, transaction
+mode**, port **6543**, pour Vercel. Utiliser l'hôte et l'utilisateur affichés
+par Supabase : ne pas les deviner. Ce pooler fonctionne en IPv4 sur Free.
+
+Attention : **Dedicated pooler** est un autre mode valide, avec l'hôte
+`db.[PROJECT-REF].supabase.co` sur le port `6543`. Ce n'est pas une connexion
+directe (qui utilise `5432`). Selon la documentation Supabase, ce pooler dédié
+est disponible sur les forfaits payants et utilise IPv6 sans l'option IPv4
+payante. Il ne convient donc pas à notre cible Free + Vercel sans supplément.
+Le pooler partagé utilise un hôte se terminant par `.pooler.supabase.com` et
+l'utilisateur `postgres.[PROJECT-REF]`. Copier l'URL complète, pas seulement le
+port. Voir la [documentation officielle des modes de connexion](https://supabase.com/docs/guides/database/connecting-to-postgres#endpoints-and-ip-versions).
 
 Remplacer le placeholder de mot de passe dans le formulaire sécurisé, jamais
 dans le chat ou un fichier Git. Encoder les caractères réservés du mot de passe
