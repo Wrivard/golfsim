@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer, type RequestListener } from "node:http";
 import app from "./app";
 import { registerSeoRoutes } from "@workspace/golf-seo";
 import { registerRoutes } from "./routes/routes";
@@ -7,7 +7,7 @@ import { checkRuntimeSchema } from "./runtime/sql";
 import { durableRuntime, publicOrigin, externalCalendarAllowed } from "./runtime/config";
 
 let initialization: Promise<typeof app> | undefined;
-export function initializedApp() {
+export function initializedApp(): Promise<RequestListener> {
   return initialization ||= (async () => {
     publicOrigin();
     if (process.env.VERCEL === "1") {

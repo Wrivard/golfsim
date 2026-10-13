@@ -20,3 +20,9 @@ A standalone NodeNext check is necessary but not sufficient evidence that Vercel
 **Why:** Both the product build and the standalone check passed locally, while Vercel's later function compilation rejected the Express call signature. Different compiler resolution contexts can expose errors that local checks miss.
 
 **How to apply:** Validate the complete Vercel build pipeline on a clean checkout with the deployment's Node version, including its final server-function packaging step. Distinguish a passing product build from a passing Vercel build in reports.
+
+Keep the serverless boundary independent of transitive framework types.
+
+**Why:** Vercel's language-service resolver rejected Express's callable type even when standalone NodeNext checks passed; the same old code passed with Vercel's explicit experimental TypeScript resolver. A Node HTTP contract avoids depending on that resolver behavior without suppressing type safety.
+
+**How to apply:** Check the HTTP contract against the implementation and exercise the actual Vercel function builder, with no experimental workaround enabled.

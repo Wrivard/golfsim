@@ -118,7 +118,9 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
-  await writeFile(path.join(distDir, "bootstrap.d.mts"), 'export declare function initializedApp(): Promise<import("express").Express>;\n');
+  // Match the explicitly checked Node HTTP boundary in src/bootstrap.ts.
+  // Vercel's language-service compiler must not resolve Express's transitive types.
+  await writeFile(path.join(distDir, "bootstrap.d.mts"), 'import type { RequestListener } from "node:http";\nexport declare function initializedApp(): Promise<RequestListener>;\n');
 }
 
 buildAll().catch((err) => {

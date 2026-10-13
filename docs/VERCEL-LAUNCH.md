@@ -1,3 +1,29 @@
+# Vérification de la compilation Vercel
+
+Avant de pousser une modification serveur, utiliser **Node 22** puis lancer :
+
+```sh
+pnpm verify:vercel
+pnpm test:launch
+```
+
+`verify:vercel` copie les sources sans caches ni secrets dans un dossier temporaire,
+installe le lockfile, compile le produit puis appelle le compilateur officiel
+`@vercel/node` correspondant à Vercel CLI 62.7.0. Il matérialise la fonction tracée,
+vérifie ses imports réels (dont les dépendances natives) et teste son adaptateur
+HTTP. Les essais utilisent uniquement des paramètres fictifs et une initialisation
+isolée : aucune réservation, aucun courriel et aucune connexion Google ne sont créés.
+Le dossier temporaire est supprimé à la fin. Ce contrôle ne publie rien et ne
+remplace pas une vérification du déploiement et de sa configuration réelle.
+
+**Cause de l'échec TS2349 :** le service de langage TypeScript du compilateur
+Vercel ne résout pas correctement la signature transitive Express exposée par la
+déclaration du bootstrap dans ce monorepo. L'ancien code échoue avec le compilateur
+normal, mais passe avec son résolveur TypeScript explicite expérimental ; les
+contrôles `tsc` seuls passent aussi. La correction ne dépend pas de ce drapeau :
+le bootstrap expose maintenant le contrat HTTP standard `RequestListener`,
+vérifié dans son implémentation et reflété dans sa déclaration de sortie.
+
 # Golf SIM — Vercel launch checklist
 
 **Status: code preparation is not a live launch.** No domain or provider setup
