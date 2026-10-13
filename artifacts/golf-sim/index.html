@@ -2,6 +2,56 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <!-- Consent must be initialized before tracking or application scripts. -->
+    <script data-cookieconsent="ignore">
+      (function () {
+        if (!['golfsimsorel.ca', 'www.golfsimsorel.ca'].includes(window.location.hostname)) return;
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+        gtag('consent', 'default', {
+          ad_storage: 'denied', analytics_storage: 'denied',
+          ad_user_data: 'denied', ad_personalization: 'denied',
+          functionality_storage: 'denied', personalization_storage: 'denied',
+          security_storage: 'granted'
+        });
+        var started = false;
+        function applyConsent() {
+          if (!window.Cookiebot || !window.Cookiebot.consent) return;
+          var consent = window.Cookiebot.consent;
+          gtag('consent', 'update', {
+            ad_storage: consent.marketing ? 'granted' : 'denied',
+            ad_user_data: consent.marketing ? 'granted' : 'denied',
+            ad_personalization: consent.marketing ? 'granted' : 'denied',
+            analytics_storage: consent.statistics ? 'granted' : 'denied',
+            functionality_storage: consent.preferences ? 'granted' : 'denied',
+            personalization_storage: consent.preferences ? 'granted' : 'denied',
+            security_storage: 'granted'
+          });
+          if (started || !(consent.statistics || consent.marketing)) return;
+          started = true;
+          window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
+          var gtm = document.createElement('script');
+          gtm.id = 'GolfSimGTM';
+          gtm.async = true;
+          gtm.setAttribute('data-cookieconsent', 'ignore');
+          gtm.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-NL4X3WBR';
+          document.head.appendChild(gtm);
+        }
+        ['CookiebotOnConsentReady', 'CookiebotOnAccept', 'CookiebotOnDecline']
+          .forEach(function (event) { window.addEventListener(event, applyConsent); });
+        var cb = document.createElement('script');
+        cb.id = 'Cookiebot';
+        cb.src = 'https://consent.cookiebot.com/uc.js';
+        cb.setAttribute('data-cbid', 'ce5cea44-601a-436a-92f6-f64f522e2fdf');
+        cb.setAttribute('data-blockingmode', 'auto');
+        cb.setAttribute('data-cookieconsent', 'ignore');
+        cb.type = 'text/javascript';
+        cb.async = false;
+        cb.onload = applyConsent;
+        cb.onerror = function () { console.warn('Cookiebot indisponible : le suivi reste désactivé.'); };
+        document.head.appendChild(cb);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 
     <title>Golf SIM Sorel-Tracy | Simulateur de Golf Intérieur Haut de Gamme</title>
@@ -19,7 +69,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- No tracking without JavaScript/consent; Cookiebot uses data-src for blocked iframes. -->
+    <noscript><iframe data-src="https://www.googletagmanager.com/ns.html?id=GTM-NL4X3WBR"
+      data-cookieconsent="marketing" title="Google Tag Manager"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" data-cookieconsent="ignore"></script>
   </body>
 </html>

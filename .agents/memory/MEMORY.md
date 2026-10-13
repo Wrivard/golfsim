@@ -13,3 +13,4 @@
 - [Supabase connection modes](supabase-connection-modes.md) — dedicated pooler is not a direct connection; Free + Vercel needs the shared transaction pooler.
 - [Integration secret transfers](integration-secret-transfers.md) — transfer secrets inside authenticated runtime code; remote error payloads can echo submitted values.
 - [File-write verification](file-write-verification.md) — verify operational scripts exist and type-check before trusting an edit tool’s success response.
+- [Consent integration](consent-integration.md) — tracking must not bypass consent or prevent the essential booking app from loading.

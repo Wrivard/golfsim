@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { Separator } from "@/components/ui/separator";
+import CookieDeclaration from "@/components/CookieDeclaration";
 
 export default function CookiePolicy() {
   return (
@@ -15,6 +16,7 @@ export default function CookiePolicy() {
       </div>
 
       <div className="container mx-auto px-4 py-16 max-w-4xl">
+        <CookieDeclaration />
         <div className="prose prose-lg max-w-none font-sans text-foreground/80">
           <section className="mb-12">
             <h2 className="text-2xl font-heading font-bold uppercase text-foreground mb-4">1. Qu'est-ce qu'un Cookie ?</h2>

@@ -37,6 +37,23 @@ export default defineConfig({
     ...(process.env.NODE_ENV !== 'production' ? [runtimeErrorOverlay()] : []),
     metaImagesPlugin(),
     seoPlugin(),
+    {
+      name: 'preserve-essential-script-consent',
+      // Vite reconstructs the module tag and drops custom entry attributes.
+      // Run after SEO page copies so every emitted page keeps the app exempt.
+      generateBundle: {
+        order: 'post',
+        handler(_options, bundle) {
+          for (const asset of Object.values(bundle)) {
+            if (asset.type !== 'asset' || !asset.fileName.endsWith('.html')) continue;
+            asset.source = String(asset.source).replace(
+              /<script\b(?=[^>]*\btype="module")(?![^>]*\bdata-cookieconsent=)/g,
+              '<script data-cookieconsent="ignore"',
+            );
+          }
+        },
+      },
+    },
     ...(process.env.NODE_ENV !== 'production' &&
     process.env.REPL_ID !== undefined
       ? [
