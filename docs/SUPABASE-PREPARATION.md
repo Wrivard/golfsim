@@ -35,6 +35,11 @@ Dans le bouton **Connect**, copier la connexion **Shared pooler, transaction
 mode**, port **6543**, pour Vercel. Utiliser l'hôte et l'utilisateur affichés
 par Supabase : ne pas les deviner. Ce pooler fonctionne en IPv4 sur Free.
 
+Dans le dialogue Connect qui affiche le bouton **Use IPv4 connection** sous
+les méthodes de connexion, sélectionner **Transaction pooler** puis activer
+ce bouton : son aide indique **Uses the shared pooler**. Ne pas cliquer sur
+**Enable IPv4 add-on**, qui correspond à une option payante distincte.
+
 Attention : **Dedicated pooler** est un autre mode valide, avec l'hôte
 `db.[PROJECT-REF].supabase.co` sur le port `6543`. Ce n'est pas une connexion
 directe (qui utilise `5432`). Selon la documentation Supabase, ce pooler dédié
