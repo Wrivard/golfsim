@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "../storage";
+import { calendarScopedRoutes, markSourcePending } from "../calendar-source";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
   createCalendarEvent, 
@@ -13,6 +14,7 @@ import {
   revokeGoogleAccess,
   getRedirectUri,
   listCalendars
+  , syncCalendarToDatabase
 } from "../googleCalendar";
 import { 
   getOptimizedStartTimes, 
@@ -115,8 +117,9 @@ const bookingRateLimiter = rateLimit({
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  serverApp: Express
 ): Promise<Server> {
+  const app = calendarScopedRoutes(serverApp);
   registerContact(app);
   registerCalendarJobs(app);
 
@@ -275,6 +278,11 @@ export async function registerRoutes(
         }
       }
       const settings = await storage.changeCalendar(validated);
+      if (validated.calendarId) {
+        await markSourcePending();
+        try { await syncCalendarToDatabase(); }
+        catch { console.warn("Calendar selected but initial synchronization failed; bookings remain blocked."); }
+      }
       return res.json({ ok: true, settings });
     } catch (error) {
       console.error("Error updating calendar settings:", error);
@@ -543,6 +551,8 @@ export async function registerRoutes(
       
       const redirectUri = getRedirectUri(req);
       const result = await exchangeCodeForTokens(code, redirectUri);
+      try { await syncCalendarToDatabase(); }
+      catch { console.warn("Google connected but initial synchronization failed; bookings remain blocked."); }
       
       return res.redirect("/admin?oauth=success&email=" + encodeURIComponent(result.email || ""));
     } catch (error: any) {

@@ -227,6 +227,9 @@ export default function Admin() {
     mutationFn: updateCalendarSettings,
     onSuccess: () => {
       toast({ title: "Calendrier sélectionné avec succès" });
+      queryClient.setQueryData(["adminBookings"], { ok: true, bookings: [] });
+      queryClient.invalidateQueries({ queryKey: ["calendarConnection"] });
+      queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
       queryClient.invalidateQueries({ queryKey: ["calendarSettings"] });
     },
     onError: (error: Error) => {
@@ -238,6 +241,7 @@ export default function Admin() {
     mutationFn: revokeGoogleAccess,
     onSuccess: () => {
       toast({ title: "Compte Google déconnecté" });
+      queryClient.setQueryData(["adminBookings"], { ok: true, bookings: [] });
       queryClient.invalidateQueries({ queryKey: ["calendarConnection"] });
       queryClient.invalidateQueries({ queryKey: ["calendars"] });
     },
@@ -255,6 +259,7 @@ export default function Admin() {
       return data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["calendarConnection"] });
       toast({ 
         title: "Synchronisation terminée", 
         description: `${data.imported} importée(s), ${data.updated || 0} mise(s) à jour, ${data.deleted || 0} supprimée(s), ${data.skipped} ignorée(s)${data.errors > 0 ? `, ${data.errors} erreur(s)` : ''}` 
@@ -349,7 +354,7 @@ export default function Admin() {
   };
 
   const handleConnectGoogle = async () => {
-    if (!window.confirm("Changer de compte Google ? Faites-le hors prise de réservation. Les réservations restent dans le site et les anciens événements restent dans l’ancien calendrier. Avec un nouveau compte, leurs liens sont détachés : ils ne sont pas copiés automatiquement. Une réservation modifiée sera ajoutée au calendrier sélectionné. Continuer ?")) return;
+    if (!window.confirm("Changer de compte Google ? L’ancien historique sera conservé mais masqué, sans bloquer les disponibilités. Aucun événement Google ne sera supprimé ou transféré. Synchronisez le calendrier sélectionné avant de reprendre les réservations. Continuer ?")) return;
     try {
       setIsConnecting(true);
       const authUrl = await getGoogleAuthUrl();
@@ -365,12 +370,12 @@ export default function Admin() {
   };
 
   const handleCalendarChange = (newCalendarId: string) => {
-    if (newCalendarId !== calendarId && !window.confirm("Changer de calendrier ? Les réservations restent dans le site. Les anciens événements ne seront ni supprimés ni copiés. Une réservation modifiée sera ajoutée au nouveau calendrier. Continuer hors prise de réservation ?")) return;
+    if (newCalendarId !== calendarId && !window.confirm("Changer de calendrier ? Son historique restera masqué. Seul le nouveau calendrier alimentera les réservations après synchronisation. Aucun événement Google ne sera supprimé. Continuer ?")) return;
     setCalendarId(newCalendarId);
     updateMutation.mutate({ calendarId: newCalendarId });
   };
 
-  const allBookings = bookingsQuery.data?.bookings || [];
+  const allBookings = bookingsQuery.isError ? [] : (bookingsQuery.data?.bookings || []);
   
   const stats = useMemo(() => {
     const now = new Date();
@@ -1026,6 +1031,7 @@ export default function Admin() {
                   <div>
                     <p className="font-bold text-green-800">Connecté</p>
                     <p className="text-green-700">{connectionQuery.data.email || "Compte Google"}</p>
+                    {connectionQuery.data.syncReady === false && <p className="text-amber-800 mt-2">Synchronisation requise : cliquez sur « Synchroniser depuis le calendrier ». Les réservations sont bloquées jusqu’à sa réussite.</p>}
                   </div>
                 </div>
 
@@ -1055,7 +1061,7 @@ export default function Admin() {
                     <p className="text-sm text-muted-foreground">Aucun calendrier disponible</p>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    Les nouvelles réservations seront ajoutées à ce calendrier. Après un changement de compte ou de calendrier, les anciennes restent dans le site, sans copie automatique. Leur modification les ajoutera au calendrier sélectionné.
+                    Seul ce calendrier alimente les réservations et disponibilités. Les autres historiques restent masqués, sans copie automatique.
                   </p>
                 </div>
 

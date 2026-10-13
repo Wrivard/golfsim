@@ -199,12 +199,19 @@ recipient; it never inherits the production recipient.
 Do this outside booking activity. Use **Changer de compte**, read the confirmation,
 choose the client's account and grant Calendar permissions. An incomplete consent
 does not replace the saved connection. A different account resets the selection to
-its primary calendar and detaches old Google event links in one database
-transaction, preserving all bookings and leaving old Google events untouched.
-Select a writable business calendar before accepting bookings. Old reservations
-are not bulk-exported; editing a detached reservation creates its event in the
-selected calendar. Disconnecting removes usable tokens but retains account
-identity so a same-account reconnect can preserve its existing links.
+its primary calendar. Historical bookings keep their original account/calendar
+mapping and event IDs: they are hidden and excluded from availability, not copied
+or deleted. Switching back restores the same source, then reconciles Google before
+booking is enabled. Select a writable business calendar. Initial synchronization
+runs automatically; on failure the admin shows a retry warning and booking stays
+blocked. Disconnecting removes usable credentials and blocks booking.
+
+Before using this feature on a target database, apply `ops/calendar-source.sql`
+once under the database owner's role. It adds two private RLS-protected mapping
+tables and binds existing linked bookings to their original source, without
+deleting any booking. Apply it before switching the legacy Google account.
+This migration does not change DATABASE_PROVIDER or publish the app. It has been
+applied to the current Neon database, not to the separate Supabase copy.
 
 With the domain redirecting to www, align `SITE_URL`, the approved synchronization
 owner and Google's registered redirect URI with `https://www.golfsimsorel.ca`.

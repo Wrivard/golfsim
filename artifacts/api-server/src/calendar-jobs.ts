@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { externalCalendarAllowed, previewRuntime, publicOrigin, durableRuntime } from "./runtime/config";
 import { readState, writeState, withLease } from "./runtime/state";
 import { runtimeSql } from "./runtime/sql";
+import { withCalendarSource } from "./calendar-source";
 import { getCalendarWatch, getWatchToken, setupCalendarWatch, syncCalendarToDatabase } from "./googleCalendar";
 
 export function secretMatches(value: string | undefined, expected: string | undefined): boolean {
@@ -25,7 +26,7 @@ function watchOrigin() {
 
 export async function runCalendarMaintenance() {
   if (!externalCalendarAllowed()) throw new Error("Calendar synchronization disabled.");
-  return withLease("calendar-sync", async () => {
+  return withCalendarSource(() => withLease("calendar-sync", async () => {
     const origin = watchOrigin();
     if (!origin && durableRuntime()) throw new Error("Public calendar origin is required.");
     if (durableRuntime()) {
@@ -40,7 +41,7 @@ export async function runCalendarMaintenance() {
     const result = await syncCalendarToDatabase();
     await writeState("calendar-last-sync", { at: new Date().toISOString(), ...result });
     return result;
-  });
+  }));
 }
 
 async function cleanupRuntime() {

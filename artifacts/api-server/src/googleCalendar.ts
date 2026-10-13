@@ -1,5 +1,6 @@
 import { google, type calendar_v3 } from 'googleapis';
 import { storage } from './storage';
+import { markSourcePending, markSourceReady, sourceReady, withCalendarSource } from "./calendar-source";
 import crypto from 'crypto';
 import { externalCalendarAllowed, previewRuntime, publicOrigin, durableRuntime } from "./runtime/config";
 import { readState, writeState } from "./runtime/state";
@@ -94,6 +95,7 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string) {
     tokenType: tokens.token_type || 'Bearer',
     email: userInfo.data.email || null,
   }).catch(() => { throw new Error("OAuth credentials could not be saved."); });
+  await markSourcePending();
   
   return {
     email: userInfo.data.email,
@@ -168,6 +170,7 @@ export async function getCalendarConnectionStatus(): Promise<{
   email?: string;
   expiresAt?: Date;
   configured: boolean;
+  syncReady?: boolean;
 }> {
   const configured = externalCalendarAllowed() && !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
   
@@ -184,6 +187,7 @@ export async function getCalendarConnectionStatus(): Promise<{
     
     return {
       connected: true,
+      syncReady: await sourceReady(),
       email: tokenData.email || undefined,
       expiresAt: tokenData.expiresAt || undefined,
       configured: true,
@@ -368,6 +372,11 @@ export interface CalendarSyncResult {
 }
 
 export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
+  return withCalendarSource(syncActiveCalendar, true);
+}
+
+async function syncActiveCalendar(): Promise<CalendarSyncResult> {
+  await markSourcePending();
   const calendar = await getGoogleCalendarClient();
   const calendarId = await getConfiguredCalendarId();
   
@@ -377,6 +386,13 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
   
   const timeMax = new Date(now);
   timeMax.setMonth(timeMax.getMonth() + 3);
+  const stored = await storage.getAllBookings();
+  // Reconcile the entire cached future horizon when returning to an old source.
+  for (const booking of stored) {
+    const end = new Date(booking.date);
+    end.setDate(end.getDate() + 1);
+    if (end > timeMax) timeMax.setTime(end.getTime());
+  }
   
   const result: CalendarSyncResult = { imported: 0, updated: 0, deleted: 0, skipped: 0, errors: 0 };
   
@@ -391,6 +407,14 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
     }
 
     const seenCalendarEventIds = new Set<string>();
+    const returnedIds = new Set(events.map(e => e.id));
+    for (const booking of existingBookings) {
+      if (booking.calendarEventId && booking.date >= timeMin && booking.date < timeMax
+        && !returnedIds.has(booking.calendarEventId)) {
+        await storage.deleteBooking(booking.id);
+        result.deleted++;
+      }
+    }
     
     for (const event of events) {
       if (!event.id) {
@@ -398,13 +422,15 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
         continue;
       }
 
+      if (seenCalendarEventIds.has(event.id)) { result.skipped++; continue; }
       seenCalendarEventIds.add(event.id);
 
       const isCancelled = event.status === 'cancelled';
       const linkedId = event.extendedProperties?.private?.golfSimBookingId;
       const linkedBooking = linkedId ? existingBookings.find(b => b.id === linkedId) : undefined;
       // A deleted/compensated app booking must not be recreated from an orphan event.
-      if (linkedId && !linkedBooking) { result.skipped++; continue; }
+      if (linkedId && !linkedBooking && !calendarBookingsMap.has(event.id)
+        && !await storage.hasHistoricalBooking(linkedId)) { result.skipped++; continue; }
       if (linkedBooking?.calendarEventId && linkedBooking.calendarEventId !== event.id) { result.skipped++; continue; }
       const existingBooking = calendarBookingsMap.get(event.id) || linkedBooking;
       if (linkedBooking && !linkedBooking.calendarEventId) {
@@ -516,7 +542,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
         }
         
         const { booking: created, conflict } = await storage.createBookingWithConflictCheck(
-          parsed,
+          { ...parsed, calendarEventId: event.id },
           (existingBookings) => {
             const startMinutes = parseTimeStr(parsed.time);
             const durationMinutes = parseDurationStr(parsed.duration);
@@ -538,7 +564,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
         );
         
         if (conflict || !created) {
-          result.skipped++;
+          result.errors++;
           continue;
         }
         
@@ -554,6 +580,7 @@ export async function syncCalendarToDatabase(): Promise<CalendarSyncResult> {
     throw error;
   }
   
+  if (result.errors === 0) await markSourceReady();
   return result;
 }
 

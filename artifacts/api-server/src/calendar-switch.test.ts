@@ -29,7 +29,7 @@ test("incomplete OAuth consent preserves the existing stored account", async () 
   } finally { getToken.mock.restore(); info.mock.restore(); save.mock.restore(); }
 });
 
-test("account swap detaches only Google links; same-account reconnect preserves them; failures roll back", async () => {
+test("account swap preserves historical Google links; same-account reconnect and failed swaps preserve them", async () => {
   let state = { token: { email: "old@example.invalid", accessToken: "" }, booking: { name: "Unchanged", calendarEventId: "old-event" as string | null }, calendar: { id: "settings", calendarId: "old-calendar" } };
   let failInsert = false;
   const transaction = mock.method(db, "transaction", (async (action: any) => {
@@ -60,7 +60,7 @@ test("account swap detaches only Google links; same-account reconnect preserves 
     assert.equal(state.token.email, "old@example.invalid");
     failInsert = false;
     await storage.saveOAuthToken({ provider: "google", email: "new@example.invalid", accessToken: "fixture" });
-    assert.equal(state.booking.calendarEventId, null);
+    assert.equal(state.booking.calendarEventId, "old-event");
     assert.equal(state.booking.name, "Unchanged");
     assert.equal(state.calendar.calendarId, "primary");
   } finally { transaction.mock.restore(); }

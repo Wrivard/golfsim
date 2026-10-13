@@ -57,7 +57,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
     return selectedDate.toISOString().split('T')[0];
   }, [selectedDate]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['optimized-slots', dateStr, selectedDuration],
     queryFn: () => fetchOptimizedSlots(dateStr, selectedDuration || 60),
     staleTime: 15000,
@@ -67,12 +67,15 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
   });
 
   useEffect(() => {
-    if (data) {
+    if (isError) {
+      setBookings([]);
+      onScheduleReady?.(null);
+    } else if (data) {
       setBookings(data.bookings);
       onScheduleReady?.(data.schedule ?? null);
     }
     setIsLoadingBookings(isLoading);
-  }, [data, isLoading, setBookings, setIsLoadingBookings, onScheduleReady]);
+  }, [data, isLoading, isError, setBookings, setIsLoadingBookings, onScheduleReady]);
 
   const slots = useMemo(() => data?.slots ?? [], [data]);
 
@@ -147,7 +150,12 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
       </div>
 
       <div className="min-h-[250px]">
-        {isLoading ? (
+        {isError ? (
+          <div role="alert" className="p-6 text-center border border-amber-700/30 rounded-xl">
+            <p>Disponibilités temporairement indisponibles. Le calendrier doit être connecté et synchronisé avant de réserver.</p>
+            <Button type="button" variant="outline" className="mt-4" onClick={() => refetch()}>Réessayer</Button>
+          </div>
+        ) : isLoading ? (
           <div className="flex flex-col items-center justify-center h-48">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
             <p className="text-sm text-muted-foreground">Chargement des disponibilités...</p>
