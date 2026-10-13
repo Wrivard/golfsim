@@ -9,7 +9,7 @@ Pour la base de données, l'utilisateur souhaite que « ça reste confortablemen
 
 **Why:** The user asked for alternative databases after learning that background synchronization could exhaust Neon's free compute allowance.
 
-**How to apply:** Evaluate free-tier headroom, not just whether a free plan exists. A database alternative has not yet been selected; do not migrate data or activate paid services without approval.
+**How to apply:** Evaluate free-tier headroom, not just whether a free plan exists. The user selected Supabase Free. Keep Neon available until a separately approved, verified cutover; preparing or copying into Supabase does not authorize switching Vercel, publishing, changing DNS or activating paid services.
 
 **Why:** The user explicitly named Vercel as the intended destination and reiterated the free plan after being told about Hobby's restrictions.
 
