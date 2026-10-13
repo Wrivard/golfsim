@@ -14,3 +14,9 @@ Vercel's Node function compilation must also be checked with NodeNext resolution
 **Why:** The workspace build passed, but Vercel rejected extensionless imports in the function's transitive TypeScript graph. Fixing only the entry-point import revealed the same problem inside the server.
 
 **How to apply:** Preserve the precompiled server boundary for the Vercel function and test the entry point under NodeNext after the production build; do not replace it with a direct import of the server's TypeScript source.
+
+A standalone NodeNext check is necessary but not sufficient evidence that Vercel's function compilation succeeds.
+
+**Why:** Both the product build and the standalone check passed locally, while Vercel's later function compilation rejected the Express call signature. Different compiler resolution contexts can expose errors that local checks miss.
+
+**How to apply:** Validate the complete Vercel build pipeline on a clean checkout with the deployment's Node version, including its final server-function packaging step. Distinguish a passing product build from a passing Vercel build in reports.
