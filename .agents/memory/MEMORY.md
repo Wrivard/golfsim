@@ -1,3 +1,4 @@
+- [Contact event groups](contact-event-groups.md) — event inquiries allow freely entered player counts well above four; distinct from per-bay capacity.
 - [Staff training audience](staff-training.md) — printable French guide for older staff: broad real screenshots, clear arrows and unique 1–2–3 instructions.
 - [Private exports](private-export-confidentiality.md) — confidential exports must be denied by every preview server, including newly added artifacts.
 - [Artifact lifecycle](artifact-lifecycle.md) — managed workflows belong to their artifact; removing the scoped artifact directory removes its registration and service.
