@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, index, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -17,7 +17,9 @@ export const bookings = pgTable("bookings", {
   calendarEventId: text("calendar_event_id"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().default(sql`now()`),
 }, (table) => ({
-  uniqueSlot: uniqueIndex("unique_booking_slot").on(table.bayType, table.date, table.time),
+  // Archived calendars may legitimately contain the same slot. Active-source
+  // conflict checks run under the date transaction lock in storage.ts.
+  slotLookup: index("bookings_slot_lookup").on(table.bayType, table.date, table.time),
 }));
 
 export const adminUsers = pgTable("admin_users", {

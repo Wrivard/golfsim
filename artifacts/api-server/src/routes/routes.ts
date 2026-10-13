@@ -507,7 +507,7 @@ export async function registerRoutes(
     if (!z.string().uuid().safeParse(req.params.seriesId).success) return res.status(400).json({message:"Série invalide."});
     try {
       const bookings = (await storage.getAllBookings()).filter(b => seriesId(b.notes) === String(req.params.seriesId).toLowerCase());
-      return res.json({source:await activeCalendarSource(),reservations:bookings.map(b=>({id:b.id,date:b.date.toISOString().slice(0,10),time:b.time,bayType:b.bayType})).sort((a,b)=>a.date.localeCompare(b.date))});
+      return res.json({source:createHash("sha256").update(await activeCalendarSource()).digest("hex"),reservations:bookings.map(b=>({id:b.id,date:b.date.toISOString().slice(0,10),time:b.time,bayType:b.bayType})).sort((a,b)=>a.date.localeCompare(b.date))});
     } catch { return res.status(503).json({message:"Impossible de consulter cette série. Vérifiez la connexion Calendar."}); }
   });
 
@@ -515,7 +515,7 @@ export async function registerRoutes(
     const input = z.object({source:z.string().regex(/^[a-f0-9]{64}$/),ids:z.array(z.string().uuid()).min(1).max(8)}).strict().safeParse(req.body);
     if (!input.success || !z.string().uuid().safeParse(req.params.seriesId).success) return res.status(400).json({message:"Demande de suppression invalide."});
     try {
-      if (input.data.source !== await activeCalendarSource()) return res.status(409).json({message:"Le calendrier connecté a changé. Fermez cette fenêtre et vérifiez la connexion."});
+      if (input.data.source !== createHash("sha256").update(await activeCalendarSource()).digest("hex")) return res.status(409).json({message:"Le calendrier connecté a changé. Fermez cette fenêtre et vérifiez la connexion."});
       const all = await storage.getAllBookings();
       const requested = all.filter(b=>input.data.ids.includes(b.id));
       if (requested.some(b=>seriesId(b.notes)!==String(req.params.seriesId).toLowerCase())) return res.status(409).json({message:"Une réservation ne fait pas partie de cette série."});

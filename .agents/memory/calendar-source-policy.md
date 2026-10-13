@@ -20,3 +20,9 @@ Les associations entre réservations et sources doivent suivre les réservations
 Les changements de source et les opérations de réservation doivent rester exclusifs pendant les appels Google, pas seulement pendant les écritures SQL. Une attente de verrou doit libérer sa connexion avant de réessayer.
 
 **Why:** La source pourrait changer entre l’écriture Google et sa sauvegarde locale. Avec le petit pool serverless, conserver les connexions des opérations en attente peut empêcher l’opération détentrice du verrou de terminer.
+
+Les contraintes d’unicité de créneaux doivent respecter la séparation entre calendriers, pas seulement les requêtes de disponibilité.
+
+**Why:** Un index global baie/date/heure a bloqué une nouvelle réservation malgré une disponibilité correcte, car un ancien calendrier masqué occupait exactement le même créneau.
+
+**How to apply:** Ne pas réintroduire d’unicité globale sur les créneaux. Conserver les contrôles de conflit filtrés par source sous verrou transactionnel ; vérifier également les index réellement présents en production après une migration.
