@@ -4,6 +4,7 @@
 - [Publishing verification](publishing-verification.md) — a working development preview does not validate build-only production HTML generation.
 - [Business dates](business-dates.md) — the user stated that the site enters operational use on October 15, 2026.
 - [Hosting target](hosting-target.md) — Golf SIM must use Vercel free/Hobby; no paid hosting authorized; keep Calendar scheduling without claiming commercial eligibility.
+- [Calendar source policy](calendar-source-policy.md) — admin bookings and public availability must use only the connected account’s selected calendar, without old-account conflicts.
 - [Browser testing](browser-testing.md) — documented testing helpers may be unavailable; use local browser checks with mocked email responses, not live sends.
 - [Supabase connection modes](supabase-connection-modes.md) — dedicated pooler is not a direct connection; Free + Vercel needs the shared transaction pooler.
 - [Integration secret transfers](integration-secret-transfers.md) — transfer secrets inside authenticated runtime code; remote error payloads can echo submitted values.
