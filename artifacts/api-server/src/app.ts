@@ -8,6 +8,7 @@ import { durableRuntime, previewRuntime, publicOrigin } from "./runtime/config";
 import { PostgresSessionStore } from "./runtime/session-store";
 import { runtimeSql } from "./runtime/sql";
 import { privatePath } from "./runtime/private-paths";
+import { trustedProductionOrigins } from "./runtime/request-origin";
 
 const app: Express = express();
 app.use((req, res, next) => privatePath(req.originalUrl) ? res.status(404).end() : next());
@@ -41,7 +42,9 @@ app.use((req, res, next) => {
     if (previewRuntime()) {
       for (const host of [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]) if (host) expected.add(`https://${host}`);
       if (process.env.PREVIEW_GOOGLE_REDIRECT_URI) expected.add(new URL(process.env.PREVIEW_GOOGLE_REDIRECT_URI).origin);
-    } else expected.add(publicOrigin() || `${req.protocol}://${req.get("host")}`);
+    } else {
+      for (const allowed of trustedProductionOrigins(publicOrigin() || `${req.protocol}://${req.get("host")}`)) expected.add(allowed);
+    }
     if (process.env.NODE_ENV !== "production") {
       expected.add(`https://${req.get("host")}`);
       if (process.env.REPLIT_DEV_DOMAIN) expected.add(`https://${process.env.REPLIT_DEV_DOMAIN}`);

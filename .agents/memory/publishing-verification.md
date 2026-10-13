@@ -26,3 +26,9 @@ Keep the serverless boundary independent of transitive framework types.
 **Why:** Vercel's language-service resolver rejected Express's callable type even when standalone NodeNext checks passed; the same old code passed with Vercel's explicit experimental TypeScript resolver. A Node HTTP contract avoids depending on that resolver behavior without suppressing type safety.
 
 **How to apply:** Check the HTTP contract against the implementation and exercise the actual Vercel function builder, with no experimental workaround enabled.
+
+Exercise the packaged CommonJS/ESM boundary with Node's optional require(ESM) support disabled.
+
+**Why:** Local Node 22 accepted a static CommonJS import of the server's ESM private-path guard, but Vercel's production loader raised ERR_REQUIRE_ESM before any request handling. Plain require-based smoke tests missed it.
+
+**How to apply:** Use dynamic import across that boundary and run packaged HTTP checks with --no-experimental-require-module. A successful local import alone does not prove Vercel can invoke the function.

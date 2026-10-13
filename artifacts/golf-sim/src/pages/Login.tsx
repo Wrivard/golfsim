@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,31 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock } from "lucide-react";
-
-async function login(credentials: { username: string; password: string }) {
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(credentials),
-  });
-  const data = await response.json();
-  if (!response.ok || !data.ok) {
-    throw new Error(data.message || "Erreur de connexion");
-  }
-  return data;
-}
+import { staffLogin } from "@/lib/staff-login";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const loginMutation = useMutation({
-    mutationFn: login,
+    mutationFn: (credentials: { username: string; password: string }) => staffLogin(credentials),
     onSuccess: () => {
       toast({ title: "Connexion réussie" });
-      window.location.href = "/admin";
+      window.location.href = `${import.meta.env.BASE_URL}admin`;
     },
     onError: (error: Error) => {
       toast({ 
@@ -65,6 +51,7 @@ export default function Login() {
               <Input
                 id="username"
                 type="text"
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -79,6 +66,7 @@ export default function Login() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

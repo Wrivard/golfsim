@@ -1,14 +1,16 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { privatePath } from "../artifacts/api-server/src/runtime/private-paths.js";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  if (privatePath(req.url || "/")) {
-    res.statusCode = 404;
-    res.setHeader("Cache-Control", "no-store");
-    res.end();
-    return;
-  }
   try {
+    // This entry is CommonJS on Vercel; the server package is ESM.
+    // Do not rely on Node's optional require(ESM) support.
+    const { privatePath } = await import("../artifacts/api-server/src/runtime/private-paths.js");
+    if (privatePath(req.url || "/")) {
+      res.statusCode = 404;
+      res.setHeader("Cache-Control", "no-store");
+      res.end();
+      return;
+    }
     const { initializedApp } = await import("../artifacts/api-server/dist/bootstrap.mjs");
     const app = await initializedApp();
     await new Promise<void>((resolve, reject) => {

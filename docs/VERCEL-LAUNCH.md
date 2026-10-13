@@ -24,6 +24,17 @@ contrôles `tsc` seuls passent aussi. La correction ne dépend pas de ce drapeau
 le bootstrap expose maintenant le contrat HTTP standard `RequestListener`,
 vérifié dans son implémentation et reflété dans sa déclaration de sortie.
 
+Les essais du handler désactivent aussi le support optionnel `require(ESM)` de
+Node 22 (`--no-experimental-require-module`). Le loader de production Vercel
+refusait l'import statique CommonJS du garde de chemins ESM avant d'atteindre
+le handler ; l'import dynamique préserve la protection et fonctionne dans les
+deux environnements. Les tests de connexion démarrent le vrai bootstrap en mode
+production avec stockage SQL simulé, sans accès à une base réelle.
+
+Les deux origines HTTPS exactes de Golf SIM (apex et www) sont autorisées pour
+les formulaires en production ; les autres origines restent refusées. Il reste
+recommandé d'aligner SITE_URL et les paramètres OAuth sur l'adresse canonique www.
+
 # Golf SIM — Vercel launch checklist
 
 **Status: code preparation is not a live launch.** No domain or provider setup

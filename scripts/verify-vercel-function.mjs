@@ -69,7 +69,7 @@ server.listen(0, "127.0.0.1", async () => {
   finally { server.close(); }
 });
 `);
-execFileSync(process.execPath, [path.join(output, "smoke.cjs")], {
+execFileSync(process.execPath, ["--no-experimental-require-module", path.join(output, "smoke.cjs")], {
   env: { PATH: process.env.PATH, NODE_ENV: "production", VERCEL: "1" },
   stdio: "inherit", timeout: 30000,
 });
@@ -102,7 +102,7 @@ server.listen(0, "127.0.0.1", async () => {
   finally { server.close(); }
 });
 `);
-execFileSync(process.execPath, [path.join(output, "dispatch.cjs")], {
+execFileSync(process.execPath, ["--no-experimental-require-module", path.join(output, "dispatch.cjs")], {
   env: { PATH: process.env.PATH }, stdio: "inherit", timeout: 30000,
 });
 console.log(`PASS: Vercel function ${lambda.handler}, ${Object.keys(lambda.files).length} traced files`);
