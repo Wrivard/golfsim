@@ -1,12 +1,12 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
-import { databaseConnection } from "./connection";
+import { databasePoolConfiguration } from "./connection";
 
 const { Pool } = pg;
 
 export const pool = new Pool({
-  connectionString: databaseConnection(),
+  ...databasePoolConfiguration(),
   // Preserve spare connections: Calendar edit callbacks can read credentials
   // while a booking transaction is holding another connection.
   max: 3,

@@ -51,8 +51,11 @@ port. Voir la [documentation officielle des modes de connexion](https://supabase
 
 Remplacer le placeholder de mot de passe dans le formulaire sécurisé, jamais
 dans le chat ou un fichier Git. Encoder les caractères réservés du mot de passe
-dans l'URL. Le code impose TLS ; `sslmode=verify-full` avec le certificat du
-fournisseur apporte aussi la vérification du serveur.
+dans l'URL. Le client PostgreSQL et la configuration Drizzle embarquent le
+certificat d'autorité public officiel Supabase pour vérifier le certificat
+du serveur et son nom d'hôte, sans désactiver la vérification TLS.
+Les paramètres SSL de l'URL sont normalisés pour ne pas remplacer cette
+configuration sécurisée du client. Ce certificat public n'est pas un secret.
 
 Variables de production :
 

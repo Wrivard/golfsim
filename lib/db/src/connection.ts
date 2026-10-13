@@ -1,3 +1,5 @@
+import { supabaseRootCA } from "./supabase-ca";
+
 function postgresUrl(value: string): URL {
   try {
     const url = new URL(value);
@@ -82,4 +84,23 @@ export function databaseConnection(env: NodeJS.ProcessEnv = process.env): string
       : "NEON_DATABASE_URL or DATABASE_URL is required.");
   }
   return provider === "supabase" ? supabaseConnection(production, env) : production;
+}
+
+/** Supply the public Supabase trust anchor without disabling certificate/host checks. */
+export function databasePoolConfiguration(env: NodeJS.ProcessEnv = process.env): {
+  connectionString: string;
+  ssl?: { ca: string; rejectUnauthorized: true };
+} {
+  const connectionString = databaseConnection(env);
+  if (env.DATABASE_PROVIDER !== "supabase") return { connectionString };
+  const url = postgresUrl(connectionString);
+  // node-postgres SSL URL parameters replace its ssl object, discarding ca.
+  // TLS is configured explicitly below, with both CA and hostname verification.
+  for (const key of ["sslmode", "ssl", "sslrootcert", "sslcert", "sslkey", "uselibpqcompat"]) {
+    url.searchParams.delete(key);
+  }
+  return {
+    connectionString: url.toString(),
+    ssl: { ca: supabaseRootCA, rejectUnauthorized: true },
+  };
 }

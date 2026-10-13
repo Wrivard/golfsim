@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { databaseConnection, databaseIdentity } from "@workspace/db/connection";
+import { X509Certificate } from "node:crypto";
+import { databaseConnection, databaseIdentity, databasePoolConfiguration } from "@workspace/db/connection";
 
 // Synthetic fixtures only. No database connections or provider writes.
 const neon = "postgres://fixture@ep-live.neon.tech/db";
@@ -99,4 +100,34 @@ test("bad connection values never appear in error messages", () => {
   assert.throws(() => databaseIdentity(privateFixture), error =>
     error instanceof Error && !error.message.includes(privateFixture));
   assert.throws(() => databaseIdentity("https://fixture.invalid/db"), /valid PostgreSQL/);
+});
+
+test("Supabase supplies its official CA and retains certificate and hostname verification", () => {
+  const config = databasePoolConfiguration({
+    DATABASE_PROVIDER: "supabase", VERCEL: "1",
+    SUPABASE_DATABASE_URL: `${pooler("live")}?sslmode=verify-full&application_name=golf-sim`,
+  });
+  assert.equal(config.ssl?.rejectUnauthorized, true);
+  const certificate = new X509Certificate(config.ssl!.ca);
+  assert.equal(certificate.ca, true);
+  assert.equal(certificate.fingerprint256,
+    "80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA");
+  assert.ok(Date.parse(certificate.validTo) > Date.now());
+  const url = new URL(config.connectionString);
+  assert.equal(url.searchParams.has("sslmode"), false);
+  assert.equal(url.searchParams.get("application_name"), "golf-sim");
+});
+
+test("SSL query options cannot discard Supabase's trusted CA; Neon settings remain unchanged", () => {
+  const config = databasePoolConfiguration({
+    DATABASE_PROVIDER: "supabase",
+    SUPABASE_DATABASE_URL: `${pooler("live")}?sslmode=require&ssl=false&sslrootcert=local-file`,
+  });
+  assert.equal(config.ssl?.rejectUnauthorized, true);
+  for (const key of ["sslmode", "ssl", "sslrootcert"]) {
+    assert.equal(new URL(config.connectionString).searchParams.has(key), false);
+  }
+  assert.deepEqual(databasePoolConfiguration({
+    NEON_DATABASE_URL: `${neon}?sslmode=require`, SUPABASE_DATABASE_URL: pooler("live"),
+  }), { connectionString: `${neon}?sslmode=require` });
 });
