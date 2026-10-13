@@ -58,7 +58,7 @@ export function getGoogleAuthUrl(redirectUri: string, state: string): string {
     access_type: 'offline',
     scope: SCOPES,
     state: state,
-    prompt: 'consent',
+    prompt: 'select_account consent',
   });
 }
 
@@ -75,6 +75,13 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string) {
   
   const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
   const userInfo = await oauth2.userinfo.get().catch(error => { throw providerFailure(error); });
+  if (!tokens.access_token || !tokens.refresh_token || !userInfo.data.email) {
+    throw new Error("Autorisation incomplète. Réessayez en acceptant les permissions Google Calendar.");
+  }
+  const granted = new Set((tokens.scope || "").split(" "));
+  if (!granted.has("https://www.googleapis.com/auth/calendar")) {
+    throw new Error("Veuillez autoriser l’accès à Google Calendar avant de connecter ce compte.");
+  }
   
   const expiresAt = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
   
@@ -126,7 +133,7 @@ async function refreshAccessToken(): Promise<string | null> {
 async function getValidAccessToken(): Promise<string> {
   const tokenData = await storage.getOAuthToken(tokenProvider);
   
-  if (!tokenData) {
+  if (!tokenData?.accessToken) {
     throw new Error('Google Calendar not connected');
   }
   
@@ -162,7 +169,7 @@ export async function getCalendarConnectionStatus(): Promise<{
   expiresAt?: Date;
   configured: boolean;
 }> {
-  const configured = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+  const configured = externalCalendarAllowed() && !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
   
   if (!configured) {
     return { connected: false, configured: false };
@@ -171,7 +178,7 @@ export async function getCalendarConnectionStatus(): Promise<{
   try {
     const tokenData = await storage.getOAuthToken(tokenProvider);
     
-    if (!tokenData) {
+    if (!tokenData?.accessToken) {
       return { connected: false, configured: true };
     }
     
@@ -190,9 +197,14 @@ export async function getCalendarConnectionStatus(): Promise<{
 export async function listCalendars(): Promise<Array<{ id: string; summary: string; primary?: boolean }>> {
   try {
     const calendar = await getGoogleCalendarClient();
-    const response = await calendar.calendarList.list();
-    
-    return (response.data.items || []).map(cal => ({
+    const items: calendar_v3.Schema$CalendarListEntry[] = [];
+    let pageToken: string | undefined;
+    do {
+      const response = await calendar.calendarList.list({ pageToken, maxResults: 250 });
+      items.push(...(response.data.items || []));
+      pageToken = response.data.nextPageToken || undefined;
+    } while (pageToken);
+    return items.filter(cal => cal.accessRole === "owner" || cal.accessRole === "writer").map(cal => ({
       id: cal.id || '',
       summary: cal.summary || cal.id || 'Sans nom',
       primary: cal.primary || false,
@@ -206,6 +218,8 @@ export async function listCalendars(): Promise<Array<{ id: string; summary: stri
 export async function revokeGoogleAccess(): Promise<void> {
   if (!externalCalendarAllowed()) throw new Error("Calendar access is disabled for this deployment.");
   const tokenData = await storage.getOAuthToken(tokenProvider);
+  try { await stopCalendarWatch(); } catch { console.warn("Previous Calendar watch could not be stopped; it will expire."); }
+  await writeState("calendar-watch", null);
   
   if (tokenData?.accessToken) {
     try {
@@ -216,7 +230,9 @@ export async function revokeGoogleAccess(): Promise<void> {
     }
   }
   
-  await storage.deleteOAuthToken(tokenProvider);
+  // Keep only the account identity to recognize a same-account reconnect.
+  // No usable credentials remain; existing bookings/events are untouched.
+  await storage.updateOAuthToken(tokenProvider, { accessToken: "", refreshToken: null, expiresAt: null });
 }
 
 async function getConfiguredCalendarId(): Promise<string> {
@@ -641,6 +657,7 @@ function parseCalendarEvent(event: any): {
 
 export interface CalendarWatch {
   id: string; resourceId: string; expires: number; url: string; tokenDigest: string;
+  calendarId?: string; account?: string;
 }
 const localWatchSecret = crypto.randomBytes(32).toString("hex");
 export async function getCalendarWatch() {
@@ -657,9 +674,10 @@ export async function setupCalendarWatch(webhookUrl: string): Promise<boolean> {
     const calendar = await getGoogleCalendarClient();
     const calendarId = await getConfiguredCalendarId();
     const old = await getCalendarWatch();
+    const account = (await storage.getOAuthToken(tokenProvider))?.email || "";
     const token = getWatchToken();
     const tokenDigest = crypto.createHash("sha256").update(token).digest("hex");
-    if (old && old.url === webhookUrl && old.tokenDigest === tokenDigest && old.expires > Date.now() + 3600000) return true;
+    if (old && old.account === account && old.calendarId === calendarId && old.url === webhookUrl && old.tokenDigest === tokenDigest && old.expires > Date.now() + 3600000) return true;
 
     const channelId = crypto.randomUUID();
     const expiration = Date.now() + 7 * 24 * 60 * 60 * 1000;
@@ -680,6 +698,7 @@ export async function setupCalendarWatch(webhookUrl: string): Promise<boolean> {
       await writeState("calendar-watch", {
         id: channelId, resourceId: response.data.resourceId,
         expires: Number(response.data.expiration || expiration), url: webhookUrl, tokenDigest,
+        calendarId, account,
       });
     } catch (error) {
       try { await calendar.channels.stop({ requestBody: { id: channelId, resourceId: response.data.resourceId } }); } catch {}

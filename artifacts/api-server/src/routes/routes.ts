@@ -268,7 +268,13 @@ export async function registerRoutes(
   app.put("/api/admin/calendar-settings", requireAdmin, async (req: Request, res: Response) => {
     try {
       const validated = calendarSettingsSchema.parse(req.body);
-      const settings = await storage.updateCalendarSettings(validated);
+      if (validated.calendarId) {
+        const available = await listCalendars();
+        if (!available.some(c => c.id === validated.calendarId || (validated.calendarId === "primary" && c.primary))) {
+          return res.status(400).json({ ok: false, message: "Choisissez un calendrier accessible en écriture." });
+        }
+      }
+      const settings = await storage.changeCalendar(validated);
       return res.json({ ok: true, settings });
     } catch (error) {
       console.error("Error updating calendar settings:", error);
@@ -408,6 +414,7 @@ export async function registerRoutes(
       const dateStr = targetDate.toISOString().slice(0,10);
       const daySchedule = await storage.getScheduleForDay(targetDate.getUTCDay());
       let calendarChanged = false;
+      let createdEventId: string | null = null;
       let previous: Booking | undefined;
       try {
         const result = await storage.updateBookingWithConflictCheck(id,updates,
@@ -421,12 +428,19 @@ export async function registerRoutes(
             if (current.calendarEventId) {
               await updateCalendarEvent(current.calendarEventId,next);
               calendarChanged = true;
+            } else {
+              createdEventId = await createCalendarEvent(next);
+              if (!createdEventId) throw new Error("Calendar event missing.");
+              updates.calendarEventId = createdEventId;
             }
           });
         if (result.conflict) return res.status(409).json({ok:false,message:"Ce créneau n’est pas disponible. Choisissez une autre date, heure ou baie."});
         if (!result.booking) return res.status(404).json({ok:false,message:"Réservation non trouvée"});
         return res.json({ ok: true, booking: result.booking });
       } catch (error) {
+        if (createdEventId) {
+          try { await deleteCalendarEvent(createdEventId); } catch { console.error("Calendar cleanup failed after booking edit."); }
+        }
         if (calendarChanged && previous?.calendarEventId) {
           try { await updateCalendarEvent(previous.calendarEventId,previous); }
           catch { console.error("Calendar restoration failed after booking edit; manual reconciliation required."); }

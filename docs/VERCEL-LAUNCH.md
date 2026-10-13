@@ -178,6 +178,43 @@ as a production push destination.
 
 ## 5. Resend and the contact form
 
+Golf SIM now sends two branded HTML/plain-text emails: the business notification
+first, then the customer's acknowledgement (not a confirmed reservation).
+Set `RESEND_API_KEY`, `RESEND_FROM_EMAIL=bonjour@kua.quebec`,
+`RECIPIENT_EMAIL=golfsim.soreltracy@gmail.com`, and
+`CONTACT_EMAIL_ENABLED=true` after authorized verification. The new sender and
+recipient names take precedence over the legacy `CONTACT_EMAIL_FROM` and
+`CONTACT_EMAIL_TO` aliases. Preview always redirects both messages to
+`PREVIEW_CONTACT_EMAIL_TO`. No live sends are performed by automated tests.
+Independent idempotency keys cover retries of either message within Resend's
+24-hour deduplication window; this does not guarantee eventual inbox delivery.
+
+In production the three Resend variables are sufficient when
+`CONTACT_EMAIL_ENABLED` is absent. An explicit `false` remains an emergency
+disable switch. Preview still requires explicit enablement and a dedicated test
+recipient; it never inherits the production recipient.
+
+### Changing the Google account
+
+Do this outside booking activity. Use **Changer de compte**, read the confirmation,
+choose the client's account and grant Calendar permissions. An incomplete consent
+does not replace the saved connection. A different account resets the selection to
+its primary calendar and detaches old Google event links in one database
+transaction, preserving all bookings and leaving old Google events untouched.
+Select a writable business calendar before accepting bookings. Old reservations
+are not bulk-exported; editing a detached reservation creates its event in the
+selected calendar. Disconnecting removes usable tokens but retains account
+identity so a same-account reconnect can preserve its existing links.
+
+With the domain redirecting to www, align `SITE_URL`, the approved synchronization
+owner and Google's registered redirect URI with `https://www.golfsimsorel.ca`.
+The callback is `https://www.golfsimsorel.ca/oauth/google/callback`.
+Connecting the client's Google account still requires their interactive consent,
+and possibly inclusion as an OAuth test user. The production database selection,
+Calendar enablement and external scheduler require separately approved activation.
+
+### Legacy sender-domain setup
+
 Use the existing Resend account. Verify a dedicated sender subdomain, for example
 `notifications.golfsimsorel.ca` (proposed, not yet verified). Add **only the DNS values Resend generates**:
 DKIM, SPF/Return-Path MX or CNAME as shown in that account.

@@ -2,15 +2,19 @@ import type { Express } from "express";
 import { SendContactRequestBody } from "@workspace/api-zod";
 import { rateLimit } from "./middleware/security";
 import { previewRuntime } from "./runtime/config";
+import { contactTemplate } from "./contact-templates";
 
 export class ContactUnavailable extends Error {}
 export interface MailConfig { apiKey: string; from: string; to: string }
 
-function mailConfig(): MailConfig {
-  const to = previewRuntime() ? process.env.PREVIEW_CONTACT_EMAIL_TO : process.env.CONTACT_EMAIL_TO;
+export function mailConfig(): MailConfig {
+  const to = previewRuntime() ? process.env.PREVIEW_CONTACT_EMAIL_TO : (process.env.RECIPIENT_EMAIL || process.env.CONTACT_EMAIL_TO);
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.CONTACT_EMAIL_FROM;
-  if (process.env.CONTACT_EMAIL_ENABLED !== "true" || !apiKey || !from || !to) {
+  const from = process.env.RESEND_FROM_EMAIL || process.env.CONTACT_EMAIL_FROM;
+  const enabled = previewRuntime()
+    ? process.env.CONTACT_EMAIL_ENABLED === "true"
+    : process.env.CONTACT_EMAIL_ENABLED !== "false";
+  if (!enabled || !apiKey || !from || !to) {
     throw new ContactUnavailable("Email service not enabled/configured.");
   }
   // Restrict sender/recipient to one valid plain address; never trust browser input.
@@ -36,14 +40,11 @@ export async function deliverContact(
   config: MailConfig,
   fetcher: typeof fetch = fetch,
 ) {
-  const text = [
-    "Nouvelle demande de groupe / événement — Golf SIM",
-    "Cette demande n'est PAS une réservation confirmée.",
-    `Nom : ${data.name.trim()}`, `Courriel : ${data.email}`,
-    `Téléphone : ${data.phone?.trim() || "Non fourni"}`,
-    `Date souhaitée : ${data.date || "À discuter"}`, `Joueurs : ${data.players}`,
-    "", "Notes :", data.message.trim(),
-  ].join("\n");
+  // Owner first. Independent stable keys let a partial failure retry without
+  // duplicating the already accepted message within Resend's 24h window.
+  let ownerId = "";
+  for (const audience of ["owner", "customer"] as const) {
+  const template = contactTemplate(data, audience);
   let response: Response;
   try {
     response = await fetcher("https://api.resend.com/emails", {
@@ -51,11 +52,13 @@ export async function deliverContact(
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": `gsim-contact/${data.requestId}`,
+        "Idempotency-Key": `gsim-contact/${data.requestId}/${audience}`,
       },
       body: JSON.stringify({
-        from: `Golf SIM <${config.from}>`, to: [config.to],
-        reply_to: data.email, subject: "Demande de groupe — Golf SIM", text,
+        from: `Golf SIM <${config.from}>`,
+        to: [audience === "owner" || previewRuntime() ? config.to : data.email],
+        reply_to: audience === "owner" ? data.email : config.to,
+        ...template,
       }),
       signal: AbortSignal.timeout(12000),
     });
@@ -67,7 +70,9 @@ export async function deliverContact(
   }
   const result = await response.json() as { id?: string };
   if (!result.id || typeof result.id !== "string") throw new ContactUnavailable("No provider acceptance ID.");
-  return result.id;
+  if (audience === "owner") ownerId = result.id;
+  }
+  return ownerId;
 }
 
 export function registerContact(app: Express) {

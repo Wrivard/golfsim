@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { privatePath } from "../artifacts/api-server/src/runtime/private-paths";
+import { privatePath } from "../artifacts/api-server/src/runtime/private-paths.js";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if (privatePath(req.url || "/")) {
@@ -9,7 +9,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
   try {
-    const { initializedApp } = await import("../artifacts/api-server/src/bootstrap");
+    const { initializedApp } = await import("../artifacts/api-server/dist/bootstrap.mjs");
     const app = await initializedApp();
     await new Promise<void>((resolve, reject) => {
       res.once("finish", resolve);

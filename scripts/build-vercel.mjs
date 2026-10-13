@@ -8,6 +8,7 @@ if (env.VERCEL && !env.SITE_URL) {
 for (const args of [
   ["run", "typecheck:libs"],
   ["--filter", "@workspace/api-server", "run", "typecheck"],
+  ["--filter", "@workspace/api-server", "run", "build"],
   ["exec", "tsc", "-p", "api/tsconfig.json"],
   ["--filter", "@workspace/golf-sim", "run", "typecheck"],
   ["--filter", "@workspace/golf-sim", "run", "build"],

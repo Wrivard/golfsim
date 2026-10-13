@@ -349,6 +349,7 @@ export default function Admin() {
   };
 
   const handleConnectGoogle = async () => {
+    if (!window.confirm("Changer de compte Google ? Faites-le hors prise de réservation. Les réservations restent dans le site et les anciens événements restent dans l’ancien calendrier. Avec un nouveau compte, leurs liens sont détachés : ils ne sont pas copiés automatiquement. Une réservation modifiée sera ajoutée au calendrier sélectionné. Continuer ?")) return;
     try {
       setIsConnecting(true);
       const authUrl = await getGoogleAuthUrl();
@@ -364,6 +365,7 @@ export default function Admin() {
   };
 
   const handleCalendarChange = (newCalendarId: string) => {
+    if (newCalendarId !== calendarId && !window.confirm("Changer de calendrier ? Les réservations restent dans le site. Les anciens événements ne seront ni supprimés ni copiés. Une réservation modifiée sera ajoutée au nouveau calendrier. Continuer hors prise de réservation ?")) return;
     setCalendarId(newCalendarId);
     updateMutation.mutate({ calendarId: newCalendarId });
   };
@@ -1010,7 +1012,7 @@ export default function Admin() {
                   <XCircle className="w-6 h-6 text-amber-600" />
                   <div>
                     <p className="font-bold text-amber-800">Configuration requise</p>
-                    <p className="text-amber-700 text-sm">Les identifiants Google OAuth ne sont pas configurés.</p>
+                    <p className="text-amber-700 text-sm">Google Calendar est désactivé ou ses identifiants ne sont pas configurés.</p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -1053,7 +1055,7 @@ export default function Admin() {
                     <p className="text-sm text-muted-foreground">Aucun calendrier disponible</p>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    Les réservations seront automatiquement ajoutées à ce calendrier.
+                    Les nouvelles réservations seront ajoutées à ce calendrier. Après un changement de compte ou de calendrier, les anciennes restent dans le site, sans copie automatique. Leur modification les ajoutera au calendrier sélectionné.
                   </p>
                 </div>
 

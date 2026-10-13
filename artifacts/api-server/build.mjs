@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -15,7 +15,7 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: [path.resolve(artifactDir, "src/index.ts"), path.resolve(artifactDir, "src/bootstrap.ts")],
     platform: "node",
     bundle: true,
     format: "esm",
@@ -118,6 +118,7 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+  await writeFile(path.join(distDir, "bootstrap.d.mts"), 'export declare function initializedApp(): Promise<import("express").Express>;\n');
 }
 
 buildAll().catch((err) => {

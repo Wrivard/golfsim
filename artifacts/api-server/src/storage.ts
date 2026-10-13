@@ -207,10 +207,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveOAuthToken(token: InsertOAuthToken): Promise<OAuthToken> {
-    await db.delete(oauthTokens).where(eq(oauthTokens.provider, token.provider || "google"));
-    
-    const [newToken] = await db.insert(oauthTokens).values(token).returning();
-    return newToken;
+    return db.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(73401921)`);
+      const provider = token.provider || "google";
+      const [old] = await tx.select().from(oauthTokens).where(eq(oauthTokens.provider, provider));
+      // Never carry event IDs or a private calendar into another Google account.
+      if (provider === "google" && (!old || old.email?.toLowerCase() !== token.email?.toLowerCase())) {
+        await tx.update(bookings).set({ calendarEventId: null });
+        await tx.update(calendarSettings).set({ calendarId: "primary" });
+      }
+      await tx.delete(oauthTokens).where(eq(oauthTokens.provider, provider));
+      const [saved] = await tx.insert(oauthTokens).values(token).returning();
+      return saved;
+    });
+  }
+
+  async changeCalendar(settings: Partial<InsertCalendarSettings>) {
+    return db.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(73401921)`);
+      const [old] = await tx.select().from(calendarSettings);
+      if (settings.calendarId && old?.calendarId !== settings.calendarId) {
+        await tx.update(bookings).set({ calendarEventId: null });
+      }
+      if (old) return (await tx.update(calendarSettings).set(settings).where(eq(calendarSettings.id, old.id)).returning())[0];
+      return (await tx.insert(calendarSettings).values(settings).returning())[0];
+    });
   }
 
   async updateOAuthToken(provider: string, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined> {

@@ -119,3 +119,31 @@ mtime_ms = 1791568776767
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/7a5a308e-eaa5-432e-8b4c-aed114e8da4d/0e4fe955-8379-4d78-8df3-0e42c6cef986"
 storage_version_token = "1791568810467570"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "vdl1gt1KFJyUcZJtufCOO"
+uri = "file://.local/outputs/email-previews/customer.html"
+type = "html"
+title = "Golf SIM — courriel au client"
+description = "Accusé de réception et récapitulatif de la demande. Aperçu avec des données fictives."
+logical_id = "7388076d-9724-48dc-a9c1-52b532e8ea6f"
+content_hash = "sha256:63e0d76d788d46eac148286e68c20033abf00333eb0a78215f5e81076f1cf947"
+size = 3917
+mtime_ms = 1791860645724
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/7388076d-9724-48dc-a9c1-52b532e8ea6f/3ae9e807-efb2-44ca-b145-c5a3f40ab1f5"
+storage_version_token = "1791861819496366"
+content_type = "text/html"
+
+[[outputs]]
+id = "qPzC5juVsFhZkH8tMwlDJ"
+uri = "file://.local/outputs/email-previews/owner.html"
+type = "html"
+title = "Golf SIM — courriel au propriétaire"
+description = "Notification et récapitulatif de la demande. Aperçu avec des données fictives."
+logical_id = "9075429f-0594-41a7-ad5c-9516db80cd66"
+content_hash = "sha256:76aaa7a980bbaaee0979e0173c9137e26f9a549019927712363784d7952134dd"
+size = 3764
+mtime_ms = 1791860645724
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/9075429f-0594-41a7-ad5c-9516db80cd66/87adc443-6f69-4224-ab8c-78a410398678"
+storage_version_token = "1791861819955744"
+content_type = "text/html"
