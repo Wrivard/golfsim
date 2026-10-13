@@ -20,3 +20,9 @@ Check database compute allowances as well as hosting and scheduler allowances be
 **Why:** A free scheduled caller can repeatedly wake Neon and prevent its idle suspension. Calendar reconciliation, session cleanup and administrative polling can consume the database's monthly compute allowance even with few reservations.
 
 **How to apply:** Verify current Neon limits and actual usage before enabling background jobs. Compare polling frequency with the database's idle timeout; retain synchronization requirements and obtain approval before reducing them. Never equate a free scheduler with free database operation.
+
+Le compte Google personnel sert aux tests ; le calendrier de production doit être connecté au compte Google du client.
+
+**Why:** L'utilisateur a précisé qu'il changera de compte chez son client pour utiliser celui du commerce.
+
+**How to apply:** Ne pas considérer les autorisations du compte de test comme une validation du compte client. Préparer explicitement la sélection du calendrier et la gestion des liens de réservation existants avant ce changement.
