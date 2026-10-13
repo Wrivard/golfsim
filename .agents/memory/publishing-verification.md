@@ -32,3 +32,9 @@ Exercise the packaged CommonJS/ESM boundary with Node's optional require(ESM) su
 **Why:** Local Node 22 accepted a static CommonJS import of the server's ESM private-path guard, but Vercel's production loader raised ERR_REQUIRE_ESM before any request handling. Plain require-based smoke tests missed it.
 
 **How to apply:** Use dynamic import across that boundary and run packaged HTTP checks with --no-experimental-require-module. A successful local import alone does not prove Vercel can invoke the function.
+
+Verify required infrastructure on the database actually selected by production, not merely on another configured provider.
+
+**Why:** Production still returned 503 after the packaged runtime was fixed: the selected database contained the admin account but none of the session/rate-limit/runtime tables. Isolated authentication tests could not reveal that provisioning gap.
+
+**How to apply:** Before declaring production authentication ready, inspect the selected provider's schema read-only. Apply reviewed infrastructure migrations with approval; do not switch providers or reset credentials to work around missing tables.

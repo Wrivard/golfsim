@@ -376,9 +376,8 @@ export function injectSeoMeta(html: string, path: string): string {
   return result;
 }
 
-export function registerSeoRoutes(app: Express) {
-  app.get("/robots.txt", (_req: Request, res: Response) => {
-    if (process.env.VERCEL_ENV === "preview") return res.type("text/plain").send("User-agent: *\nDisallow: /\n");
+export function renderRobots(): string {
+    if (process.env.VERCEL_ENV === "preview") return "User-agent: *\nDisallow: /\n";
     const siteUrl = getSiteUrl();
     const robotsTxt = `User-agent: *
 Allow: /
@@ -388,10 +387,9 @@ Disallow: /login
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;
-    return res.type("text/plain").send(robotsTxt);
-  });
-
-  app.get("/sitemap.xml", (_req: Request, res: Response) => {
+    return robotsTxt;
+}
+export function renderSitemap(): string {
     const siteUrl = getSiteUrl();
     const publicPages = [
       { loc: "/", priority: "1.0", changefreq: "weekly" },
@@ -420,6 +418,9 @@ Sitemap: ${siteUrl}/sitemap.xml
 
     xml += `</urlset>`;
 
-    res.type("application/xml").send(xml);
-  });
+    return xml;
+}
+export function registerSeoRoutes(app: Express) {
+  app.get("/robots.txt", (_req: Request, res: Response) => res.type("text/plain").send(renderRobots()));
+  app.get("/sitemap.xml", (_req: Request, res: Response) => res.type("application/xml").send(renderSitemap()));
 }

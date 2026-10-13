@@ -3,17 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRef } from "react";
 import { sendContactRequest, type ContactInput } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import headerBg from "@assets/20260105-6-06_1790696495857.webp";
 
 export default function Contact() {
-  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<Omit<ContactInput, "requestId">>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Omit<ContactInput, "requestId">>({
     defaultValues: { name: "", email: "", phone: "", date: "", message: "", website: "" },
   });
   const { toast } = useToast();
@@ -96,17 +95,16 @@ export default function Contact() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="players" className="uppercase font-bold text-xs tracking-wider">Joueurs</Label>
-                  <Controller control={control} name="players" rules={{ required: true }} render={({ field }) => <Select value={field.value ? String(field.value) : ""} onValueChange={value => field.onChange(Number(value))}>
-                    <SelectTrigger id="players" aria-invalid={!!errors.players} className="rounded-none border-foreground/20 h-12 bg-transparent">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Joueur</SelectItem>
-                      <SelectItem value="2">2 Joueurs</SelectItem>
-                      <SelectItem value="3">3 Joueurs</SelectItem>
-                      <SelectItem value="4">4 Joueurs</SelectItem>
-                    </SelectContent>
-                  </Select>} />
+                  <Input id="players" type="number" inputMode="numeric" min={1} step={1}
+                    placeholder="Ex. : 24" aria-invalid={!!errors.players} aria-describedby="players-help"
+                    {...register("players", {
+                      valueAsNumber: true,
+                      validate: value => Number.isSafeInteger(value) && value >= 1 || "Inscrivez un nombre entier de joueurs, au moins 1.",
+                    })}
+                    className="rounded-none border-foreground/20 focus:border-primary h-12 bg-transparent" />
+                  <p id="players-help" className="text-sm text-muted-foreground">
+                    {errors.players?.message || "Inscrivez le nombre total de joueurs de votre groupe."}
+                  </p>
                 </div>
               </div>
 

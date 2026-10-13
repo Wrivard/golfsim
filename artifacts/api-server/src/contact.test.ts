@@ -3,14 +3,16 @@ import assert from "node:assert/strict";
 import { deliverContact, parseContact, mailConfig } from "./contact";
 
 const valid = {
-  name: "Client de test", email: "test@example.invalid", players: 3 as const,
+  name: "Client de test", email: "test@example.invalid", players: 24,
   date: "2026-10-14", phone: "555-0100", message: "Événement de test",
   requestId: "19c018c6-98d8-4b10-b026-66c71ba5294b", website: "",
 };
-test("contact requires all fields, numeric selection, empty honeypot and actual date", () => {
+test("contact accepts large groups and requires a positive whole player count", () => {
   assert.ok(parseContact(valid));
+  for (const players of [1, 5, 24, 150, 1000]) assert.equal(parseContact({ ...valid, players })?.players, players);
   for (const body of [
-    { ...valid, players: "3" }, { ...valid, players: 5 }, { ...valid, email: "bad" },
+    ...["3", 0, -1, 1.5, null, undefined, NaN, Infinity].map(players => ({ ...valid, players })),
+    { ...valid, email: "bad" },
     { ...valid, website: "spam" }, { ...valid, name: "  " },
     { ...valid, message: " " }, { ...valid, date: "2026-02-30" },
     { ...valid, date: "2026-13-01" }, { ...valid, requestId: "bad" },
@@ -29,7 +31,7 @@ test("Resend payload uses trusted sender/recipient, reply-to, every form field, 
     assert.equal(body.from, "Golf SIM <contact@mail.example.invalid>");
     assert.deepEqual(body.to, [audience === "owner" ? "inbox@example.invalid" : valid.email]);
     assert.equal(body.reply_to, audience === "owner" ? valid.email : "inbox@example.invalid");
-    for (const value of [valid.name, valid.email, valid.date, valid.phone, valid.message, "Joueurs : 3"]) assert.ok(body.text.includes(value));
+    for (const value of [valid.name, valid.email, valid.date, valid.phone, valid.message, "Joueurs : 24"]) assert.ok(body.text.includes(value));
     assert.ok(body.text.includes("PAS une réservation confirmée"));
     assert.ok(body.html.includes("GOLF SIM"));
     assert.ok(body.html.includes("Récapitulatif"));

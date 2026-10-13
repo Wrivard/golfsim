@@ -19,6 +19,7 @@ export const sendContactRequestBodyEmailMax = 254;
 export const sendContactRequestBodyPhoneMax = 30;
 
 export const sendContactRequestBodyDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+
 export const sendContactRequestBodyMessageMin = 2;
 export const sendContactRequestBodyMessageMax = 2000;
 
@@ -31,7 +32,7 @@ export const SendContactRequestBody = zod.object({
   "email": zod.string().email().max(sendContactRequestBodyEmailMax),
   "phone": zod.string().max(sendContactRequestBodyPhoneMax).optional(),
   "date": zod.string().regex(sendContactRequestBodyDateRegExp).optional(),
-  "players": zod.union([zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4)]),
+  "players": zod.number().int().min(1),
   "message": zod.string().min(sendContactRequestBodyMessageMin).max(sendContactRequestBodyMessageMax),
   "requestId": zod.string().uuid(),
   "website": zod.string().max(sendContactRequestBodyWebsiteMax).optional().describe('Anti-spam; doit rester vide')

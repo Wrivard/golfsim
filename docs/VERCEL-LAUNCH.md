@@ -94,8 +94,10 @@ Still required:
 | API | Node function `api/index.ts`, complete Express API |
 | Scheduler | Free external Cloudflare Worker calls `/api/jobs/calendar` every five minutes, UTC |
 
-Frontend assets are served by the CDN. `/api/*`, OAuth callback, robots and
-sitemap go to the backend; page URLs have their own generated SEO HTML.
+Frontend assets, robots and sitemap are served by the CDN. The crawl documents
+are generated during the build under `seo/` and explicitly routed by Vercel,
+so a database or API initialization failure cannot make them unavailable.
+`/api/*` and the OAuth callback go to the backend; page URLs have their own generated SEO HTML.
 The build excludes the design sandbox and staff PDF exports. No Next.js rewrite
 or separate API hostname is needed.
 

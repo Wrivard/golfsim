@@ -16,3 +16,7 @@ for (const args of [
   const result = spawnSync("pnpm", args, { env, stdio: "inherit" });
   if (result.status !== 0) process.exit(result.status || 1);
 }
+if (env.SITE_URL) {
+  const check = spawnSync(process.execPath, ["scripts/verify-seo.mjs"], { env, stdio: "inherit" });
+  if (check.status !== 0) process.exit(check.status || 1);
+}

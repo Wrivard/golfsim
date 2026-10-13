@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { injectSeoMeta } from "@workspace/golf-seo";
+import { injectSeoMeta, renderSitemap, renderRobots } from "@workspace/golf-seo";
 
 // Preserve the original server-rendered metadata now that Vite owns the HTML.
 const pagePaths = [
@@ -20,6 +20,9 @@ export function seoPlugin(): Plugin {
       },
     },
     generateBundle(_options, bundle) {
+      // Public crawl files must remain available when the API/database is down.
+      this.emitFile({ type: "asset", fileName: "seo/sitemap.xml", source: renderSitemap() });
+      this.emitFile({ type: "asset", fileName: "seo/robots.txt", source: renderRobots() });
       const index = bundle["index.html"];
       if (!index || index.type !== "asset") throw new Error("Golf SIM index.html missing");
       for (const pagePath of pagePaths) {

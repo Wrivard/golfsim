@@ -8,3 +8,9 @@ description: Safely configure external environment variables without exposing cr
 **Why:** Vercel's documented environment-variable failure payload can include the submitted value. Logging a complete response or error body can therefore disclose credentials even when the destination encrypts them.
 
 **How to apply:** Sanitize both successes and failures to variable names, scopes, types, status codes and error codes. Check per-variable failures even on successful HTTP responses, then verify destination metadata without decrypting secrets. Preserve existing credentials and keep production database URLs out of Preview. Configuration changes do not authorize a database cutover or deployment.
+
+Do not treat Vercel environment-list values as plaintext, even with a decrypt query parameter.
+
+**Why:** The list endpoint returned ciphertext, which looked populated and passed length checks but was not a usable connection string.
+
+**How to apply:** Use list results only for metadata. When an authorized runtime check requires a credential, use the documented per-variable retrieval endpoint inside the authenticated runtime and consume it there; return only sanitized diagnostic results. Sensitive variables may not be retrievable.
