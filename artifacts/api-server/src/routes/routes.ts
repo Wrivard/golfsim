@@ -6,6 +6,7 @@ import { activeCalendarSource } from "../calendar-source";
 import { createHash } from "node:crypto";
 import { sendBookingEmails } from "../booking-emails";
 import { recurrenceDates } from "../recurrence";
+import { seriesId, preserveSeries, deleteSeriesChunk } from "../series-deletion";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
   createCalendarEvent, 
@@ -456,7 +457,7 @@ export async function registerRoutes(
         updates.players = p;
       }
       if (notes !== undefined) {
-        updates.notes = notes ? sanitizeString(notes) : null;
+        updates.notes = preserveSeries(notes ? sanitizeString(notes) : null, existing.notes);
       }
 
       const targetDate = updates.date || existing.date;
@@ -500,6 +501,29 @@ export async function registerRoutes(
       console.error("Error updating booking:", error);
       return res.status(500).json({ ok: false, message: "Modification non enregistrée. Vérifiez la connexion Calendar ou prévenez le responsable." });
     }
+  });
+
+  app.get("/api/admin/booking-series/:seriesId", requireAdmin, async (req, res) => {
+    if (!z.string().uuid().safeParse(req.params.seriesId).success) return res.status(400).json({message:"Série invalide."});
+    try {
+      const bookings = (await storage.getAllBookings()).filter(b => seriesId(b.notes) === String(req.params.seriesId).toLowerCase());
+      return res.json({source:await activeCalendarSource(),reservations:bookings.map(b=>({id:b.id,date:b.date.toISOString().slice(0,10),time:b.time,bayType:b.bayType})).sort((a,b)=>a.date.localeCompare(b.date))});
+    } catch { return res.status(503).json({message:"Impossible de consulter cette série. Vérifiez la connexion Calendar."}); }
+  });
+
+  app.delete("/api/admin/booking-series/:seriesId", requireAdmin, async (req, res) => {
+    const input = z.object({source:z.string().regex(/^[a-f0-9]{64}$/),ids:z.array(z.string().uuid()).min(1).max(8)}).strict().safeParse(req.body);
+    if (!input.success || !z.string().uuid().safeParse(req.params.seriesId).success) return res.status(400).json({message:"Demande de suppression invalide."});
+    try {
+      if (input.data.source !== await activeCalendarSource()) return res.status(409).json({message:"Le calendrier connecté a changé. Fermez cette fenêtre et vérifiez la connexion."});
+      const all = await storage.getAllBookings();
+      const requested = all.filter(b=>input.data.ids.includes(b.id));
+      if (requested.some(b=>seriesId(b.notes)!==String(req.params.seriesId).toLowerCase())) return res.status(409).json({message:"Une réservation ne fait pas partie de cette série."});
+      const result = await deleteSeriesChunk(requested, deleteCalendarEvent, id=>storage.deleteBooking(id));
+      // Already absent IDs are idempotently complete; never touch another source.
+      const absent = input.data.ids.filter(id=>!all.some(b=>b.id===id));
+      return res.json({...result,deletedIds:[...result.deletedIds,...absent]});
+    } catch { return res.status(503).json({message:"Suppression interrompue. Les séances restantes sont conservées ; réessayez après avoir vérifié Calendar."}); }
   });
 
   app.delete("/api/admin/bookings/:id", requireAdmin, async (req: Request, res: Response) => {

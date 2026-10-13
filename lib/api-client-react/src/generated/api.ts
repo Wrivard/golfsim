@@ -20,6 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BookingSeriesDeletion,
+  BookingSeriesDeletionResult,
+  BookingSeriesPreview,
   BookingUpdate,
   BookingUpdateResult,
   ContactInput,
@@ -53,6 +56,160 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getPreviewBookingSeriesUrl = (seriesId: string,) => {
+
+
+
+
+  return `/api/admin/booking-series/${seriesId}`
+}
+
+export const previewBookingSeries = async (seriesId: string, options?: Parameters<typeof customFetch>[1]): Promise<BookingSeriesPreview> => {
+
+  return customFetch<BookingSeriesPreview>(getPreviewBookingSeriesUrl(seriesId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewBookingSeriesQueryKey = (seriesId: string,) => {
+    return [
+    `/api/admin/booking-series/${seriesId}`
+    ] as const;
+    }
+
+
+export const getPreviewBookingSeriesQueryOptions = <TData = Awaited<ReturnType<typeof previewBookingSeries>>, TError = ErrorType<void>>(seriesId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewBookingSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewBookingSeriesQueryKey(seriesId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewBookingSeries>>> = ({ signal }) => previewBookingSeries(seriesId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: seriesId !== null && seriesId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewBookingSeries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewBookingSeriesQueryResult = NonNullable<Awaited<ReturnType<typeof previewBookingSeries>>>
+export type PreviewBookingSeriesQueryError = ErrorType<void>
+
+
+
+export function usePreviewBookingSeries<TData = Awaited<ReturnType<typeof previewBookingSeries>>, TError = ErrorType<void>>(
+ seriesId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewBookingSeries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewBookingSeriesQueryOptions(seriesId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteBookingSeriesChunkUrl = (seriesId: string,) => {
+
+
+
+
+  return `/api/admin/booking-series/${seriesId}`
+}
+
+export const deleteBookingSeriesChunk = async (seriesId: string,
+    bookingSeriesDeletion: BookingSeriesDeletion, options?: Parameters<typeof customFetch>[1]): Promise<BookingSeriesDeletionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<BookingSeriesDeletionResult>(getDeleteBookingSeriesChunkUrl(seriesId),
+  {
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bookingSeriesDeletion)
+  }
+);}
+
+
+
+
+
+export const getDeleteBookingSeriesChunkMutationKey = () => ['deleteBookingSeriesChunk'] as const;
+
+export const getDeleteBookingSeriesChunkMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBookingSeriesChunk>>, TError,DeleteBookingSeriesChunkMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBookingSeriesChunk>>, TError,DeleteBookingSeriesChunkMutationVariables, TContext> => {
+
+const mutationKey = getDeleteBookingSeriesChunkMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBookingSeriesChunk>>, DeleteBookingSeriesChunkMutationVariables> = (props) => {
+          const {seriesId,data} = props ?? {};
+
+          return  deleteBookingSeriesChunk(seriesId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBookingSeriesChunkMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBookingSeriesChunk>>>
+    export type DeleteBookingSeriesChunkMutationBody = BodyType<BookingSeriesDeletion>
+    export type DeleteBookingSeriesChunkMutationError = ErrorType<void>
+    export type DeleteBookingSeriesChunkMutationVariables = {seriesId: string;data: BodyType<BookingSeriesDeletion>}
+
+    export const useDeleteBookingSeriesChunk = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBookingSeriesChunk>>, TError,DeleteBookingSeriesChunkMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBookingSeriesChunk>>,
+        TError,
+        DeleteBookingSeriesChunkMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteBookingSeriesChunkMutationOptions(options));
+    }
 
 export const getSendContactRequestUrl = () => {
 

@@ -11,6 +11,41 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /admin/booking-series/{seriesId}:
+    parameters:
+      - in: path
+        name: seriesId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: previewBookingSeries
+      security: [{ staffSession: [] }]
+      responses:
+        "200":
+          description: Séances du calendrier connecté à confirmer avant suppression
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingSeriesPreview" }
+        "503":
+          description: Calendrier indisponible
+    delete:
+      operationId: deleteBookingSeriesChunk
+      security: [{ staffSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingSeriesDeletion" }
+      responses:
+        "200":
+          description: Résultat du lot, éventuellement partiel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingSeriesDeletionResult" }
+        "409":
+          description: Source modifiée ou réservation étrangère à la série
+        "503":
+          description: Suppression interrompue
   /contact:
     post:
       operationId: sendContactRequest
@@ -88,6 +123,40 @@ components:
       in: cookie
       name: gsim.sid
   schemas:
+    BookingSeriesSession:
+      type: object
+      required: [id, date, time, bayType]
+      properties:
+        id: { type: string, format: uuid }
+        date: { type: string }
+        time: { type: string }
+        bayType: { type: string }
+    BookingSeriesPreview:
+      type: object
+      required: [source, reservations]
+      properties:
+        source: { type: string }
+        reservations:
+          type: array
+          items: { $ref: "#/components/schemas/BookingSeriesSession" }
+    BookingSeriesDeletion:
+      type: object
+      required: [source, ids]
+      properties:
+        source: { type: string, pattern: "^[a-f0-9]{64}$" }
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items: { type: string, format: uuid }
+    BookingSeriesDeletionResult:
+      type: object
+      required: [deletedIds, complete]
+      properties:
+        deletedIds:
+          type: array
+          items: { type: string }
+        complete: { type: boolean }
     ContactInput:
       type: object
       required: [name, email, players, message, requestId]

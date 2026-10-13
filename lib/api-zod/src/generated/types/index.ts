@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './bookingSeriesDeletion';
+export * from './bookingSeriesDeletionResult';
+export * from './bookingSeriesPreview';
+export * from './bookingSeriesSession';
 export * from './bookingUpdate';
 export * from './bookingUpdateBayType';
 export * from './bookingUpdateDuration';

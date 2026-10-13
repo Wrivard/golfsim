@@ -8,6 +8,41 @@
 import * as zod from 'zod';
 
 
+export const PreviewBookingSeriesParams = zod.object({
+  "seriesId": zod.coerce.string().uuid()
+})
+
+export const PreviewBookingSeriesResponse = zod.object({
+  "source": zod.string(),
+  "reservations": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "date": zod.string(),
+  "time": zod.string(),
+  "bayType": zod.string()
+}))
+})
+
+
+export const DeleteBookingSeriesChunkParams = zod.object({
+  "seriesId": zod.coerce.string().uuid()
+})
+
+export const deleteBookingSeriesChunkBodySourceRegExp = new RegExp('^[a-f0-9]{64}$');
+export const deleteBookingSeriesChunkBodyIdsMax = 8;
+
+
+
+export const DeleteBookingSeriesChunkBody = zod.object({
+  "source": zod.string().regex(deleteBookingSeriesChunkBodySourceRegExp),
+  "ids": zod.array(zod.string().uuid()).min(1).max(deleteBookingSeriesChunkBodyIdsMax)
+})
+
+export const DeleteBookingSeriesChunkResponse = zod.object({
+  "deletedIds": zod.array(zod.string()),
+  "complete": zod.boolean()
+})
+
+
 /**
  * @summary Envoyer une demande de groupe avec Resend (pas une réservation)
  */

@@ -5,6 +5,33 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface BookingSeriesSession {
+  id: string;
+  date: string;
+  time: string;
+  bayType: string;
+}
+
+export interface BookingSeriesPreview {
+  source: string;
+  reservations: BookingSeriesSession[];
+}
+
+export interface BookingSeriesDeletion {
+  /** @pattern ^[a-f0-9]{64}$ */
+  source: string;
+  /**
+     * @minItems 1
+     * @maxItems 8
+     */
+  ids: string[];
+}
+
+export interface BookingSeriesDeletionResult {
+  deletedIds: string[];
+  complete: boolean;
+}
+
 export interface ContactInput {
   /**
      * @minLength 2

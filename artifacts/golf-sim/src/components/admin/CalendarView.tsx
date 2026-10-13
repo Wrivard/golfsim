@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { parseDurationToMinutes } from "./calendarDuration";
 import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
 import RecurringBookingDialog from "./RecurringBookingDialog";
+import DeleteSeriesDialog from "./DeleteSeriesDialog";
 
 interface Booking {
   id: string;
@@ -284,6 +285,8 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteSeries, setDeleteSeries] = useState(false);
+  const seriesId = booking.notes?.match(/^\[Série ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) \/ \d{4}-\d{2}-\d{2}\]$/im)?.[1];
 
   const [editName, setEditName] = useState(booking.name);
   const [editEmail, setEditEmail] = useState(booking.email || "");
@@ -510,6 +513,11 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
           )}
         </div>
 
+        {seriesId && !isEditing && <div className="px-6 py-3 border-t space-y-2">
+          <p className="text-sm text-muted-foreground">Cette réservation fait partie d’une série récurrente.</p>
+          <Button variant="outline" className="text-red-700" disabled={isDeleting} onClick={()=>setDeleteSeries(true)} data-testid="button-delete-series">Supprimer toute la série</Button>
+        </div>}
+        {deleteSeries && seriesId && <DeleteSeriesDialog seriesId={seriesId} onClose={()=>setDeleteSeries(false)} onDeleted={onClose}/>}
         <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
           {isEditing ? (
             <>
@@ -552,7 +560,7 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
                     data-testid="button-delete-booking"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Supprimer
+                    {seriesId ? "Supprimer cette séance" : "Supprimer"}
                   </Button>
                 )}
                 {onDelete && confirmDelete && (
