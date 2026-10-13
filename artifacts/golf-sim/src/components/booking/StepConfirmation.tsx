@@ -20,7 +20,7 @@ async function createBooking(data: {
   bayType: string;
   players: number;
   notes?: string;
-}): Promise<{ reservation: { bayType: string } }> {
+}): Promise<{ reservation: { bayType: string }; emailStatus?: "accepted" | "unavailable" }> {
   const response = await fetch("/api/book", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -109,8 +109,16 @@ export function StepConfirmation() {
         </div>
         <h2 className="text-3xl font-heading font-bold text-foreground mb-4 uppercase">Réservation Confirmée !</h2>
         <p className="text-muted-foreground max-w-sm mx-auto mb-8">
-          Un courriel de confirmation a été envoyé à <strong>{userDetails?.email}</strong>. Préparez-vous à jouer !
+          {bookingMutation.data?.emailStatus === "accepted"
+            ? <>Une confirmation vous est envoyée à <strong>{userDetails?.email}</strong>. Pensez à vérifier vos indésirables.</>
+            : "Votre réservation est bien enregistrée. Notez les détails ci-dessous et préparez-vous à jouer !"}
         </p>
+        {bookingMutation.data?.emailStatus === "unavailable" && (
+          <p role="status" className="text-sm text-foreground bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            L’envoi des courriels n’a pas pu être confirmé. Votre réservation reste valide :
+            ne réservez pas une deuxième fois. Au besoin, appelez le (450) 561-3815.
+          </p>
+        )}
         <p className="text-sm text-muted-foreground mb-8">
           Le paiement s'effectue sur place.
         </p>

@@ -4,6 +4,7 @@ import { storage } from "../storage";
 import { calendarScopedRoutes, markSourcePending } from "../calendar-source";
 import { activeCalendarSource } from "../calendar-source";
 import { createHash } from "node:crypto";
+import { sendBookingEmails } from "../booking-emails";
 import { recurrenceDates } from "../recurrence";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
@@ -990,6 +991,7 @@ export async function registerRoutes(
           notes: validatedData.notes || null,
         });
 
+        if (!calendarEventId) throw new Error("Calendar did not confirm an event ID.");
         if (calendarEventId) {
           try {
             await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
@@ -1016,8 +1018,10 @@ export async function registerRoutes(
         });
       }
 
+      const emailStatus = await sendBookingEmails([booking]);
       return res.status(201).json({
         ok: true,
+        emailStatus,
         reservation: {
           id: booking.id,
           name: booking.name,
@@ -1212,17 +1216,21 @@ export async function registerRoutes(
               notes: validatedData.notes || null,
             });
 
+            if (!calendarEventId) throw new Error("Calendar did not confirm an event ID.");
             if (calendarEventId) {
               createdCalendarEvents.push(calendarEventId);
               await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
             }
           } catch (calendarError) {
             console.error("Failed to create calendar event:", calendarError);
+            throw calendarError;
           }
         }
 
+        const emailStatus = await sendBookingEmails(createdBookings);
         return res.status(201).json({
           ok: true,
+          emailStatus,
           count: createdBookings.length,
           reservations: createdBookings.map(b => ({
             id: b.id,

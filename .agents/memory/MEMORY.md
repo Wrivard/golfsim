@@ -1,5 +1,6 @@
 - [Public crawl availability](seo-availability.md) — sitemap and robots must remain independent of database/API startup failures.
 - [Contact event groups](contact-event-groups.md) — event inquiries allow freely entered player counts well above four; distinct from per-bay capacity.
+- [Booking emails](booking-email-policy.md) — customer and owner notifications are for website bookings only; mail failures must not invalidate reservations.
 - [Staff training audience](staff-training.md) — printable French guide for older staff: broad real screenshots, clear arrows and unique 1–2–3 instructions.
 - [Private exports](private-export-confidentiality.md) — confidential exports must be denied by every preview server, including newly added artifacts.
 - [Artifact lifecycle](artifact-lifecycle.md) — managed workflows belong to their artifact; removing the scoped artifact directory removes its registration and service.
