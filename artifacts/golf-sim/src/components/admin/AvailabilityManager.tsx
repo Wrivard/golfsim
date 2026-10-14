@@ -38,7 +38,12 @@ const fmtDate = (d: string) => {
   return `${day}/${m}/${y}`;
 };
 const describeClosure = (c: AvailabilityClosure) => {
-  if (c.kind === "online_until") return `Réservations en ligne bloquées jusqu'au ${fmtDate(c.endDate)} inclus`;
+  if (c.kind === "online_until") {
+    if (c.startDate === EPOCH) return `Réservations en ligne bloquées jusqu'au ${fmtDate(c.endDate)} inclus`;
+    return c.startDate === c.endDate
+      ? `Réservations en ligne bloquées le ${fmtDate(c.startDate)}`
+      : `Réservations en ligne bloquées du ${fmtDate(c.startDate)} au ${fmtDate(c.endDate)} inclus`;
+  }
   const dates = c.startDate === c.endDate ? fmtDate(c.startDate) : `${fmtDate(c.startDate)} au ${fmtDate(c.endDate)}`;
   const hours = c.startMinute === 0 && c.endMinute === 1440 ? "journée complète" : `${toTime(c.startMinute)} - ${c.endMinute === 1440 ? "24:00" : toTime(c.endMinute)}`;
   return `${dates}, ${hours}`;
@@ -66,6 +71,8 @@ export default function AvailabilityManager() {
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [cutoffDate, setCutoffDate] = useState("");
+  const [cutoffEndDate, setCutoffEndDate] = useState("");
+  const [cutoffMultipleDays, setCutoffMultipleDays] = useState(false);
   const [cutoffTitle, setCutoffTitle] = useState("");
   const [err, setErr] = useState<ReturnType<typeof errorInfo> | null>(null);
   const [toDelete, setToDelete] = useState<AvailabilityClosure | null>(null);
@@ -133,12 +140,18 @@ export default function AvailabilityManager() {
   };
 
   const saveCutoff = () => {
-    if (!cutoffDate) { setErr({ message: "Indiquez la date limite.", conflicts: [] }); return; }
+    if (!cutoffDate || (cutoffMultipleDays && !cutoffEndDate)) {
+      setErr({ message: cutoffMultipleDays ? "Indiquez la date de début et la date de fin." : "Indiquez la date à bloquer.", conflicts: [] }); return;
+    }
+    const endDate = cutoffMultipleDays ? cutoffEndDate : cutoffDate;
+    if (endDate < cutoffDate) {
+      setErr({ message: "La date de fin précède la date de début.", conflicts: [] }); return;
+    }
     submit(cutoff?.id ?? null, {
       kind: ClosureInputKind.online_until,
       title: cutoffTitle.trim() || "Réservations en ligne suspendues",
-      startDate: EPOCH, endDate: cutoffDate, startMinute: 0, endMinute: 1440, bayIds: [...BAYS],
-    }, () => { setCutoffDate(""); setCutoffTitle(""); }, "Restriction en ligne enregistrée");
+      startDate: cutoffDate, endDate, startMinute: 0, endMinute: 1440, bayIds: [...BAYS],
+    }, () => { setCutoffDate(""); setCutoffEndDate(""); setCutoffMultipleDays(false); setCutoffTitle(""); }, "Restriction en ligne enregistrée");
   };
 
   const confirmDelete = () => {
@@ -179,7 +192,7 @@ export default function AvailabilityManager() {
       <section className="border-2 border-foreground bg-white">
         <header className="border-b-2 border-foreground bg-[#2B5734]/10 p-4">
           <h3 className="text-xl">1. Réservations en ligne</h3>
-          <p className="text-sm mt-1 leading-relaxed">Bloque seulement le site public jusqu'à la date choisie. Le personnel peut toujours réserver dans le calendrier admin. Les baies ne sont pas fermées.</p>
+          <p className="text-sm mt-1 leading-relaxed">Bloque seulement les réservations du site public pour une journée ou une période choisie. Le personnel peut toujours réserver dans le calendrier admin. Les baies ne sont pas fermées.</p>
         </header>
         <div className="p-4 space-y-4">
         {list.isLoading ? <Skeleton className="h-16 w-full" /> : cutoff ? (
@@ -189,15 +202,27 @@ export default function AvailabilityManager() {
               <p className="text-sm text-muted-foreground">{cutoff.title}</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" disabled={busy} onClick={() => { setCutoffDate(cutoff.endDate); setCutoffTitle(cutoff.title); }} data-testid="button-edit-cutoff"><Pencil className="h-4 w-4 mr-1" />Modifier</Button>
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => {
+                const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+                const start = cutoff.startDate === EPOCH ? (today < cutoff.endDate ? today : cutoff.endDate) : cutoff.startDate;
+                setCutoffDate(start); setCutoffEndDate(cutoff.endDate);
+                setCutoffMultipleDays(start !== cutoff.endDate); setCutoffTitle(cutoff.title); setErr(null);
+              }} data-testid="button-edit-cutoff"><Pencil className="h-4 w-4 mr-1" />Modifier</Button>
               <Button size="sm" variant="outline" disabled={busy} onClick={() => setToDelete(cutoff)} data-testid="button-delete-cutoff"><Trash2 className="h-4 w-4 mr-1" />Retirer</Button>
             </div>
           </div>
         ) : <p className="text-sm text-muted-foreground">Aucune restriction : les réservations en ligne suivent l'horaire normal.</p>}
-        <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end border-t-2 border-foreground/20 pt-4">
-          <div><Label htmlFor="cutoff-date">Bloqué en ligne jusqu'au (inclus)</Label><Input id="cutoff-date" type="date" value={cutoffDate} onChange={(e) => setCutoffDate(e.target.value)} data-testid="input-cutoff-date" /></div>
-          <div><Label htmlFor="cutoff-title">Motif (facultatif)</Label><Input id="cutoff-title" maxLength={200} value={cutoffTitle} onChange={(e) => setCutoffTitle(e.target.value)} data-testid="input-cutoff-title" /></div>
+        <div className="space-y-3 border-t-2 border-foreground/20 pt-4">
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer w-fit">
+            <input type="checkbox" checked={cutoffMultipleDays} onChange={(e) => { setCutoffMultipleDays(e.target.checked); setErr(null); }} disabled={busy} data-testid="checkbox-cutoff-multiple-days" className="h-4 w-4 accent-primary" />
+            Plusieurs jours
+          </label>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr_auto] gap-3 items-end">
+          <div><Label htmlFor="cutoff-date">{cutoffMultipleDays ? "Date de début (incluse)" : "Date à bloquer"}</Label><Input id="cutoff-date" type="date" value={cutoffDate} onChange={(e) => setCutoffDate(e.target.value)} disabled={busy} data-testid="input-cutoff-date" /></div>
+          {cutoffMultipleDays && <div><Label htmlFor="cutoff-end-date">Date de fin (incluse)</Label><Input id="cutoff-end-date" type="date" min={cutoffDate || undefined} value={cutoffEndDate} onChange={(e) => setCutoffEndDate(e.target.value)} disabled={busy} data-testid="input-cutoff-end-date" /></div>}
+          <div className={cutoffMultipleDays ? "" : "lg:col-span-2"}><Label htmlFor="cutoff-title">Motif (facultatif)</Label><Input id="cutoff-title" maxLength={200} value={cutoffTitle} onChange={(e) => setCutoffTitle(e.target.value)} disabled={busy} data-testid="input-cutoff-title" /></div>
           <Button disabled={busy} onClick={saveCutoff} data-testid="button-save-cutoff">{cutoff ? "Mettre à jour" : "Appliquer"}</Button>
+          </div>
         </div>
         </div>
       </section>

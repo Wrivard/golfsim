@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS gsim_availability_closures (
  CHECK (start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute),
  CHECK (cardinality(bay_ids) BETWEEN 1 AND 4 AND bay_ids <@ ARRAY['1','2','3','4']::text[]),
  CHECK (kind <> 'online_until' OR
-   (start_date = DATE '1900-01-01' AND start_minute=0 AND end_minute=1440 AND cardinality(bay_ids)=4))
+   (start_minute=0 AND end_minute=1440 AND cardinality(bay_ids)=4))
 );
 CREATE INDEX IF NOT EXISTS gsim_closures_dates ON gsim_availability_closures(start_date,end_date);
 CREATE UNIQUE INDEX IF NOT EXISTS gsim_online_until_unique ON gsim_availability_closures(kind) WHERE kind='online_until';

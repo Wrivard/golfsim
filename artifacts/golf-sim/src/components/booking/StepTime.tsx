@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useBookingStore } from "@/lib/booking-store";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -47,6 +47,30 @@ interface StepTimeProps {
 export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTimeProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const [mobileViewport, setMobileViewport] = useState(() => ({
+    height: window.visualViewport?.height ?? window.innerHeight,
+    top: window.visualViewport?.offsetTop ?? 0,
+  }));
+  const compactCalendar = isMobile || mobileViewport.height < 500;
+  useLayoutEffect(() => {
+    if (!calendarOpen) return;
+    const viewport = window.visualViewport;
+    const updateViewport = () => setMobileViewport({
+      height: viewport?.height ?? window.innerHeight,
+      top: viewport?.offsetTop ?? 0,
+    });
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("scroll", updateViewport);
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("scroll", updateViewport);
+    };
+  }, [calendarOpen]);
+  // Reserve room for the heading/navigation, then fit even a six-week month.
+  const mobileDayHeight = Math.max(10, Math.min(40, Math.floor((mobileViewport.height - 180) / 6)));
   const { 
     selectedDate, 
     selectedDuration, 
@@ -128,10 +152,22 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
       initialFocus
       locale={fr}
       disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-      className="p-3 w-full [--cell-size:2.25rem] sm:[--cell-size:2.75rem] rounded-2xl"
+      className={compactCalendar
+        ? "p-2 w-full [--cell-size:2rem] rounded-2xl [&_[data-day]]:aspect-auto [&_[data-day]]:h-[var(--booking-day-height)] [&_[data-day]]:min-w-0 [&_[data-day]]:text-sm"
+        : "p-3 w-full [--cell-size:2.75rem] rounded-2xl"}
+      style={compactCalendar ? { "--booking-day-height": `${mobileDayHeight}px` } as CSSProperties : undefined}
       classNames={{
         today: "ring-2 ring-primary/30 rounded-lg",
-        day: "group/day relative aspect-square h-full w-full select-none p-0 text-center",
+        day: compactCalendar
+          ? "group/day relative h-[var(--booking-day-height)] w-full select-none p-0 text-center"
+          : "group/day relative aspect-square h-full w-full select-none p-0 text-center",
+        ...(compactCalendar ? {
+          month: "flex w-full flex-col gap-1",
+          week: "mt-1 flex w-full",
+          month_caption: "flex h-8 w-full items-center justify-center px-8",
+          button_previous: "flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent",
+          button_next: "flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent",
+        } : {}),
       }}
     />
   );
@@ -149,14 +185,18 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
           Retour
         </Button>
 
-        {isMobile ? (
+        {compactCalendar ? (
           <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
             <DialogTrigger asChild>{dateButton}</DialogTrigger>
             <DialogContent
-              className="w-[calc(100vw-24px)] max-w-[350px] max-h-[calc(100dvh-32px)] overflow-y-auto overscroll-contain rounded-2xl p-3 gap-1"
+              className="w-[calc(100vw-24px)] max-w-[350px] overflow-hidden rounded-2xl p-3 gap-1"
+              style={{
+                top: mobileViewport.top + mobileViewport.height / 2,
+                maxHeight: mobileViewport.height - 24,
+              }}
               data-testid="mobile-date-picker"
             >
-              <DialogHeader className="px-2 pt-2 pr-8 text-left">
+              <DialogHeader className={mobileViewport.height < 300 ? "sr-only" : "px-2 pr-8 text-left"}>
                 <DialogTitle>Choisir une date</DialogTitle>
                 <DialogDescription className="sr-only">Choisissez un jour pour afficher les heures disponibles.</DialogDescription>
               </DialogHeader>

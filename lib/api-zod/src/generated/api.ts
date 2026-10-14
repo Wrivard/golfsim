@@ -51,7 +51,7 @@ export const GetPublicClosuresResponse = zod.object({
   "endMinute": zod.number().int().min(1).max(getPublicClosuresResponseClosuresItemOneEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(getPublicClosuresResponseClosuresItemOneBayIdsMax),
   "title": zod.string().min(1).max(getPublicClosuresResponseClosuresItemOneTitleMax)
-}).and(zod.object({
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.').and(zod.object({
   "id": zod.string(),
   "createdAt": zod.coerce.date()
 })))
@@ -79,7 +79,7 @@ export const GetAdminClosuresResponse = zod.object({
   "endMinute": zod.number().int().min(1).max(getAdminClosuresResponseClosuresItemOneEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(getAdminClosuresResponseClosuresItemOneBayIdsMax),
   "title": zod.string().min(1).max(getAdminClosuresResponseClosuresItemOneTitleMax)
-}).and(zod.object({
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.').and(zod.object({
   "id": zod.string(),
   "createdAt": zod.coerce.date()
 })))
@@ -105,7 +105,7 @@ export const CreateClosureBody = zod.object({
   "endMinute": zod.number().int().min(1).max(createClosureBodyEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(createClosureBodyBayIdsMax),
   "title": zod.string().min(1).max(createClosureBodyTitleMax)
-})
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.')
 
 export const createClosureResponseClosureOneStartMinuteMin = 0;
 export const createClosureResponseClosureOneStartMinuteMax = 1439;
@@ -128,7 +128,7 @@ export const CreateClosureResponse = zod.object({
   "endMinute": zod.number().int().min(1).max(createClosureResponseClosureOneEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(createClosureResponseClosureOneBayIdsMax),
   "title": zod.string().min(1).max(createClosureResponseClosureOneTitleMax)
-}).and(zod.object({
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.').and(zod.object({
   "id": zod.string(),
   "createdAt": zod.coerce.date()
 }))
@@ -158,7 +158,7 @@ export const UpdateClosureBody = zod.object({
   "endMinute": zod.number().int().min(1).max(updateClosureBodyEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(updateClosureBodyBayIdsMax),
   "title": zod.string().min(1).max(updateClosureBodyTitleMax)
-})
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.')
 
 export const updateClosureResponseClosureOneStartMinuteMin = 0;
 export const updateClosureResponseClosureOneStartMinuteMax = 1439;
@@ -181,7 +181,7 @@ export const UpdateClosureResponse = zod.object({
   "endMinute": zod.number().int().min(1).max(updateClosureResponseClosureOneEndMinuteMax),
   "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(updateClosureResponseClosureOneBayIdsMax),
   "title": zod.string().min(1).max(updateClosureResponseClosureOneTitleMax)
-}).and(zod.object({
+}).describe('Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.').and(zod.object({
   "id": zod.string(),
   "createdAt": zod.coerce.date()
 }))

@@ -9,8 +9,8 @@ The testing helper documented in the local skill can be unavailable: this worksp
 
 **How to apply:** If the helper remains unavailable, use the installed browser for interactive checks. Intercept email submissions with controlled responses so failure, retry and success flows can be checked without sending real messages. Browser mocks do not verify real provider delivery.
 
-Verify mobile date pickers after opening them, including selecting the last row in a six-week month at a reduced viewport height.
+The public booking date picker must show the complete month on mobile without internal scrolling. Verify it after opening, including a six-week month at reduced viewport heights.
 
-**Why:** The booking page rendered correctly while its anchored calendar was constrained by available popover height on a phone, leaving lower weeks apparently cut off. A first-viewport screenshot did not exercise that state.
+**Why:** The user repeatedly reported a cut-off calendar and explicitly rejected having to scroll within it. Merely checking that the last day becomes selectable after scrolling misses this requirement.
 
-**How to apply:** Test opening, month navigation, last-day selection and reopening at small phone sizes that account for browser chrome. Distinguish Chromium mobile-size checks from testing Safari on an actual iPhone.
+**How to apply:** Assert no internal overflow and that every day is inside the visible viewport before scrolling. Include six-week months, browser chrome, short landscape heights, and viewport resizing while open. Distinguish Chromium mobile-size checks from testing Safari on an actual iPhone.

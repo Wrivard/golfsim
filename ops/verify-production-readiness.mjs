@@ -126,6 +126,11 @@ try {
   `);
   await pool.query(await readFile(new URL("./calendar-source.sql", import.meta.url), "utf8"));
   await pool.query(await readFile(new URL("./staff-improvements.sql", import.meta.url), "utf8"));
+  // Reproduce the old production guard before testing its idempotent upgrade.
+  await pool.query(`ALTER TABLE gsim_availability_closures ADD CONSTRAINT legacy_online_epoch
+    CHECK (kind <> 'online_until' OR (start_date = DATE '1900-01-01' AND start_minute=0 AND end_minute=1440 AND cardinality(bay_ids)=4))`);
+  for (let attempt = 0; attempt < 2; attempt++)
+    await pool.query(await readFile(new URL("./online-restriction-periods.sql", import.meta.url), "utf8"));
   await pool.query("UPDATE gsim_calendar_sources SET ready=true WHERE source_key=$1", [source]);
   const app = express();
   app.use(express.json());
@@ -189,6 +194,24 @@ try {
   assert.ok(blocked.status >= 400 && blocked.status < 500);
   await must("/api/admin/bookings","POST",{...bookingInput,time:"14:00"},201);
   await must(`/api/admin/closures/${cutoff.id}`,"DELETE");
+  const onlinePeriod = (await must("/api/admin/closures", "POST", {
+    ...closure, kind:"online_until", startDate:"2026-11-03", endDate:"2026-11-05",
+    startMinute:0, endMinute:1440, bayIds:["1","2","3","4"]
+  }, 201)).closure;
+  for (const date of ["2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06"]) {
+    const blocked = date >= "2026-11-03" && date <= "2026-11-05";
+    assert.equal((await must(`/api/availability/optimized?date=${date}&duration=60`)).slots.length === 0, blocked);
+    assert.ok((await must(`/api/admin/availability/optimized?date=${date}&duration=60`)).slots.length > 0);
+  }
+  const singleDay = (await must(`/api/admin/closures/${onlinePeriod.id}`, "PUT", {
+    ...closure, kind:"online_until", startDate:"2026-11-04", endDate:"2026-11-04",
+    startMinute:0, endMinute:1440, bayIds:["1","2","3","4"]
+  })).closure;
+  assert.equal(singleDay.startDate, singleDay.endDate);
+  assert.ok((await must("/api/availability/optimized?date=2026-11-03&duration=60")).slots.length > 0);
+  assert.equal((await must("/api/availability/optimized?date=2026-11-04&duration=60")).slots.length, 0);
+  await must(`/api/admin/closures/${singleDay.id}`, "DELETE");
+  assert.ok((await must("/api/availability/optimized?date=2026-11-04&duration=60")).slots.length > 0);
   console.log("PASS physical/full/partial closures, existing reservation protection, reopening, public cutoff with staff exception");
 
   const rule = {start:"2026-10-19",end:"2027-04-30",days:[1],interval:1,time:"16:00",duration:"1h",bayType:"1",

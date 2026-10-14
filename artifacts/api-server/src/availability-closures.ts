@@ -20,7 +20,7 @@ export const closureInput = z.object({
 }).strict().superRefine((data, ctx) => {
   if (data.endDate < data.startDate || data.endMinute <= data.startMinute)
     ctx.addIssue({ code: "custom", message: "Période invalide." });
-  if (data.kind === "online_until" && (data.startDate !== "1900-01-01" ||
+  if (data.kind === "online_until" && (
     data.startMinute !== 0 || data.endMinute !== 1440 || data.bayIds.length !== 4))
     ctx.addIssue({ code: "custom", message: "Blocage en ligne invalide." });
   if (data.kind === "physical" && (Date.parse(data.endDate) - Date.parse(data.startDate) > 366 * 86400000))
@@ -51,7 +51,8 @@ export function isClosed(closures: AvailabilityClosure[], date: string, time: st
 
 /** Occupied-looking intervals are only passed to the existing slot optimizer; they are never saved as bookings. */
 export function closureOccupancy(closures: AvailabilityClosure[], date: string, audience: "public" | "staff"): BookingRecord[] {
-  return closures.filter(c => c.kind === "physical" || audience === "public").flatMap(c =>
+  return closures.filter(c => (c.kind === "physical" || audience === "public") &&
+    date >= c.startDate && date <= c.endDate).flatMap(c =>
     c.bayIds.map(bay => ({
       id: `closure:${c.id}:${bay}`,
       simulatorId: bay,

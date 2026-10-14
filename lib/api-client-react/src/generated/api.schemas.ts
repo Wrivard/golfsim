@@ -27,6 +27,9 @@ export const ClosureInputBayIdsItem = {
   NUMBER_4: '4',
 } as const;
 
+/**
+ * Dates inclusives. Le type historique online_until bloque seulement le public, pour une journée (startDate = endDate) ou une période, sur toutes les baies de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.
+ */
 export interface ClosureInput {
   kind: ClosureInputKind;
   startDate: string;

@@ -38,6 +38,30 @@ test("invalid ranges, duplicate bays and malformed cutoff fail closed", () => {
   assert.equal(closureInput.safeParse({ ...physical, kind: "online_until" }).success, false);
 });
 
+test("online restrictions accept a single day or an inclusive period, never blocking staff", () => {
+  for (const endDate of ["2026-10-20", "2026-10-23"]) {
+    const input = { kind: "online_until" as const, startDate: "2026-10-20", endDate,
+      startMinute: 0, endMinute: 1440, bayIds: ["1", "2", "3", "4"] as ("1" | "2" | "3" | "4")[], title: "En ligne" };
+    assert.equal(closureInput.safeParse(input).success, true);
+    const restriction = { ...input, id: "range", createdAt: new Date() };
+    for (const date of [input.startDate, endDate]) {
+      for (const bay of input.bayIds) {
+        assert.equal(closureOverlaps(restriction, date, "08:30", 60, bay, "public"), true);
+        assert.equal(closureOverlaps(restriction, date, "08:30", 60, bay, "staff"), false);
+      }
+      assert.equal(closureOccupancy([restriction], date, "public").length, 4);
+      assert.equal(closureOccupancy([restriction], date, "staff").length, 0);
+    }
+    for (const date of ["2026-10-19", "2026-10-24"]) {
+      assert.equal(closureOverlaps(restriction, date, "08:30", 60, "1", "public"), false);
+      assert.equal(closureOccupancy([restriction], date, "public").length, 0);
+    }
+    assert.equal(closureInput.safeParse({ ...input, endDate: "2026-10-19" }).success, false);
+    assert.equal(closureInput.safeParse({ ...input, startMinute: 60 }).success, false);
+    assert.equal(closureInput.safeParse({ ...input, bayIds: ["1", "2"] }).success, false);
+  }
+});
+
 test("new season end uses the next April 30", () => {
   assert.equal(seasonEnd("2026-10-14"), "2027-04-30");
   assert.equal(seasonEnd("2027-03-01"), "2027-04-30");

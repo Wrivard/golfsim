@@ -330,6 +330,10 @@ components:
         ok: { type: boolean }
     ClosureInput:
       type: object
+      description: >-
+        Dates inclusives. Le type historique online_until bloque seulement le public,
+        pour une journée (startDate = endDate) ou une période, sur toutes les baies
+        de 00:00 à 24:00. Les anciens blocages commençant le 1900-01-01 restent valides.
       required: [kind, startDate, endDate, startMinute, endMinute, bayIds, title]
       properties:
         kind: { type: string, enum: [physical, online_until] }
