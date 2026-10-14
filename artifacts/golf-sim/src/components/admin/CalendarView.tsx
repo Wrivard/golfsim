@@ -250,7 +250,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                     key={booking.id}
                                     className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-grab overflow-hidden z-[2]`}
                                     style={{ top, height }}
-                                    title={`${booking.name} · ${booking.time}–${endTime} · Baie ${booking.bayType}`}
+                                    title={`${booking.name} · ${booking.time}–${endTime} · Durée : ${booking.duration} · Baie ${booking.bayType}`}
                                     draggable
                                     onDragStart={e => {
                                       e.stopPropagation();
@@ -270,7 +270,10 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       {!isShort && (
                                         <>
                                           <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                            {booking.time} — {booking.duration}
+                                            {booking.time}–{endTime}
+                                          </p>
+                                          <p className="text-[10px] text-muted-foreground">
+                                            {booking.duration}
                                           </p>
                                           <div className="flex items-center gap-1 mt-0.5">
                                             <Users className="w-3 h-3 text-muted-foreground" />
@@ -282,7 +285,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       )}
                                       {isShort && (
                                         <p className="text-[9px] text-muted-foreground truncate">
-                                          {booking.time} · {booking.players}j
+                                          {durMin >= 60 ? booking.duration : `${booking.time}–${endTime}`} · {booking.players}j
                                         </p>
                                       )}
                                     </div>

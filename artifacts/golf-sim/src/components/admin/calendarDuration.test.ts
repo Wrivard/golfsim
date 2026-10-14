@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseDurationToMinutes } from "./calendarDuration.ts";
+import { parseDurationToMinutes, bookingGeometry } from "./calendarDuration.ts";
+
+test("calendar end time is distinct from the booking duration", () => {
+  assert.equal(bookingGeometry("12:30", "4h").endTime, "16:30");
+  assert.equal(bookingGeometry("12:30", "1h30").endTime, "14:00");
+  assert.equal(bookingGeometry("23:30", "2h").endTime, "01:30");
+});
 
 test("parses decimal-hour durations as fractional hours", () => {
   assert.equal(parseDurationToMinutes("1.5h"), 90);

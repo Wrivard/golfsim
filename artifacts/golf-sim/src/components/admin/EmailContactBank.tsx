@@ -82,19 +82,35 @@ export default function EmailContactBank() {
   };
 
   return (
-    <div className="space-y-6" data-testid="email-contact-bank">
-      <div className="border-2 border-foreground bg-accent/20 p-4 text-sm leading-relaxed">
-        Les adresses d'origine historique non vérifiée ne sont pas importées automatiquement et aucun consentement n'est présumé :
-        seuls les contacts ayant coché la case marketing facultative sont exportés dans le fichier marketing. Aucune campagne n'est envoyée depuis cet outil.
+    <section className="border-2 border-foreground bg-white" data-testid="email-contact-bank">
+      <header className="border-b-2 border-foreground bg-[#2B5734]/10 p-4">
+        <h3 className="text-xl">3. Banque de contacts courriel</h3>
+        <p className="text-sm mt-1 leading-relaxed">Liste des courriels des clients, pour consultation et exportation. Aucun consentement n'est présumé et aucune campagne n'est envoyée depuis cet outil.</p>
+      </header>
+      <div className="p-4 space-y-6">
+      <div className="space-y-3">
+        <h4 className="font-bold">Exporter la liste</h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Button className="w-full sm:w-auto" disabled={busy !== null} onClick={() => download(false)} data-testid="button-export-all"><Download className="h-4 w-4 mr-2" />{busy === "all" ? "Préparation..." : "Exporter en CSV"}</Button>
+            <p className="text-sm text-muted-foreground">Tous les contacts.</p>
+          </div>
+          <div className="space-y-1">
+            <Button className="w-full sm:w-auto" variant="outline" disabled={busy !== null} onClick={() => download(true)} data-testid="button-export-marketing"><Download className="h-4 w-4 mr-2" />{busy === "marketing" ? "Préparation..." : "CSV marketing seulement"}</Button>
+            <p className="text-sm text-muted-foreground">Seulement les clients qui ont coché la case marketing.</p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">Les exports sont toujours complets, indépendamment de la recherche.</p>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-center">
-        <Button disabled={busy !== null} onClick={() => download(false)} data-testid="button-export-all"><Download className="h-4 w-4 mr-2" />{busy === "all" ? "Préparation..." : "Exporter en CSV"}</Button>
-        <Button variant="outline" disabled={busy !== null} onClick={() => download(true)} data-testid="button-export-marketing"><Download className="h-4 w-4 mr-2" />{busy === "marketing" ? "Préparation..." : "CSV marketing seulement"}</Button>
+      <div className="space-y-2 border-t-2 border-foreground/20 pt-4">
+        <h4 className="font-bold">Analyse des anciennes réservations (facultatif)</h4>
+        <p className="text-sm text-muted-foreground">Vérifie le calendrier et montre un aperçu. Rien n'est ajouté sans votre approbation, et aucun consentement marketing n'est accordé.</p>
         <Button variant="outline" disabled={busy !== null} onClick={analyzeHistory} data-testid="button-preview-historical-contacts">{busy === "preview" ? "Vérification Google..." : "Analyser les réservations historiques"}</Button>
-        <span className="text-sm text-muted-foreground">Les exports sont toujours complets, indépendamment de la recherche.</span>
       </div>
 
+      <div className="space-y-3 border-t-2 border-foreground/20 pt-4">
+        <h4 className="font-bold">Contacts enregistrés</h4>
       <div className="relative max-w-sm">
         <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input className="pl-9" placeholder="Filtrer l'affichage" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="input-contact-search" />
@@ -178,6 +194,8 @@ export default function EmailContactBank() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
+    </section>
   );
 }

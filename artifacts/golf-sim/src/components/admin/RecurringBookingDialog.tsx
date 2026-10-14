@@ -10,7 +10,7 @@ type Preview={dates:string[];conflicts:string[];source:string};
 const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 export default function RecurringBookingDialog({date,onClose}:{date:string;onClose:()=>void}) {
  const cache=useQueryClient();
- const [form,setForm]=useState({start:date,end:seasonEnd(date),interval:1,days:new Date(date).getUTCDay()===2?[]:[new Date(date).getUTCDay()],time:"08:00",duration:"2h",bayType:"1",players:4,name:"",email:"",phone:"",notes:""});
+ const [form,setForm]=useState({start:date,end:seasonEnd(date),interval:1,days:[] as number[],time:"08:00",duration:"2h",bayType:"1",players:4,name:"",email:"",phone:"",notes:""});
  const [preview,setPreview]=useState<Preview|null>(null);
  const [done,setDone]=useState<string[]>([]);
  const [seriesId]=useState(()=>crypto.randomUUID());

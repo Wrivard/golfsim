@@ -12,7 +12,7 @@ import {
   type ClosureInput,
   type ClosureConflict,
 } from "@workspace/api-client-react";
-import { AlertTriangle, Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -152,16 +152,7 @@ export default function AvailabilityManager() {
   const toggleBay = (b: BayId) => form && setForm({ ...form, bays: form.bays.includes(b) ? form.bays.filter((x) => x !== b) : [...form.bays, b].sort() as BayId[] });
 
   return (
-    <div className="space-y-8" data-testid="availability-manager">
-      <div className="flex gap-3 border-2 border-foreground bg-accent/20 p-4" role="note">
-        <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
-        <p className="text-sm leading-relaxed">
-          <strong>Fermeture physique :</strong> elle bloque les baies choisies pour le public ET pour le personnel (calendrier admin).{" "}
-          <strong>Restriction en ligne :</strong> elle ne bloque que les réservations du site public; le personnel peut toujours réserver.
-          Si des réservations existent déjà sur la période, vous devez d'abord les déplacer ou les supprimer.
-        </p>
-      </div>
-
+    <div className="space-y-10" data-testid="availability-manager">
       {err && (
         <div className="border-2 border-destructive bg-destructive/10 p-4" role="alert" data-testid="closure-error">
           <p className="font-bold text-sm">{err.message}</p>
@@ -185,8 +176,12 @@ export default function AvailabilityManager() {
         </div>
       )}
 
-      <section className="space-y-3">
-        <h3 className="text-xl">Restriction en ligne seulement</h3>
+      <section className="border-2 border-foreground bg-white">
+        <header className="border-b-2 border-foreground bg-[#2B5734]/10 p-4">
+          <h3 className="text-xl">1. Réservations en ligne</h3>
+          <p className="text-sm mt-1 leading-relaxed">Bloque seulement le site public jusqu'à la date choisie. Le personnel peut toujours réserver dans le calendrier admin. Les baies ne sont pas fermées.</p>
+        </header>
+        <div className="p-4 space-y-4">
         {list.isLoading ? <Skeleton className="h-16 w-full" /> : cutoff ? (
           <div className="flex flex-wrap items-center justify-between gap-3 border-2 border-foreground p-4" data-testid="cutoff-current">
             <div>
@@ -199,16 +194,22 @@ export default function AvailabilityManager() {
             </div>
           </div>
         ) : <p className="text-sm text-muted-foreground">Aucune restriction : les réservations en ligne suivent l'horaire normal.</p>}
-        <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
+        <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end border-t-2 border-foreground/20 pt-4">
           <div><Label htmlFor="cutoff-date">Bloqué en ligne jusqu'au (inclus)</Label><Input id="cutoff-date" type="date" value={cutoffDate} onChange={(e) => setCutoffDate(e.target.value)} data-testid="input-cutoff-date" /></div>
           <div><Label htmlFor="cutoff-title">Motif (facultatif)</Label><Input id="cutoff-title" maxLength={200} value={cutoffTitle} onChange={(e) => setCutoffTitle(e.target.value)} data-testid="input-cutoff-title" /></div>
           <Button disabled={busy} onClick={saveCutoff} data-testid="button-save-cutoff">{cutoff ? "Mettre à jour" : "Appliquer"}</Button>
         </div>
+        </div>
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl">Fermetures physiques</h3>
+      <section className="border-2 border-foreground bg-white">
+        <header className="border-b-2 border-foreground bg-[#2B5734]/10 p-4">
+          <h3 className="text-xl">2. Fermeture des baies</h3>
+          <p className="text-sm mt-1 leading-relaxed">Ferme les baies choisies pour les clients ET pour le personnel. Si des réservations existent déjà sur ces dates, déplacez-les ou annulez-les d'abord, puis réessayez.</p>
+        </header>
+        <div className="p-4 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h4 className="font-bold">Fermetures planifiées</h4>
           {!form && <Button onClick={openNew} data-testid="button-add-closure"><Plus className="h-4 w-4 mr-1" />Ajouter</Button>}
         </div>
 
@@ -266,6 +267,7 @@ export default function AvailabilityManager() {
             ))}
           </ul>
         )}
+        </div>
       </section>
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>

@@ -5,6 +5,8 @@ import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CalendarIcon, ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot, DaySchedule } from "@/lib/booking-types";
@@ -44,6 +46,7 @@ interface StepTimeProps {
 
 export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTimeProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { 
     selectedDate, 
     selectedDuration, 
@@ -99,6 +102,40 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
     return [...best, ...rest];
   }, [slots]);
 
+  const dateButton = (
+    <Button
+      variant="outline"
+      className={cn(
+        "w-auto sm:w-[240px] justify-start text-left font-normal border-foreground/20 bg-background/80 text-xs sm:text-sm",
+        !selectedDate && "text-muted-foreground"
+      )}
+      data-testid="button-date-picker"
+    >
+      <CalendarIcon className="mr-2 h-4 w-4 text-primary shrink-0" />
+      {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : <span>Choisir une date</span>}
+    </Button>
+  );
+  const dateCalendar = (
+    <Calendar
+      mode="single"
+      selected={selectedDate}
+      defaultMonth={selectedDate}
+      onSelect={(date) => {
+        if (!date) return;
+        setDate(date);
+        setCalendarOpen(false);
+      }}
+      initialFocus
+      locale={fr}
+      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+      className="p-3 w-full [--cell-size:2.25rem] sm:[--cell-size:2.75rem] rounded-2xl"
+      classNames={{
+        today: "ring-2 ring-primary/30 rounded-lg",
+        day: "group/day relative aspect-square h-full w-full select-none p-0 text-center",
+      }}
+    />
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2">
@@ -112,43 +149,31 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
           Retour
         </Button>
 
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-auto sm:w-[240px] justify-start text-left font-normal border-foreground/20 bg-background/80 text-xs sm:text-sm",
-                !selectedDate && "text-muted-foreground"
-              )}
-              data-testid="button-date-picker"
+        {isMobile ? (
+          <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <DialogTrigger asChild>{dateButton}</DialogTrigger>
+            <DialogContent
+              className="w-[calc(100vw-24px)] max-w-[350px] max-h-[calc(100dvh-32px)] overflow-y-auto overscroll-contain rounded-2xl p-3 gap-1"
+              data-testid="mobile-date-picker"
             >
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary shrink-0" />
-              {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : <span>Choisir une date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-[min(350px,calc(100vw-24px))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto p-0 rounded-2xl border-border/50 shadow-lg"
-            align="end" sideOffset={8} collisionPadding={12}
-          >
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                if (!date) return;
-                setDate(date);
-                setCalendarOpen(false);
-              }}
-              initialFocus
-              locale={fr}
-              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              className="p-3 w-full [--cell-size:2.25rem] sm:[--cell-size:2.75rem] rounded-2xl"
-              classNames={{
-                today: "ring-2 ring-primary/30 rounded-lg",
-                day: "group/day relative aspect-square h-full w-full select-none p-0 text-center",
-              }}
-            />
-          </PopoverContent>
-        </Popover>
+              <DialogHeader className="px-2 pt-2 pr-8 text-left">
+                <DialogTitle>Choisir une date</DialogTitle>
+                <DialogDescription className="sr-only">Choisissez un jour pour afficher les heures disponibles.</DialogDescription>
+              </DialogHeader>
+              {dateCalendar}
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>{dateButton}</PopoverTrigger>
+            <PopoverContent
+              className="w-[min(350px,calc(100vw-24px))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto p-0 rounded-2xl border-border/50 shadow-lg"
+              align="end" sideOffset={8} collisionPadding={12}
+            >
+              {dateCalendar}
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       <div className="text-center mb-2">
