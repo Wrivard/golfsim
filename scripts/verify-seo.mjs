@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, access } from "node:fs/promises";
 
 const config = JSON.parse(await readFile("vercel.json", "utf8"));
 const out = config.outputDirectory;
 for (const [route, mimeMarker] of [["/sitemap.xml", "<urlset"], ["/robots.txt", "User-agent:"]]) {
   const rule = config.rewrites.find(item => item.source === route);
   assert.ok(rule && rule.destination.startsWith("/seo/"), `${route} must not depend on the API`);
+  let shadowingAsset = false;
+  try {
+    await access(`${out}${route}`);
+    shadowingAsset = true;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  assert.equal(shadowingAsset, false, `${route}: a root static asset would shadow the /seo/ rewrite on Vercel`);
   const content = await readFile(`${out}${rule.destination}`, "utf8");
   assert.ok(content.includes(mimeMarker));
   if (route === "/sitemap.xml") {
