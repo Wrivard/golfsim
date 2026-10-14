@@ -5,7 +5,7 @@ import { mailConfig, type MailConfig } from "./contact";
 import { previewRuntime } from "./runtime/config";
 
 type ConfirmedBooking = Pick<Booking, "id" | "name" | "email" | "phone" | "date" | "time" | "duration" | "bayType" | "players" | "notes">;
-export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" | "customer") {
+export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" | "customer", unsubscribeUrl?: string | null) {
   if (!bookings.length) throw new Error("A confirmed reservation is required.");
   const first = bookings[0], owner = audience === "owner";
   const fields = [["Nom", first.name], ["Courriel", first.email], ["Téléphone", first.phone || "Non fourni"]];
@@ -18,8 +18,7 @@ export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" 
     );
     if (booking.notes) fields.push(["Notes du client", booking.notes]);
   }
-  return {
-    ...brandedEmail({
+  const template = brandedEmail({
       title: owner ? "Une nouvelle réservation confirmée" : "Votre réservation est confirmée",
       label: owner ? "RÉSERVATION SUR LE SITE" : "CONFIRMATION DE RÉSERVATION",
       intro: owner
@@ -27,14 +26,22 @@ export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" 
         : `Bonjour ${first.name}, votre réservation chez Golf SIM Sorel-Tracy est enregistrée. Voici les détails de votre prochaine visite.`,
       fields, reference: bookings.map(b => b.id).join(", "),
       notice: "Le paiement s’effectue sur place. Apportez vos propres bâtons : Golf SIM n’en fournit pas. Pour modifier ou annuler, contactez-nous ; ne créez pas une deuxième réservation.",
-    }),
+    });
+  const linkText = !owner && unsubscribeUrl ? `\n\nPour retirer votre consentement aux courriels promotionnels : ${unsubscribeUrl}` : "";
+  const linkHtml = !owner && unsubscribeUrl
+    ? `<p style="font-size:13px;margin:0 28px 24px">Pour retirer votre consentement aux courriels promotionnels : <a href="${unsubscribeUrl.replaceAll("&", "&amp;").replaceAll('"', "&quot;")}" style="color:#295634">Me désinscrire</a>.</p>`
+    : "";
+  return {
+    ...template,
+    html: linkHtml ? template.html.replace("</body>", `${linkHtml}</body>`) : template.html,
+    text: template.text + linkText,
     subject: owner ? "Nouvelle réservation confirmée — Golf SIM" : "Votre réservation est confirmée — Golf SIM",
   };
 }
 
 // Only called after public bookings AND their Calendar events are saved.
 // Delivery failure is reported separately and must never roll back a reservation.
-export async function sendBookingEmails(bookings: ConfirmedBooking[], configProvider: () => MailConfig = mailConfig, fetcher: typeof fetch = fetch) {
+export async function sendBookingEmails(bookings: ConfirmedBooking[], configProvider: () => MailConfig = mailConfig, fetcher: typeof fetch = fetch, unsubscribeUrl?: string | null) {
   try {
     const config = configProvider();
     const key = createHash("sha256").update(bookings.map(b => b.id).sort().join(",")).digest("hex");
@@ -47,7 +54,7 @@ export async function sendBookingEmails(bookings: ConfirmedBooking[], configProv
             from: `Golf SIM <${config.from}>`,
             to: [audience === "owner" || previewRuntime() ? config.to : bookings[0].email],
             reply_to: audience === "owner" ? bookings[0].email : config.to,
-            ...bookingTemplate(bookings, audience),
+            ...bookingTemplate(bookings, audience, unsubscribeUrl),
           }),
           signal: AbortSignal.timeout(12000),
         });

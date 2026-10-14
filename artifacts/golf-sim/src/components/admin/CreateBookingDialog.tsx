@@ -13,6 +13,13 @@ export interface BookingPrefill {
   date: string;
   time: string;
   bayType: string;
+  duration?: string;
+  players?: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+  duplicate?: boolean;
 }
 
 interface AvailableSlot {
@@ -22,7 +29,7 @@ interface AvailableSlot {
 }
 
 async function fetchStaffSlots(date: string, durationMinutes: number): Promise<AvailableSlot[]> {
-  const response = await fetch(`/api/availability/optimized?date=${encodeURIComponent(date)}&duration=${durationMinutes}`);
+  const response = await fetch(`/api/admin/availability/optimized?date=${encodeURIComponent(date)}&duration=${durationMinutes}`);
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error(result.message || "Impossible de charger les disponibilités");
   return result.slots;
@@ -31,13 +38,13 @@ async function fetchStaffSlots(date: string, durationMinutes: number): Promise<A
 export default function CreateBookingDialog({ prefill, onClose }: { prefill: BookingPrefill; onClose: () => void }) {
   const [date, setDate] = useState(prefill.date);
   const [time, setTime] = useState(prefill.time);
-  const [duration, setDuration] = useState("1h");
+  const [duration, setDuration] = useState(prefill.duration || "1h");
   const [bayType, setBayType] = useState(prefill.bayType);
-  const [players, setPlayers] = useState("1");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
+  const [players, setPlayers] = useState(String(prefill.players || 1));
+  const [name, setName] = useState(prefill.name || "");
+  const [email, setEmail] = useState(prefill.email || "");
+  const [phone, setPhone] = useState(prefill.phone || "");
+  const [notes, setNotes] = useState(prefill.notes || "");
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const durationMinutes = Number.parseInt(duration, 10) * 60;
@@ -98,8 +105,10 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
     <Dialog open onOpenChange={(open) => { if (!open && !create.isPending) onClose(); }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter une réservation</DialogTitle>
-          <DialogDescription>Choisissez un créneau et une baie disponibles selon les heures d'ouverture.</DialogDescription>
+          <DialogTitle>{prefill.duplicate ? "Dupliquer la réservation" : "Ajouter une réservation"}</DialogTitle>
+          <DialogDescription>{prefill.duplicate
+            ? "Nouvelle réservation : ajustez d'abord une date, une heure ou une baie disponible. L'original reste inchangé et aucun paiement n'est copié."
+            : "Choisissez un créneau et une baie disponibles selon les heures d'ouverture."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

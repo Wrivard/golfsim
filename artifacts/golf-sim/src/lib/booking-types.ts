@@ -58,6 +58,7 @@ export interface TimeSlot {
 export interface BookingDetails {
   name: string;
   email: string;
+  marketingConsent?: boolean;
   phone?: string;
   players: number;
   notes?: string;

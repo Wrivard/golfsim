@@ -5,6 +5,149 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface SuccessResult {
+  ok: boolean;
+}
+
+export type ClosureInputKind = typeof ClosureInputKind[keyof typeof ClosureInputKind];
+
+
+export const ClosureInputKind = {
+  physical: 'physical',
+  online_until: 'online_until',
+} as const;
+
+export type ClosureInputBayIdsItem = typeof ClosureInputBayIdsItem[keyof typeof ClosureInputBayIdsItem];
+
+
+export const ClosureInputBayIdsItem = {
+  NUMBER_1: '1',
+  NUMBER_2: '2',
+  NUMBER_3: '3',
+  NUMBER_4: '4',
+} as const;
+
+export interface ClosureInput {
+  kind: ClosureInputKind;
+  startDate: string;
+  endDate: string;
+  /**
+     * @minimum 0
+     * @maximum 1439
+     */
+  startMinute: number;
+  /**
+     * @minimum 1
+     * @maximum 1440
+     */
+  endMinute: number;
+  /**
+     * @minItems 1
+     * @maxItems 4
+     */
+  bayIds: ClosureInputBayIdsItem[];
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+}
+
+export type AvailabilityClosure = ClosureInput & {
+  id: string;
+  createdAt: string;
+};
+
+export interface ClosureList {
+  ok: boolean;
+  closures: AvailabilityClosure[];
+}
+
+export interface ClosureResult {
+  ok: boolean;
+  closure: AvailabilityClosure;
+}
+
+export interface ClosureBookingConflict {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  bayType: string;
+}
+
+export interface ClosureConflict {
+  ok: boolean;
+  message: string;
+  conflicts: ClosureBookingConflict[];
+}
+
+export interface EmailContact {
+  email: string;
+  name: string;
+  source: string;
+  marketingConsent: boolean;
+  /** @nullable */
+  consentAt: string | null;
+  /** @nullable */
+  withdrawnAt: string | null;
+  /** @nullable */
+  consentEvidence: string | null;
+  createdAt: string;
+}
+
+export interface EmailContactList {
+  ok: boolean;
+  contacts: EmailContact[];
+}
+
+export interface ConsentWithdrawal {
+  /**
+     * @minLength 20
+     * @maxLength 1024
+     */
+  token: string;
+}
+
+export type PublicBookingInputDuration = typeof PublicBookingInputDuration[keyof typeof PublicBookingInputDuration];
+
+
+export const PublicBookingInputDuration = {
+  '1h': '1h',
+  '2h': '2h',
+  '3h': '3h',
+  '4h': '4h',
+} as const;
+
+export type PublicBookingInputBayType = typeof PublicBookingInputBayType[keyof typeof PublicBookingInputBayType];
+
+
+export const PublicBookingInputBayType = {
+  NUMBER_1: '1',
+  NUMBER_2: '2',
+  NUMBER_3: '3',
+  NUMBER_4: '4',
+} as const;
+
+export interface PublicBookingInput {
+  /** @minLength 2 */
+  name: string;
+  email: string;
+  date: string;
+  /** @pattern ^([01]\d|2[0-3]):[0-5]\d$ */
+  time: string;
+  duration: PublicBookingInputDuration;
+  bayType: PublicBookingInputBayType;
+  /**
+     * @minimum 1
+     * @maximum 4
+     */
+  players: number;
+  phone?: string;
+  notes?: string;
+  marketingConsent?: boolean;
+}
+
 export interface BookingSeriesSession {
   id: string;
   date: string;
@@ -143,4 +286,12 @@ export interface BookingUpdateResult {
 export interface HealthStatus {
   status: string;
 }
+
+export type ExportEmailContactsParams = {
+marketingOnly?: boolean;
+};
+
+export type CreatePublicBooking201 = {
+  ok: boolean;
+};
 

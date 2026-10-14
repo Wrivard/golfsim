@@ -5,7 +5,7 @@ import { calendarScopedRoutes, markSourcePending } from "../calendar-source";
 import { activeCalendarSource } from "../calendar-source";
 import { createHash } from "node:crypto";
 import { sendBookingEmails } from "../booking-emails";
-import { recurrenceDates } from "../recurrence";
+import { recurrenceDates, seasonEnd } from "../recurrence";
 import { seriesId, preserveSeries, deleteSeriesChunk } from "../series-deletion";
 import { type Booking, type InsertBooking } from "@workspace/db/schema";
 import { 
@@ -33,6 +33,8 @@ import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
 import { registerContact } from "../contact";
 import { registerCalendarJobs, runCalendarMaintenance } from "../calendar-jobs";
+import { closureInput, getClosuresForDate, closureOccupancy, isClosed, listClosures, saveClosure, removeClosure } from "../availability-closures";
+import { listContacts, csvContacts, withdrawConsent, contactUnsubscribeLink } from "../email-contacts";
 
 declare module "express-session" {
   interface SessionData {
@@ -51,6 +53,7 @@ const bookingRequestSchema = z.object({
   bayType: z.enum(["1", "2", "3", "4"]),
   players: z.number().min(1).max(4),
   notes: z.string().optional(),
+  marketingConsent: z.boolean().optional().default(false),
 });
 
 const staffBookingSchema = z.object({
@@ -308,9 +311,76 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/email-contacts", requireAdmin, async (_req: Request, res: Response) => {
+    try { return res.json({ ok: true, contacts: await listContacts() }); }
+    catch { return res.status(503).json({ ok: false, message: "Banque de courriels indisponible." }); }
+  });
+  app.get("/api/admin/email-contacts/export", requireAdmin, async (req: Request, res: Response) => {
+    if (req.query.marketingOnly !== undefined && !["true", "false"].includes(String(req.query.marketingOnly)))
+      return res.status(400).json({ ok: false, message: "Filtre invalide." });
+    try {
+      const marketing = req.query.marketingOnly === "true";
+      res.type("text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="${marketing ? "contacts-marketing" : "contacts-complets"}.csv"`);
+      res.setHeader("Cache-Control", "no-store");
+      return res.send(csvContacts(await listContacts(), marketing));
+    } catch { return res.status(503).json({ ok: false, message: "Export indisponible." }); }
+  });
+  const unsubscribeLimiter = rateLimit({
+    scope: "unsubscribe", windowMs: 60000, maxRequests: 20, message: "Réessayez dans une minute.",
+  });
+  app.post("/api/marketing/unsubscribe", unsubscribeLimiter, async (req: Request, res: Response) => {
+    const token = z.string().min(20).max(1024).safeParse(req.body?.token);
+    if (!token.success) return res.status(400).json({ ok: false, message: "Lien invalide." });
+    try {
+      if (!await withdrawConsent(token.data)) return res.status(400).json({ ok: false, message: "Lien invalide ou ancien." });
+      return res.json({ ok: true });
+    } catch { return res.status(503).json({ ok: false, message: "Désinscription temporairement indisponible." }); }
+  });
+
+  app.get("/api/closures", async (_req: Request, res: Response) => {
+    try {
+      const closures = await listClosures();
+      return res.json({ ok: true, closures });
+    } catch {
+      return res.status(503).json({ ok: false, message: "Fermetures indisponibles." });
+    }
+  });
+
+  app.get("/api/admin/closures", requireAdmin, async (_req: Request, res: Response) => {
+    try { return res.json({ ok: true, closures: await listClosures() }); }
+    catch { return res.status(503).json({ ok: false, message: "Fermetures indisponibles." }); }
+  });
+  const closureMutation = async (req: Request, res: Response, id?: string) => {
+    const input = closureInput.safeParse(req.body);
+    if (!input.success) return res.status(400).json({ ok: false, message: "Période ou baies invalides." });
+    try {
+      const result = await saveClosure(input.data, id);
+      if ("missing" in result) return res.status(404).json({ ok: false, message: "Fermeture introuvable." });
+      if ("conflicts" in result) return res.status(409).json({
+        ok: false, message: "Des réservations confirmées occupent cette période. Modifiez-les ou annulez-les explicitement avant de fermer.",
+        conflicts: result.conflicts,
+      });
+      return res.status(id ? 200 : 201).json({ ok: true, closure: result.closure });
+    } catch (error) {
+      console.error("Closure save failed:", error);
+      return res.status(503).json({ ok: false, message: "Impossible de sauvegarder la fermeture." });
+    }
+  };
+  app.post("/api/admin/closures", requireAdmin, (req: Request, res: Response) => closureMutation(req, res));
+  app.put("/api/admin/closures/:id", requireAdmin, (req: Request, res: Response) => closureMutation(req, res, String(req.params.id)));
+  app.delete("/api/admin/closures/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      if (!await removeClosure(String(req.params.id))) return res.status(404).json({ ok: false, message: "Fermeture introuvable." });
+      return res.json({ ok: true });
+    } catch { return res.status(503).json({ ok: false, message: "Impossible de rouvrir cette période." }); }
+  });
+
   app.post("/api/admin/bookings/recurrence-preview", requireAdmin, async (req: Request, res: Response) => {
     try {
       const rule = z.object({start:z.string(),end:z.string(),days:z.array(z.number()),interval:z.number().int().min(1).max(4)}).parse(req.body);
+      if (rule.end !== seasonEnd(rule.start))
+        return res.status(400).json({ok:false,message:"Les nouvelles ligues doivent se terminer le 30 avril de la saison."});
       const dates = recurrenceDates(rule.start,rule.end,rule.days,rule.interval);
       const input = staffBookingSchema.parse({...req.body,date:dates[0]});
       const sync = await syncCalendarToDatabase(new Date(rule.end));
@@ -323,7 +393,9 @@ export async function registerRoutes(
         if (!schedules.has(date.getUTCDay())) schedules.set(date.getUTCDay(),await storage.getScheduleForDay(date.getUTCDay()));
         const schedule=schedules.get(date.getUTCDay());
         const existing=periodBookings.filter(b=>new Date(b.date).toISOString().slice(0,10)===day);
-        if (!isStaffSlotAvailable(date,input.time,parseDurationToMinutes(input.duration),input.bayType,formatBookingsForLogic(existing,day),schedule || undefined)) conflicts.push(day);
+        const closures = await getClosuresForDate(day);
+        if (!isStaffSlotAvailable(date,input.time,parseDurationToMinutes(input.duration),input.bayType,
+          [...formatBookingsForLogic(existing,day), ...closureOccupancy(closures, day, "staff")],schedule || undefined)) conflicts.push(day);
       }
       const source=createHash("sha256").update(await activeCalendarSource()).digest("hex");
       return res.json({ok:true,dates,conflicts,source});
@@ -346,8 +418,12 @@ export async function registerRoutes(
     try {
       let seriesMarker="";
       if (req.body.seriesId !== undefined) {
-        const series=z.object({seriesId:z.string().uuid(),source:z.string().regex(/^[a-f0-9]{64}$/)}).safeParse(req.body);
+        const series=z.object({seriesId:z.string().uuid(),source:z.string().regex(/^[a-f0-9]{64}$/),
+          start:z.string(),end:z.string()}).safeParse(req.body);
         if (!series.success) return res.status(400).json({ok:false,message:"Référence de série invalide."});
+        if (series.data.end !== seasonEnd(series.data.start) ||
+          input.date < series.data.start || input.date > series.data.end)
+          return res.status(400).json({ok:false,message:"Séance en dehors de la saison du 30 avril."});
         const source=createHash("sha256").update(await activeCalendarSource()).digest("hex");
         if (series.data.source!==source) return res.status(409).json({ok:false,message:"Le calendrier connecté a changé. Arrêtez cette série et vérifiez la connexion."});
         seriesMarker=`[Série ${series.data.seriesId} / ${input.date}]`;
@@ -358,6 +434,7 @@ export async function registerRoutes(
         }
       }
       const daySchedule = await storage.getScheduleForDay(date.getUTCDay());
+      const closures = await getClosuresForDate(input.date);
       const schedule = daySchedule ? {
         openHour: daySchedule.openHour, openMinute: daySchedule.openMinute,
         lastBookingHour: daySchedule.lastBookingHour, lastBookingMinute: daySchedule.lastBookingMinute,
@@ -378,7 +455,7 @@ export async function registerRoutes(
         bookingData,
         existing => !isStaffSlotAvailable(
           date, input.time, durationMinutes, input.bayType,
-          formatBookingsForLogic(existing, input.date), schedule,
+          [...formatBookingsForLogic(existing, input.date), ...closureOccupancy(closures, input.date, "staff")], schedule,
         ),
       );
       if (conflict || !booking) {
@@ -392,7 +469,8 @@ export async function registerRoutes(
           return res.status(500).json({ ok: false, message: "L'événement calendrier n'a pas été confirmé. Réservation annulée." });
         }
         try {
-          await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+          await storage.updateBookingCalendarEventId(booking.id, calendarEventId,
+            { source: "personnel", granted: false });
         } catch (error) {
           console.error("Failed to save staff booking calendar event ID:", error);
           try { await deleteCalendarEvent(calendarEventId); } catch (deleteError) {
@@ -463,6 +541,7 @@ export async function registerRoutes(
       const targetDate = updates.date || existing.date;
       const dateStr = targetDate.toISOString().slice(0,10);
       const daySchedule = await storage.getScheduleForDay(targetDate.getUTCDay());
+      const closures = await getClosuresForDate(dateStr);
       let calendarChanged = false;
       let createdEventId: string | null = null;
       let previous: Booking | undefined;
@@ -471,7 +550,7 @@ export async function registerRoutes(
           (others,current) => {
             const next = {...current,...updates};
             return !isEditedSlotAvailable(id,targetDate,next.time,parseDurationToMinutes(next.duration),next.bayType,
-              formatBookingsForLogic(others,dateStr),daySchedule || undefined);
+               [...formatBookingsForLogic(others,dateStr), ...closureOccupancy(closures,dateStr,"staff")],daySchedule || undefined);
           },
           async (next,current) => {
             previous = current;
@@ -801,7 +880,7 @@ export async function registerRoutes(
     });
   }
 
-  app.get("/api/availability/optimized", async (req: Request, res: Response) => {
+  const optimizedAvailability = async (req: Request, res: Response) => {
     try {
       const { date, duration } = req.query;
 
@@ -826,6 +905,8 @@ export async function registerRoutes(
 
       const dayBookings = await storage.getBookingsByDateRange(targetDate, endDate);
       const formattedBookings = formatBookingsForLogic(dayBookings, date);
+      const closures = await getClosuresForDate(date);
+      const audience = req.path.startsWith("/api/admin/") ? "staff" : "public";
 
       const dayOfWeek = new Date(date).getUTCDay();
       const daySchedule = await storage.getScheduleForDay(dayOfWeek);
@@ -838,7 +919,8 @@ export async function registerRoutes(
         closeMinute: daySchedule.closeMinute,
       } : undefined;
 
-      const slots = getOptimizedStartTimes(targetDate, durationMinutes, formattedBookings, undefined, schedule);
+      const slots = getOptimizedStartTimes(targetDate, durationMinutes,
+        [...formattedBookings, ...closureOccupancy(closures, date, audience)], undefined, schedule);
 
       return res.json({
         ok: true,
@@ -859,7 +941,9 @@ export async function registerRoutes(
       console.error("Error fetching optimized availability:", error);
       return res.status(500).json({ ok: false, message: "Erreur lors du calcul des disponibilités" });
     }
-  });
+  };
+  app.get("/api/availability/optimized", optimizedAvailability);
+  app.get("/api/admin/availability/optimized", requireAdmin, optimizedAvailability);
 
   app.get("/api/availability", async (req: Request, res: Response) => {
     try {
@@ -885,7 +969,13 @@ export async function registerRoutes(
       while (currentDate <= endDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
         const bayOccupancy = getBayOccupancy(bookings, currentDate);
-        const slots = getAvailableSlots(bayOccupancy, durationHours);
+        const closures = await getClosuresForDate(dateStr);
+        const slots = getAvailableSlots(bayOccupancy, durationHours)
+          .map(slot => ({
+            ...slot,
+            availableBays: slot.availableBays.filter(bay => !isClosed(closures, dateStr, slot.time, durationHours * 60, bay, "public")),
+          }))
+          .filter(slot => slot.availableBays.length > 0);
         
         availability[dateStr] = {
           slots,
@@ -963,6 +1053,7 @@ export async function registerRoutes(
         players: validatedData.players,
         notes: validatedData.notes || null,
       };
+      const closures = await getClosuresForDate(bookingDateStr);
 
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
@@ -973,10 +1064,11 @@ export async function registerRoutes(
             validatedData.date,
             validatedData.time,
             durationMinutes,
-            formatBookingsForLogic(existingBookings, bookingDateStr),
+            [...formatBookingsForLogic(existingBookings, bookingDateStr),
+              ...closureOccupancy(closures, bookingDateStr, "public")],
             bookingSchedule
           );
-          if (!finalBayId) return true;
+          if (!finalBayId || isClosed(closures, bookingDateStr, validatedData.time, durationMinutes, finalBayId, "public")) return true;
           bookingData.bayType = finalBayId;
 
           for (const existing of existingBookings) {
@@ -1018,7 +1110,8 @@ export async function registerRoutes(
         if (!calendarEventId) throw new Error("Calendar did not confirm an event ID.");
         if (calendarEventId) {
           try {
-            await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
+            await storage.updateBookingCalendarEventId(booking.id, calendarEventId,
+              { source: "site", granted: validatedData.marketingConsent });
           } catch (dbUpdateError) {
             console.error("Failed to update calendar event ID in DB:", dbUpdateError);
             try {
@@ -1042,7 +1135,8 @@ export async function registerRoutes(
         });
       }
 
-      const emailStatus = await sendBookingEmails([booking]);
+      const withdrawalLink = await contactUnsubscribeLink(booking.email).catch(() => null);
+      const emailStatus = await sendBookingEmails([booking], undefined, undefined, withdrawalLink);
       return res.status(201).json({
         ok: true,
         emailStatus,

@@ -14,6 +14,7 @@ import RecurringBookingDialog from "./RecurringBookingDialog";
 import DeleteSeriesDialog from "./DeleteSeriesDialog";
 import { Calendar as DateCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useGetAdminClosures, getGetAdminClosuresQueryKey } from "@workspace/api-client-react";
 
 interface Booking {
   id: string;
@@ -63,6 +64,19 @@ const TIME_COL_WIDTH = 56;
 export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const closuresQuery = useGetAdminClosures({ query: { queryKey: getGetAdminClosuresQueryKey(), refetchInterval: 30000 } });
+  const moveBooking = useMutation({
+    mutationFn: ({ id, bayType }: { id: string; bayType: string }) => updateBookingApi(id, { bayType }),
+    onSuccess: () => {
+      toast({ title: "Réservation déplacée" });
+      for (const key of ["adminBookings", "availability", "optimized-slots", "staff-availability"])
+        queryClient.invalidateQueries({ queryKey: [key] });
+    },
+    onError: (error: Error) => toast({ title: "Déplacement refusé", description: error.message, variant: "destructive" }),
+  });
   const [recurring, setRecurring] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [createPrefill, setCreatePrefill] = useState<BookingPrefill | null>(null);
@@ -77,6 +91,9 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
       return bDate === dateStr;
     });
   }, [bookings, selectedDate]);
+  const dayClosures = (closuresQuery.data?.closures ?? []).filter(c =>
+    c.kind === "physical" && c.startDate <= format(selectedDate, "yyyy-MM-dd") &&
+    c.endDate >= format(selectedDate, "yyyy-MM-dd"));
 
   const hours = useMemo(() => {
     const slots = [];
@@ -147,6 +164,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
               </Button>
             </div>
           </div>
+          {closuresQuery.isError && <p role="alert" className="text-sm text-amber-100 mt-2">Impossible de charger les fermetures. Vérifiez la section Disponibilités avant d’ajouter une réservation.</p>}
         </CardHeader>
         <CardContent className="p-0 bg-white overflow-hidden rounded-b-lg">
           <div className="overflow-auto max-h-[760px]">
@@ -204,7 +222,23 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                 const minutes = START_HOUR * 60 + Math.min(halfHours * 30, (END_HOUR - START_HOUR) * 60 - 30);
                                 openCreate(bay, `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
                               }}
+                              onDragOver={e => { if (draggingId) e.preventDefault(); }}
+                              onDrop={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const id = draggingId;
+                                setDraggingId(null);
+                                const booking = dayBookings.find(b => b.id === id);
+                                if (booking && booking.bayType !== bay) moveBooking.mutate({ id: booking.id, bayType: bay });
+                              }}
                             >
+                              {dayClosures.filter(c => c.bayIds.some(id => id === bay)).map(c => (
+                                <div key={c.id} className="absolute left-0 right-0 z-[1] border-y border-slate-400 bg-slate-200/70 pointer-events-none overflow-hidden"
+                                  style={{ top: Math.max(0, (c.startMinute - START_HOUR * 60) / 60 * HOUR_HEIGHT),
+                                    height: Math.max(0, Math.min(c.endMinute, END_HOUR * 60) - Math.max(c.startMinute, START_HOUR * 60)) / 60 * HOUR_HEIGHT }}>
+                                  <span className="text-[10px] font-bold text-slate-800 px-1">{c.title} · Fermé</span>
+                                </div>
+                              ))}
                               {bayBookings.map((booking) => {
                                 const startMin = parseTimeToMinutes(booking.time);
                                 const durMin = parseDurationToMinutes(booking.duration);
@@ -215,8 +249,16 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                 return (
                                   <div
                                     key={booking.id}
-                                    className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-pointer overflow-hidden z-[1]`}
+                                    className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-grab overflow-hidden z-[2]`}
                                     style={{ top, height }}
+                                    draggable
+                                    onDragStart={e => {
+                                      e.stopPropagation();
+                                      e.dataTransfer.effectAllowed = "move";
+                                      e.dataTransfer.setData("text/plain", booking.id);
+                                      setDraggingId(booking.id);
+                                    }}
+                                    onDragEnd={() => setDraggingId(null)}
                                     onClick={(e) => handleBookingClick(booking, e)}
                                     data-testid={`booking-block-${booking.id}`}
                                   >
@@ -273,6 +315,15 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
           booking={selectedBooking}
           onClose={closeModal}
           onUpdated={updated => setSelectedDate(startOfDay(new Date(`${updated.date.split("T")[0]}T12:00:00`)))}
+          onDuplicate={booking => {
+            setCreatePrefill({
+              date: booking.date.split("T")[0], time: booking.time, bayType: booking.bayType,
+              duration: booking.duration, players: booking.players, name: booking.name,
+              email: booking.email, phone: booking.phone || "", notes: booking.notes?.replace(/^\[Série [^\]]+\]\s*/m, "") || "",
+              duplicate: true,
+            });
+            closeModal();
+          }}
           onDelete={onDeleteBooking}
           isDeleting={isDeleting}
         />
@@ -293,10 +344,11 @@ async function updateBookingApi(id: string, updates: Record<string, any>) {
   return data.booking;
 }
 
-function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
+function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDeleting }: {
   booking: Booking;
   onClose: () => void;
   onUpdated?: (booking: Booking) => void;
+  onDuplicate?: (booking: Booking) => void;
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
 }) {
@@ -305,6 +357,7 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteSeries, setDeleteSeries] = useState(false);
+  const [quickBay, setQuickBay] = useState(booking.bayType);
   const seriesId = booking.notes?.match(/^\[Série ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) \/ \d{4}-\d{2}-\d{2}\]$/im)?.[1];
 
   const [editName, setEditName] = useState(booking.name);
@@ -341,6 +394,17 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
     onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
+  });
+  const quickMove = useMutation({
+    mutationFn: () => updateBookingApi(booking.id, { bayType: quickBay }),
+    onSuccess: updated => {
+      for (const key of ["adminBookings", "availability", "optimized-slots", "staff-availability"])
+        queryClient.invalidateQueries({ queryKey: [key] });
+      toast({ title: "Baie modifiée" });
+      onUpdated?.(updated);
+      onClose();
+    },
+    onError: (error: Error) => toast({ title: "Déplacement refusé", description: error.message, variant: "destructive" }),
   });
 
   const colors = BAY_COLORS[isEditing ? editBay : booking.bayType] || BAY_COLORS["1"];
@@ -521,6 +585,15 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
                   <span>Synchronisé avec Google Calendar</span>
                 </div>
               )}
+              <div className="flex flex-wrap items-center gap-2" aria-label="Déplacer cette réservation vers une autre baie">
+                <label htmlFor="quick-bay" className="text-sm">Déplacer vers</label>
+                <select id="quick-bay" value={quickBay} onChange={e => setQuickBay(e.target.value)}
+                  className="rounded-md border px-2 py-1.5 text-sm" data-testid="select-quick-bay">
+                  {BAYS.map(bay => <option key={bay} value={bay}>Baie {bay}</option>)}
+                </select>
+                <Button type="button" size="sm" variant="outline" disabled={quickBay === booking.bayType || quickMove.isPending}
+                  onClick={() => quickMove.mutate()} data-testid="button-quick-move">Déplacer</Button>
+              </div>
 
               {booking.notes && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
@@ -560,6 +633,9 @@ function BookingModal({ booking, onClose, onUpdated, onDelete, isDeleting }: {
                 Fermer
               </Button>
               <div className="flex items-center gap-3">
+                <Button variant="outline" size="default" onClick={() => onDuplicate?.(booking)} data-testid="button-duplicate-booking">
+                  Dupliquer la réservation
+                </Button>
                 <Button
                   variant="outline"
                   size="default"

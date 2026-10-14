@@ -8,6 +8,236 @@
 import * as zod from 'zod';
 
 
+export const getPublicClosuresResponseClosuresItemOneStartMinuteMin = 0;
+export const getPublicClosuresResponseClosuresItemOneStartMinuteMax = 1439;
+
+export const getPublicClosuresResponseClosuresItemOneEndMinuteMax = 1440;
+
+export const getPublicClosuresResponseClosuresItemOneBayIdsMax = 4;
+
+export const getPublicClosuresResponseClosuresItemOneTitleMax = 200;
+
+
+
+export const GetPublicClosuresResponse = zod.object({
+  "ok": zod.boolean(),
+  "closures": zod.array(zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(getPublicClosuresResponseClosuresItemOneStartMinuteMin).max(getPublicClosuresResponseClosuresItemOneStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(getPublicClosuresResponseClosuresItemOneEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(getPublicClosuresResponseClosuresItemOneBayIdsMax),
+  "title": zod.string().min(1).max(getPublicClosuresResponseClosuresItemOneTitleMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.coerce.date()
+})))
+})
+
+
+export const getAdminClosuresResponseClosuresItemOneStartMinuteMin = 0;
+export const getAdminClosuresResponseClosuresItemOneStartMinuteMax = 1439;
+
+export const getAdminClosuresResponseClosuresItemOneEndMinuteMax = 1440;
+
+export const getAdminClosuresResponseClosuresItemOneBayIdsMax = 4;
+
+export const getAdminClosuresResponseClosuresItemOneTitleMax = 200;
+
+
+
+export const GetAdminClosuresResponse = zod.object({
+  "ok": zod.boolean(),
+  "closures": zod.array(zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(getAdminClosuresResponseClosuresItemOneStartMinuteMin).max(getAdminClosuresResponseClosuresItemOneStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(getAdminClosuresResponseClosuresItemOneEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(getAdminClosuresResponseClosuresItemOneBayIdsMax),
+  "title": zod.string().min(1).max(getAdminClosuresResponseClosuresItemOneTitleMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.coerce.date()
+})))
+})
+
+
+export const createClosureBodyStartMinuteMin = 0;
+export const createClosureBodyStartMinuteMax = 1439;
+
+export const createClosureBodyEndMinuteMax = 1440;
+
+export const createClosureBodyBayIdsMax = 4;
+
+export const createClosureBodyTitleMax = 200;
+
+
+
+export const CreateClosureBody = zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(createClosureBodyStartMinuteMin).max(createClosureBodyStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(createClosureBodyEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(createClosureBodyBayIdsMax),
+  "title": zod.string().min(1).max(createClosureBodyTitleMax)
+})
+
+export const createClosureResponseClosureOneStartMinuteMin = 0;
+export const createClosureResponseClosureOneStartMinuteMax = 1439;
+
+export const createClosureResponseClosureOneEndMinuteMax = 1440;
+
+export const createClosureResponseClosureOneBayIdsMax = 4;
+
+export const createClosureResponseClosureOneTitleMax = 200;
+
+
+
+export const CreateClosureResponse = zod.object({
+  "ok": zod.boolean(),
+  "closure": zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(createClosureResponseClosureOneStartMinuteMin).max(createClosureResponseClosureOneStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(createClosureResponseClosureOneEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(createClosureResponseClosureOneBayIdsMax),
+  "title": zod.string().min(1).max(createClosureResponseClosureOneTitleMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const UpdateClosureParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateClosureBodyStartMinuteMin = 0;
+export const updateClosureBodyStartMinuteMax = 1439;
+
+export const updateClosureBodyEndMinuteMax = 1440;
+
+export const updateClosureBodyBayIdsMax = 4;
+
+export const updateClosureBodyTitleMax = 200;
+
+
+
+export const UpdateClosureBody = zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(updateClosureBodyStartMinuteMin).max(updateClosureBodyStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(updateClosureBodyEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(updateClosureBodyBayIdsMax),
+  "title": zod.string().min(1).max(updateClosureBodyTitleMax)
+})
+
+export const updateClosureResponseClosureOneStartMinuteMin = 0;
+export const updateClosureResponseClosureOneStartMinuteMax = 1439;
+
+export const updateClosureResponseClosureOneEndMinuteMax = 1440;
+
+export const updateClosureResponseClosureOneBayIdsMax = 4;
+
+export const updateClosureResponseClosureOneTitleMax = 200;
+
+
+
+export const UpdateClosureResponse = zod.object({
+  "ok": zod.boolean(),
+  "closure": zod.object({
+  "kind": zod.enum(['physical', 'online_until']),
+  "startDate": zod.coerce.date(),
+  "endDate": zod.coerce.date(),
+  "startMinute": zod.number().int().min(updateClosureResponseClosureOneStartMinuteMin).max(updateClosureResponseClosureOneStartMinuteMax),
+  "endMinute": zod.number().int().min(1).max(updateClosureResponseClosureOneEndMinuteMax),
+  "bayIds": zod.array(zod.enum(['1', '2', '3', '4'])).min(1).max(updateClosureResponseClosureOneBayIdsMax),
+  "title": zod.string().min(1).max(updateClosureResponseClosureOneTitleMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const DeleteClosureParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteClosureResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+export const GetEmailContactsResponse = zod.object({
+  "ok": zod.boolean(),
+  "contacts": zod.array(zod.object({
+  "email": zod.string(),
+  "name": zod.string(),
+  "source": zod.string(),
+  "marketingConsent": zod.boolean(),
+  "consentAt": zod.coerce.date().nullable(),
+  "withdrawnAt": zod.coerce.date().nullable(),
+  "consentEvidence": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const exportEmailContactsQueryMarketingOnlyDefault = false;
+
+export const ExportEmailContactsQueryParams = zod.object({
+  "marketingOnly": zod.coerce.boolean().default(exportEmailContactsQueryMarketingOnlyDefault)
+})
+
+export const ExportEmailContactsResponse = zod.unknown()
+
+
+export const withdrawMarketingConsentBodyTokenMin = 20;
+export const withdrawMarketingConsentBodyTokenMax = 1024;
+
+
+
+export const WithdrawMarketingConsentBody = zod.object({
+  "token": zod.string().min(withdrawMarketingConsentBodyTokenMin).max(withdrawMarketingConsentBodyTokenMax)
+})
+
+export const WithdrawMarketingConsentResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+export const createPublicBookingBodyNameMin = 2;
+
+export const createPublicBookingBodyTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const createPublicBookingBodyPlayersMax = 4;
+
+export const createPublicBookingBodyMarketingConsentDefault = false;
+
+export const CreatePublicBookingBody = zod.object({
+  "name": zod.string().min(createPublicBookingBodyNameMin),
+  "email": zod.string().email(),
+  "date": zod.coerce.date(),
+  "time": zod.string().regex(createPublicBookingBodyTimeRegExp),
+  "duration": zod.enum(['1h', '2h', '3h', '4h']),
+  "bayType": zod.enum(['1', '2', '3', '4']),
+  "players": zod.number().int().min(1).max(createPublicBookingBodyPlayersMax),
+  "phone": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "marketingConsent": zod.boolean().default(createPublicBookingBodyMarketingConsentDefault)
+})
+
+export const CreatePublicBookingResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
 export const PreviewBookingSeriesParams = zod.object({
   "seriesId": zod.coerce.string().uuid()
 })

@@ -4,19 +4,20 @@ import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from "@
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import { seasonEnd } from "./seasonEnd";
 
 type Preview={dates:string[];conflicts:string[];source:string};
 const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 export default function RecurringBookingDialog({date,onClose}:{date:string;onClose:()=>void}) {
  const cache=useQueryClient();
- const [form,setForm]=useState({start:date,end:date,interval:1,days:[new Date(date).getUTCDay()],time:"08:00",duration:"2h",bayType:"1",players:4,name:"",email:"",phone:"",notes:""});
+ const [form,setForm]=useState({start:date,end:seasonEnd(date),interval:1,days:new Date(date).getUTCDay()===2?[]:[new Date(date).getUTCDay()],time:"08:00",duration:"2h",bayType:"1",players:4,name:"",email:"",phone:"",notes:""});
  const [preview,setPreview]=useState<Preview|null>(null);
  const [done,setDone]=useState<string[]>([]);
  const [seriesId]=useState(()=>crypto.randomUUID());
  const [busy,setBusy]=useState(false);
  const [started,setStarted]=useState(false);
  const [error,setError]=useState("");
- const update=(key:string,value:unknown)=>{setForm(f=>({...f,[key]:value}));setPreview(null);setError("");};
+  const update=(key:string,value:unknown)=>{setForm(f=>({...f,[key]:value,...(key==="start"&&typeof value==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(value)?{end:seasonEnd(value)}:{})}));setPreview(null);setError("");};
  async function post(path:string,body:unknown){
   const response=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const result=await response.json();
@@ -52,7 +53,7 @@ export default function RecurringBookingDialog({date,onClose}:{date:string;onClo
    <form className="space-y-4" onSubmit={e=>{e.preventDefault();check();}}>
     <fieldset disabled={busy||started} className="space-y-4 disabled:opacity-60">
      <div className="grid grid-cols-2 gap-3">
-      {([["start","Date de début","date"],["end","Date de fin (incluse)","date"],["time","Heure","time"],["name","Nom de la ligue / responsable","text"],["email","Courriel (facultatif)","email"],["phone","Téléphone (facultatif)","tel"]] as const).map(([key,label,type])=><div key={key}><Label htmlFor={`series-${key}`}>{label}</Label><Input id={`series-${key}`} type={type} required={["start","end","time","name"].includes(key)} step={key==="time"?1800:undefined} value={form[key]} onChange={e=>update(key,e.target.value)}/></div>)}
+       {([["start","Date de début","date"],["end","Date de fin (30 avril)","date"],["time","Heure","time"],["name","Nom de la ligue / responsable","text"],["email","Courriel (facultatif)","email"],["phone","Téléphone (facultatif)","tel"]] as const).map(([key,label,type])=><div key={key}><Label htmlFor={`series-${key}`}>{label}</Label><Input id={`series-${key}`} type={type} readOnly={key==="end"} required={["start","end","time","name"].includes(key)} step={key==="time"?1800:undefined} value={form[key]} onChange={e=>update(key,e.target.value)}/></div>)}
       <div><Label htmlFor="series-duration">Durée</Label><select id="series-duration" className="w-full border rounded-md p-2" value={form.duration} onChange={e=>update("duration",e.target.value)}>{[1,2,3,4].map(n=><option key={n} value={`${n}h`}>{n} heure{n>1?"s":""}</option>)}</select></div>
       <div><Label htmlFor="series-bay">Baie</Label><select id="series-bay" className="w-full border rounded-md p-2" value={form.bayType} onChange={e=>update("bayType",e.target.value)}>{[1,2,3,4].map(n=><option key={n} value={n}>Baie {n}</option>)}</select></div>
       <div><Label htmlFor="series-players">Joueurs par séance</Label><Input id="series-players" type="number" min={1} max={4} required value={form.players} onChange={e=>update("players",Number(e.target.value))}/></div>

@@ -11,6 +11,134 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /closures:
+    get:
+      operationId: getPublicClosures
+      responses:
+        "200":
+          description: Fermetures publiques sans données clients
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureList" }
+  /admin/closures:
+    get:
+      operationId: getAdminClosures
+      security: [{ staffSession: [] }]
+      responses:
+        "200":
+          description: Fermetures persistantes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureList" }
+    post:
+      operationId: createClosure
+      security: [{ staffSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClosureInput" }
+      responses:
+        "201":
+          description: Fermeture ajoutée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureResult" }
+        "409":
+          description: Réservations à résoudre avant fermeture
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureConflict" }
+  /admin/closures/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    put:
+      operationId: updateClosure
+      security: [{ staffSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClosureInput" }
+      responses:
+        "200":
+          description: Fermeture modifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureResult" }
+        "409":
+          description: Réservations à résoudre avant fermeture
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClosureConflict" }
+    delete:
+      operationId: deleteClosure
+      security: [{ staffSession: [] }]
+      responses:
+        "200":
+          description: Période rouverte
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResult" }
+  /admin/email-contacts:
+    get:
+      operationId: getEmailContacts
+      security: [{ staffSession: [] }]
+      responses:
+        "200":
+          description: Contacts dédoublonnés et consentements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmailContactList" }
+  /admin/email-contacts/export:
+    get:
+      operationId: exportEmailContacts
+      security: [{ staffSession: [] }]
+      parameters:
+        - in: query
+          name: marketingOnly
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: CSV complet UTF-8, sans filtre de date
+          content:
+            text/csv:
+              schema: { type: string }
+  /marketing/unsubscribe:
+    post:
+      operationId: withdrawMarketingConsent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConsentWithdrawal" }
+      responses:
+        "200":
+          description: Consentement retiré ou déjà retiré
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResult" }
+        "400":
+          description: Lien invalide
+  /book:
+    post:
+      operationId: createPublicBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PublicBookingInput" }
+      responses:
+        "201":
+          description: Réservation confirmée
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        "409":
+          description: Créneau indisponible ou fermé
   /admin/booking-series/{seriesId}:
     parameters:
       - in: path
@@ -123,6 +251,106 @@ components:
       in: cookie
       name: gsim.sid
   schemas:
+    SuccessResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    ClosureInput:
+      type: object
+      required: [kind, startDate, endDate, startMinute, endMinute, bayIds, title]
+      properties:
+        kind: { type: string, enum: [physical, online_until] }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        startMinute: { type: integer, minimum: 0, maximum: 1439 }
+        endMinute: { type: integer, minimum: 1, maximum: 1440 }
+        bayIds:
+          type: array
+          minItems: 1
+          maxItems: 4
+          uniqueItems: true
+          items: { type: string, enum: ["1", "2", "3", "4"] }
+        title: { type: string, minLength: 1, maxLength: 200 }
+    AvailabilityClosure:
+      allOf:
+        - { $ref: "#/components/schemas/ClosureInput" }
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id: { type: string }
+            createdAt: { type: string, format: date-time }
+    ClosureList:
+      type: object
+      required: [ok, closures]
+      properties:
+        ok: { type: boolean }
+        closures:
+          type: array
+          items: { $ref: "#/components/schemas/AvailabilityClosure" }
+    ClosureResult:
+      type: object
+      required: [ok, closure]
+      properties:
+        ok: { type: boolean }
+        closure: { $ref: "#/components/schemas/AvailabilityClosure" }
+    ClosureBookingConflict:
+      type: object
+      required: [id, name, date, time, bayType]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        date: { type: string, format: date }
+        time: { type: string }
+        bayType: { type: string }
+    ClosureConflict:
+      type: object
+      required: [ok, message, conflicts]
+      properties:
+        ok: { type: boolean }
+        message: { type: string }
+        conflicts:
+          type: array
+          items: { $ref: "#/components/schemas/ClosureBookingConflict" }
+    EmailContact:
+      type: object
+      required: [email, name, source, marketingConsent, consentAt, withdrawnAt, consentEvidence, createdAt]
+      properties:
+        email: { type: string }
+        name: { type: string }
+        source: { type: string }
+        marketingConsent: { type: boolean }
+        consentAt: { type: ["string", "null"], format: date-time }
+        withdrawnAt: { type: ["string", "null"], format: date-time }
+        consentEvidence: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    EmailContactList:
+      type: object
+      required: [ok, contacts]
+      properties:
+        ok: { type: boolean }
+        contacts:
+          type: array
+          items: { $ref: "#/components/schemas/EmailContact" }
+    ConsentWithdrawal:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 20, maxLength: 1024 }
+    PublicBookingInput:
+      type: object
+      required: [name, email, date, time, duration, bayType, players]
+      properties:
+        name: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        date: { type: string, format: date }
+        time: { type: string, pattern: '^([01]\d|2[0-3]):[0-5]\d$' }
+        duration: { type: string, enum: [1h, 2h, 3h, 4h] }
+        bayType: { type: string, enum: ["1", "2", "3", "4"] }
+        players: { type: integer, minimum: 1, maximum: 4 }
+        phone: { type: string }
+        notes: { type: string }
+        marketingConsent: { type: boolean, default: false }
     BookingSeriesSession:
       type: object
       required: [id, date, time, bayType]

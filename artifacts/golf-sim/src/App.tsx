@@ -16,6 +16,7 @@ import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import CookiePolicy from "@/pages/CookiePolicy";
+import Unsubscribe from "@/pages/Unsubscribe";
 
 function Router() {
   const [location] = useLocation();
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/politique-de-confidentialite" component={PrivacyPolicy} />
       <Route path="/politique-de-cookies" component={CookiePolicy} />
+      <Route path="/desinscription" component={Unsubscribe} />
       <Route component={NotFound} />
     </Switch>
   );

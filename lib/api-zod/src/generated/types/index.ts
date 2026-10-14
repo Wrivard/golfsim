@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './availabilityClosure';
 export * from './bookingSeriesDeletion';
 export * from './bookingSeriesDeletionResult';
 export * from './bookingSeriesPreview';
@@ -14,7 +15,23 @@ export * from './bookingUpdate';
 export * from './bookingUpdateBayType';
 export * from './bookingUpdateDuration';
 export * from './bookingUpdateResult';
+export * from './closureBookingConflict';
+export * from './closureConflict';
+export * from './closureInput';
+export * from './closureInputBayIdsItem';
+export * from './closureInputKind';
+export * from './closureList';
+export * from './closureResult';
+export * from './consentWithdrawal';
 export * from './contactInput';
 export * from './contactResult';
+export * from './createPublicBooking201';
+export * from './emailContact';
+export * from './emailContactList';
+export * from './exportEmailContactsParams';
 export * from './healthStatus';
+export * from './publicBookingInput';
+export * from './publicBookingInputBayType';
+export * from './publicBookingInputDuration';
 export * from './reservation';
+export * from './successResult';

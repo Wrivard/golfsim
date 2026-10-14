@@ -19,3 +19,5 @@
 
 export * from "./schema";
 export * from "./runtime";
+export * from "./availability";
+export * from "./email-contacts";

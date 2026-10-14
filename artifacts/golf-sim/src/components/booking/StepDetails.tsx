@@ -17,6 +17,7 @@ const formSchema = z.object({
   phone: z.string().optional(),
   players: z.coerce.number().min(1, "Minimum 1 joueur").max(4, "Maximum 4 joueurs"),
   notes: z.string().optional(),
+  marketingConsent: z.boolean().default(false),
   acceptTerms: z.literal(true, { errorMap: () => ({ message: "Vous devez accepter les termes et conditions" }) }),
 });
 
@@ -31,6 +32,7 @@ export function StepDetails() {
       email: "",
       phone: "",
       notes: "",
+      marketingConsent: false,
       acceptTerms: undefined as unknown as true,
     }
   });
@@ -143,6 +145,16 @@ export function StepDetails() {
               data-testid="input-notes"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input type="checkbox" {...form.register("marketingConsent")}
+              className="mt-1 w-4 h-4 accent-[#2B5734]" data-testid="checkbox-marketing-consent" />
+            <span className="text-xs text-muted-foreground leading-relaxed">
+              J'accepte de recevoir des courriels promotionnels, des offres et des nouvelles de Golf Sim. C'est facultatif et vous pouvez retirer votre consentement en tout temps.
+            </span>
+          </label>
         </div>
 
         <div className="space-y-2">

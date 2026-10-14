@@ -15,3 +15,4 @@
 - [File-write verification](file-write-verification.md) — verify operational scripts exist and type-check before trusting an edit tool’s success response.
 - [Consent integration](consent-integration.md) — tracking must not bypass consent or prevent the essential booking app from loading.
 - [Bay start policy](bay-start-policy.md) — all four bays accept whole-hour and half-hour starts, including public booking and recurring leagues.
+- [Fermetures et saisons](availability-business-rules.md) — fermetures ciblables ; blocage jusqu’à une date réservé au public ; nouvelles ligues au prochain 30 avril.

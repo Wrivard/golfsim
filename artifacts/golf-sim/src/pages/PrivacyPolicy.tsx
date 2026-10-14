@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
           <span className="text-white/60 text-sm font-bold tracking-widest uppercase mb-4 block">Golf SIM Sorel-Tracy</span>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold mb-6 text-white uppercase tracking-tighter leading-none">Politique de Confidentialité</h1>
           <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed font-sans">
-            Dernière mise à jour : Novembre 2025
+            Dernière mise à jour : 2026
           </p>
         </div>
       </div>
@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
               Bienvenue chez Golf SIM Sorel-Tracy. Nous nous engageons à protéger votre vie privée et vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, stockons et protégeons vos informations lorsque vous utilisez notre site web et nos services de réservation.
             </p>
             <p className="leading-relaxed">
-              En utilisant notre site web et nos services, vous acceptez les pratiques décrites dans cette politique de confidentialité.
+              Cette politique décrit nos pratiques. La simple consultation du site ne constitue pas un consentement à recevoir des communications promotionnelles.
             </p>
           </section>
 
@@ -34,8 +34,9 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2">
               <li><strong>Informations personnelles :</strong> Nom, adresse courriel, numéro de téléphone</li>
               <li><strong>Données de réservation :</strong> Date, heure, durée, numéro de baie, nombre de joueurs</li>
-              <li><strong>Données techniques :</strong> Adresse IP, type de navigateur, pages visitées</li>
-              <li><strong>Cookies :</strong> Pour améliorer votre expérience sur notre site</li>
+              <li><strong>Données techniques :</strong> Informations techniques transmises par votre navigateur lors de la visite du site</li>
+              <li><strong>Cookies :</strong> Voir notre politique de cookies</li>
+              <li><strong>Consentement marketing :</strong> Si vous cochez la case facultative, la date et la preuve de ce consentement</li>
             </ul>
           </section>
 
@@ -49,6 +50,7 @@ export default function PrivacyPolicy() {
               <li>Vous envoyer des confirmations par courriel</li>
               <li>Synchroniser vos réservations avec notre calendrier</li>
               <li>Améliorer nos services et notre site web</li>
+              <li>Vous envoyer des communications promotionnelles, uniquement si vous avez coché la case marketing</li>
               <li>Vous contacter en cas de changement concernant votre réservation</li>
               <li>Répondre à vos demandes de renseignements</li>
             </ul>
@@ -58,11 +60,8 @@ export default function PrivacyPolicy() {
 
           <section className="mb-12">
             <h2 className="text-2xl font-heading font-bold uppercase text-foreground mb-4">4. Protection des Données</h2>
-            <p className="leading-relaxed mb-4">
-              Nous prenons la sécurité de vos données très au sérieux. Nous utilisons des mesures de sécurité techniques et organisationnelles appropriées pour protéger vos informations personnelles contre tout accès non autorisé, modification, divulgation ou destruction.
-            </p>
             <p className="leading-relaxed">
-              Ces mesures incluent le cryptage des données sensibles, des contrôles d'accès stricts et des audits de sécurité réguliers.
+              Nous limitons l'accès à vos informations aux personnes qui en ont besoin pour gérer les réservations. Aucun système n'étant infaillible, nous ne pouvons toutefois garantir une sécurité absolue.
             </p>
           </section>
 
@@ -85,7 +84,22 @@ export default function PrivacyPolicy() {
           <section className="mb-12">
             <h2 className="text-2xl font-heading font-bold uppercase text-foreground mb-4">6. Conservation des Données</h2>
             <p className="leading-relaxed">
-              Nous conservons vos données personnelles uniquement pendant la durée nécessaire aux fins pour lesquelles elles ont été collectées. Les données de réservation sont conservées pendant une période de 2 ans après votre dernière visite, sauf si la loi exige une conservation plus longue.
+              Nous conservons vos données personnelles uniquement pendant la durée nécessaire aux fins pour lesquelles elles ont été collectées. Nous n'appliquons pas de suppression automatique à une échéance fixe; vous pouvez demander la suppression de vos données à tout moment, sous réserve des obligations légales.
+            </p>
+          </section>
+
+          <Separator className="my-8 bg-foreground/10" />
+
+          <section className="mb-12">
+            <h2 className="text-2xl font-heading font-bold uppercase text-foreground mb-4">Communications marketing</h2>
+            <p className="leading-relaxed mb-4">
+              Le consentement marketing est une case distincte et facultative, décochée par défaut, du formulaire de réservation. Réserver ne dépend pas de ce choix.
+            </p>
+            <p className="leading-relaxed mb-4">
+              Les adresses issues de réservations ou de contacts antérieurs à cette case sont conservées à titre historique : elles ne sont pas considérées comme ayant consenti au marketing.
+            </p>
+            <p className="leading-relaxed">
+              Vous pouvez retirer votre consentement en tout temps grâce au lien de désinscription inclus dans le courriel de confirmation et dans les envois marketing, ou en écrivant à <a href="mailto:golfsim.soreltracy@gmail.com" className="text-primary hover:underline">golfsim.soreltracy@gmail.com</a>.
             </p>
           </section>
 

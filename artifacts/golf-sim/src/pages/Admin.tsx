@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock, Archive, LayoutGrid, List } from "lucide-react";
 import CalendarView from "@/components/admin/CalendarView";
+import AvailabilityManager from "@/components/admin/AvailabilityManager";
+import EmailContactBank from "@/components/admin/EmailContactBank";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -499,64 +501,6 @@ export default function Admin() {
 
       <main className="max-w-6xl mx-auto py-6 md:py-8 px-4 md:px-6 space-y-6 md:space-y-8">
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="shadow-md border-none bg-white">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#2B5734]/10 flex items-center justify-center">
-                  <CalendarDays className="w-5 h-5 md:w-6 md:h-6 text-[#2B5734]" />
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.total}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Réservations totales</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-md border-none bg-white">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.upcoming}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">À venir</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-md border-none bg-white">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 md:w-6 md:h-6 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.totalHours}h</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Heures réservées</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-md border-none bg-white">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{stats.estimatedRevenue}$</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">Revenus estimés</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
         <div className="flex items-center justify-end gap-1 bg-white rounded-lg shadow-sm p-1 w-fit ml-auto">
           <Button
             variant={viewMode === "calendar" ? "default" : "ghost"}
@@ -824,6 +768,26 @@ export default function Admin() {
 
           {showAdminSection && (
             <div className="space-y-6 p-4 md:p-6 bg-gray-50/50">
+        <section aria-label="Statistiques" className="space-y-3">
+          <h2 className="font-heading font-bold uppercase tracking-wider">Statistiques</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {([
+              { label: "Réservations totales", value: stats.total, icon: CalendarDays, tone: "text-[#2B5734] bg-[#2B5734]/10" },
+              { label: "À venir", value: stats.upcoming, icon: TrendingUp, tone: "text-blue-600 bg-blue-500/10" },
+              { label: "Heures réservées", value: `${stats.totalHours}h`, icon: Users, tone: "text-amber-600 bg-amber-500/10" },
+              { label: "Revenus estimés", value: `${stats.estimatedRevenue}$`, icon: DollarSign, tone: "text-green-600 bg-green-500/10" },
+            ]).map(item => <Card key={item.label} className="shadow-md border-none bg-white"><CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3"><div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${item.tone}`}>
+                <item.icon className="w-5 h-5 md:w-6 md:h-6" />
+              </div><div><p className="text-2xl md:text-3xl font-heading font-bold text-foreground">{item.value}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
+              </div></div>
+            </CardContent></Card>)}
+          </div>
+        </section>
+
+        <AvailabilityManager />
+        <EmailContactBank />
 
         <Card className="shadow-lg border-none">
           <CardHeader className="bg-[#2B5734] text-white rounded-t-lg">

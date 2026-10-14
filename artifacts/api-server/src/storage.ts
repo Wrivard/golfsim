@@ -8,6 +8,7 @@ import {
 import { db } from "./db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
 import { bookingSourceFilter, tagBooking } from "./calendar-source";
+import { recordContact } from "./email-contacts";
 type StoredBookingInput = InsertBooking & { calendarEventId?: string | null };
 
 export interface IStorage {
@@ -15,7 +16,7 @@ export interface IStorage {
   getBooking(id: string): Promise<Booking | undefined>;
   getAllBookings(): Promise<Booking[]>;
   getBookingsByDateAndBay(date: Date, bayType: string): Promise<Booking[]>;
-  updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void>;
+  updateBookingCalendarEventId(id: string, calendarEventId: string, contact?: { source: "site" | "personnel"; granted: boolean }): Promise<void>;
   getBookingByCalendarEventId(calendarEventId: string): Promise<Booking | undefined>;
   updateBookingByCalendarEventId(calendarEventId: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
   updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking | undefined>;
@@ -89,8 +90,13 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async updateBookingCalendarEventId(id: string, calendarEventId: string): Promise<void> {
-    await db.update(bookings).set({ calendarEventId }).where(and(eq(bookings.id, id), await bookingSourceFilter()));
+  async updateBookingCalendarEventId(id: string, calendarEventId: string, contact?: { source: "site" | "personnel"; granted: boolean }): Promise<void> {
+    await db.transaction(async tx => {
+      const [updated] = await tx.update(bookings).set({ calendarEventId })
+        .where(and(eq(bookings.id, id), await bookingSourceFilter())).returning();
+      if (!updated) throw new Error("Booking no longer belongs to the active calendar.");
+      if (contact) await recordContact(tx, updated, contact.source, contact.granted);
+    });
   }
 
   async getBookingByCalendarEventId(calendarEventId: string): Promise<Booking | undefined> {

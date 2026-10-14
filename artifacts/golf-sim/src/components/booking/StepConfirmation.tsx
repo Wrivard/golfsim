@@ -20,6 +20,7 @@ async function createBooking(data: {
   bayType: string;
   players: number;
   notes?: string;
+  marketingConsent?: boolean;
 }): Promise<{ reservation: { bayType: string }; emailStatus?: "accepted" | "unavailable" }> {
   const response = await fetch("/api/book", {
     method: "POST",
@@ -92,6 +93,7 @@ export function StepConfirmation() {
       bayType: assignedBayId,
       players: userDetails.players,
       notes: userDetails.notes,
+      marketingConsent: userDetails.marketingConsent === true,
     });
   };
 

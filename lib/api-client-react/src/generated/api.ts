@@ -25,9 +25,19 @@ import type {
   BookingSeriesPreview,
   BookingUpdate,
   BookingUpdateResult,
+  ClosureConflict,
+  ClosureInput,
+  ClosureList,
+  ClosureResult,
+  ConsentWithdrawal,
   ContactInput,
   ContactResult,
-  HealthStatus
+  CreatePublicBooking201,
+  EmailContactList,
+  ExportEmailContactsParams,
+  HealthStatus,
+  PublicBookingInput,
+  SuccessResult
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -56,6 +66,694 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetPublicClosuresUrl = () => {
+
+
+
+
+  return `/api/closures`
+}
+
+export const getPublicClosures = async ( options?: Parameters<typeof customFetch>[1]): Promise<ClosureList> => {
+
+  return customFetch<ClosureList>(getGetPublicClosuresUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicClosuresQueryKey = () => {
+    return [
+    `/api/closures`
+    ] as const;
+    }
+
+
+export const getGetPublicClosuresQueryOptions = <TData = Awaited<ReturnType<typeof getPublicClosures>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicClosures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicClosuresQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicClosures>>> = ({ signal }) => getPublicClosures({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicClosures>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicClosuresQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicClosures>>>
+export type GetPublicClosuresQueryError = ErrorType<unknown>
+
+
+
+export function useGetPublicClosures<TData = Awaited<ReturnType<typeof getPublicClosures>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicClosures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicClosuresQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminClosuresUrl = () => {
+
+
+
+
+  return `/api/admin/closures`
+}
+
+export const getAdminClosures = async ( options?: Parameters<typeof customFetch>[1]): Promise<ClosureList> => {
+
+  return customFetch<ClosureList>(getGetAdminClosuresUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminClosuresQueryKey = () => {
+    return [
+    `/api/admin/closures`
+    ] as const;
+    }
+
+
+export const getGetAdminClosuresQueryOptions = <TData = Awaited<ReturnType<typeof getAdminClosures>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminClosures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminClosuresQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminClosures>>> = ({ signal }) => getAdminClosures({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminClosures>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminClosuresQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminClosures>>>
+export type GetAdminClosuresQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdminClosures<TData = Awaited<ReturnType<typeof getAdminClosures>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminClosures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminClosuresQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateClosureUrl = () => {
+
+
+
+
+  return `/api/admin/closures`
+}
+
+export const createClosure = async (closureInput: ClosureInput, options?: Parameters<typeof customFetch>[1]): Promise<ClosureResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ClosureResult>(getCreateClosureUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(closureInput)
+  }
+);}
+
+
+
+
+
+export const getCreateClosureMutationKey = () => ['createClosure'] as const;
+
+export const getCreateClosureMutationOptions = <TError = ErrorType<ClosureConflict>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClosure>>, TError,CreateClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createClosure>>, TError,CreateClosureMutationVariables, TContext> => {
+
+const mutationKey = getCreateClosureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createClosure>>, CreateClosureMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createClosure(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateClosureMutationResult = NonNullable<Awaited<ReturnType<typeof createClosure>>>
+    export type CreateClosureMutationBody = BodyType<ClosureInput>
+    export type CreateClosureMutationError = ErrorType<ClosureConflict>
+    export type CreateClosureMutationVariables = {data: BodyType<ClosureInput>}
+
+    export const useCreateClosure = <TError = ErrorType<ClosureConflict>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClosure>>, TError,CreateClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createClosure>>,
+        TError,
+        CreateClosureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateClosureMutationOptions(options));
+    }
+
+export const getUpdateClosureUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/closures/${id}`
+}
+
+export const updateClosure = async (id: string,
+    closureInput: ClosureInput, options?: Parameters<typeof customFetch>[1]): Promise<ClosureResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ClosureResult>(getUpdateClosureUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(closureInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateClosureMutationKey = () => ['updateClosure'] as const;
+
+export const getUpdateClosureMutationOptions = <TError = ErrorType<ClosureConflict>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClosure>>, TError,UpdateClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateClosure>>, TError,UpdateClosureMutationVariables, TContext> => {
+
+const mutationKey = getUpdateClosureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateClosure>>, UpdateClosureMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateClosure(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateClosureMutationResult = NonNullable<Awaited<ReturnType<typeof updateClosure>>>
+    export type UpdateClosureMutationBody = BodyType<ClosureInput>
+    export type UpdateClosureMutationError = ErrorType<ClosureConflict>
+    export type UpdateClosureMutationVariables = {id: string;data: BodyType<ClosureInput>}
+
+    export const useUpdateClosure = <TError = ErrorType<ClosureConflict>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClosure>>, TError,UpdateClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateClosure>>,
+        TError,
+        UpdateClosureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateClosureMutationOptions(options));
+    }
+
+export const getDeleteClosureUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/closures/${id}`
+}
+
+export const deleteClosure = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<SuccessResult> => {
+
+  return customFetch<SuccessResult>(getDeleteClosureUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteClosureMutationKey = () => ['deleteClosure'] as const;
+
+export const getDeleteClosureMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClosure>>, TError,DeleteClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteClosure>>, TError,DeleteClosureMutationVariables, TContext> => {
+
+const mutationKey = getDeleteClosureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteClosure>>, DeleteClosureMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteClosure(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteClosureMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClosure>>>
+
+    export type DeleteClosureMutationError = ErrorType<unknown>
+    export type DeleteClosureMutationVariables = {id: string}
+
+    export const useDeleteClosure = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClosure>>, TError,DeleteClosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteClosure>>,
+        TError,
+        DeleteClosureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteClosureMutationOptions(options));
+    }
+
+export const getGetEmailContactsUrl = () => {
+
+
+
+
+  return `/api/admin/email-contacts`
+}
+
+export const getEmailContacts = async ( options?: Parameters<typeof customFetch>[1]): Promise<EmailContactList> => {
+
+  return customFetch<EmailContactList>(getGetEmailContactsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailContactsQueryKey = () => {
+    return [
+    `/api/admin/email-contacts`
+    ] as const;
+    }
+
+
+export const getGetEmailContactsQueryOptions = <TData = Awaited<ReturnType<typeof getEmailContacts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailContactsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailContacts>>> = ({ signal }) => getEmailContacts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailContacts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailContactsQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailContacts>>>
+export type GetEmailContactsQueryError = ErrorType<unknown>
+
+
+
+export function useGetEmailContacts<TData = Awaited<ReturnType<typeof getEmailContacts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailContactsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExportEmailContactsUrl = (params?: ExportEmailContactsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/email-contacts/export?${stringifiedParams}` : `/api/admin/email-contacts/export`
+}
+
+export const exportEmailContacts = async (params?: ExportEmailContactsParams, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
+
+  return customFetch<string>(getExportEmailContactsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportEmailContactsQueryKey = (params?: ExportEmailContactsParams,) => {
+    return [
+    `/api/admin/email-contacts/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportEmailContactsQueryOptions = <TData = Awaited<ReturnType<typeof exportEmailContacts>>, TError = ErrorType<unknown>>(params?: ExportEmailContactsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportEmailContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportEmailContactsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportEmailContacts>>> = ({ signal }) => exportEmailContacts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportEmailContacts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportEmailContactsQueryResult = NonNullable<Awaited<ReturnType<typeof exportEmailContacts>>>
+export type ExportEmailContactsQueryError = ErrorType<unknown>
+
+
+
+export function useExportEmailContacts<TData = Awaited<ReturnType<typeof exportEmailContacts>>, TError = ErrorType<unknown>>(
+ params?: ExportEmailContactsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportEmailContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportEmailContactsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWithdrawMarketingConsentUrl = () => {
+
+
+
+
+  return `/api/marketing/unsubscribe`
+}
+
+export const withdrawMarketingConsent = async (consentWithdrawal: ConsentWithdrawal, options?: Parameters<typeof customFetch>[1]): Promise<SuccessResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SuccessResult>(getWithdrawMarketingConsentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(consentWithdrawal)
+  }
+);}
+
+
+
+
+
+export const getWithdrawMarketingConsentMutationKey = () => ['withdrawMarketingConsent'] as const;
+
+export const getWithdrawMarketingConsentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawMarketingConsent>>, TError,WithdrawMarketingConsentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawMarketingConsent>>, TError,WithdrawMarketingConsentMutationVariables, TContext> => {
+
+const mutationKey = getWithdrawMarketingConsentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawMarketingConsent>>, WithdrawMarketingConsentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  withdrawMarketingConsent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawMarketingConsentMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawMarketingConsent>>>
+    export type WithdrawMarketingConsentMutationBody = BodyType<ConsentWithdrawal>
+    export type WithdrawMarketingConsentMutationError = ErrorType<void>
+    export type WithdrawMarketingConsentMutationVariables = {data: BodyType<ConsentWithdrawal>}
+
+    export const useWithdrawMarketingConsent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawMarketingConsent>>, TError,WithdrawMarketingConsentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawMarketingConsent>>,
+        TError,
+        WithdrawMarketingConsentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWithdrawMarketingConsentMutationOptions(options));
+    }
+
+export const getCreatePublicBookingUrl = () => {
+
+
+
+
+  return `/api/book`
+}
+
+export const createPublicBooking = async (publicBookingInput: PublicBookingInput, options?: Parameters<typeof customFetch>[1]): Promise<CreatePublicBooking201> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CreatePublicBooking201>(getCreatePublicBookingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(publicBookingInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePublicBookingMutationKey = () => ['createPublicBooking'] as const;
+
+export const getCreatePublicBookingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,CreatePublicBookingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,CreatePublicBookingMutationVariables, TContext> => {
+
+const mutationKey = getCreatePublicBookingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPublicBooking>>, CreatePublicBookingMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPublicBooking(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePublicBookingMutationResult = NonNullable<Awaited<ReturnType<typeof createPublicBooking>>>
+    export type CreatePublicBookingMutationBody = BodyType<PublicBookingInput>
+    export type CreatePublicBookingMutationError = ErrorType<void>
+    export type CreatePublicBookingMutationVariables = {data: BodyType<PublicBookingInput>}
+
+    export const useCreatePublicBooking = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,CreatePublicBookingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPublicBooking>>,
+        TError,
+        CreatePublicBookingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePublicBookingMutationOptions(options));
+    }
 
 export const getPreviewBookingSeriesUrl = (seriesId: string,) => {
 

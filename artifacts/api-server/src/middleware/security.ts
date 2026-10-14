@@ -115,6 +115,7 @@ export function sanitizeBookingInput(data: any): any {
     bayType: data.bayType,
     players: typeof data.players === 'number' ? Math.min(Math.max(1, data.players), 4) : 1,
     notes: data.notes ? sanitizeString(data.notes) : undefined,
+    marketingConsent: data.marketingConsent === true,
   };
 }
 
