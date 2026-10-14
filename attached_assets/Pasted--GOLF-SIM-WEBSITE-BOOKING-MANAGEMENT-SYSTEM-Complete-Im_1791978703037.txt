@@ -1,0 +1,464 @@
+# GOLF SIM — WEBSITE & BOOKING MANAGEMENT SYSTEM
+## Complete Improvements & Bug Fixes
+
+You are working on the existing Golf Sim website, online booking system, and administrative dashboard.
+
+These requirements were collected during a meeting with Golf Sim staff. Your objective is to implement the requested fixes and features while preserving the existing application architecture, branding, design, and user experience.
+
+**IMPORTANT: This is an improvement project, NOT a redesign.**
+
+## Global Development Instructions
+
+1. Inspect the existing codebase before making changes.
+2. Understand the current booking system, calendar, admin dashboard, database schema, and reservation logic.
+3. Preserve the current visual design, typography, colors, branding, layout, and navigation.
+4. Reuse existing components and services whenever possible.
+5. Avoid unnecessary refactoring or changes to unrelated functionality.
+6. All customer-facing and admin-facing text must remain in French.
+7. Ensure full responsiveness across desktop, tablet, and mobile.
+8. Preserve existing reservations and customer records.
+9. Prevent overlapping reservations and double bookings.
+10. Maintain compatibility with the existing database and authentication system.
+11. Do not introduce placeholder statistics, fake reservations, or mock customer records into production.
+12. Follow the existing project's coding conventions.
+13. Implement changes incrementally and validate each feature.
+
+---
+
+# PART 1 — PUBLIC BOOKING CALENDAR
+
+## 1. Fix Calendar Being Cut Off on Mobile
+
+**Problem:** On mobile devices, the date selection calendar is being cut off at the bottom, preventing users from seeing the entire calendar.
+
+**Required changes:**
+- Ensure the full calendar is visible on mobile screens.
+- Fix any container overflow, height restriction, clipping, or viewport positioning issues.
+- Ensure all weeks, dates, and calendar controls remain accessible.
+- If the calendar is displayed in a popup or dropdown, ensure it fits within the viewport.
+- Allow appropriate scrolling when necessary.
+- Preserve the current calendar design.
+
+**Acceptance criteria:**
+- No dates are hidden or cut off.
+- Calendar works on common iPhone and Android screen sizes.
+- Desktop functionality remains unchanged.
+
+## 2. Automatically Close Calendar After Date Selection
+
+**Problem:** The date picker remains open after selecting a date.
+
+**Required behavior:**
+- When a customer selects a valid date, automatically close the date picker.
+- Display the selected date in the corresponding field.
+- Immediately update the available booking times for that date.
+- Keep the selected date visible.
+- Allow users to reopen the calendar to change their selection.
+
+**Acceptance criteria:**
+- Selecting a date closes the calendar automatically.
+- Available times update correctly.
+- No unnecessary additional clicks.
+
+---
+
+# PART 2 — ADMIN AVAILABILITY & CLOSURES
+
+## 3. Allow Admin to Block Bookings Until a Specific Date
+
+Add an admin feature allowing staff to block online reservations until a selected date.
+
+**Required behavior:**
+- Provide a date picker in the admin dashboard.
+- Allow staff to select a cutoff date until which online bookings are unavailable.
+- Dates covered by the closure must appear unavailable in the public booking calendar.
+- Allow staff to modify or remove the restriction.
+- Store the restriction persistently in the database.
+
+**Example:** Staff can close online reservations until October 29 and reopen them afterward.
+
+Define the date boundary clearly: the selected cutoff date should be included in the closure unless the admin interface explicitly indicates otherwise.
+
+## 4. Close Full Days or Specific Time Periods
+
+Create an admin availability management feature allowing staff to mark full days or portions of days as closed.
+
+**Required capabilities:**
+- Close an entire day.
+- Close a specific time range.
+- Select the affected date.
+- Select start and end times for partial closures.
+- Clearly display closed periods in the admin calendar.
+- Prevent customers from booking closed periods.
+- Allow staff to edit, remove, or reopen closures.
+
+**Additional requirements:**
+- Reuse the same closure management logic as feature #3 where appropriate.
+- Ensure closures persist after refreshing the page.
+- Clearly distinguish closures from normal customer reservations.
+- Ensure existing reservations are not silently deleted or modified when a closure is created.
+- If a new closure overlaps an existing reservation, warn the admin and require an explicit resolution.
+
+---
+
+# PART 3 — RECURRING RESERVATIONS
+
+## 5. Fixed April 30 End Date
+
+The staff requires recurring reservations to use April 30 as their end date.
+
+**Required behavior:**
+- Inspect the current recurring reservation functionality.
+- Ensure the recurrence end date is April 30 for the applicable booking season.
+- Determine the correct year based on the current booking season, not a hardcoded historical year.
+- Ensure recurring reservations do not continue past the applicable April 30 cutoff.
+- Preserve existing recurrence behavior otherwise.
+
+Do not unintentionally change historical recurring reservations.
+
+## 6. Tuesday Must Be Unchecked by Default
+
+**Problem:** Tuesday is currently preselected in the recurring reservation day selector.
+
+**Required changes:**
+- Tuesday must be unchecked by default when creating a new recurring reservation.
+- Users must still be able to select Tuesday manually.
+- Do not prevent Tuesday reservations.
+- Do not modify previously saved recurring reservations.
+
+**Acceptance criteria:** New recurring reservations do not automatically select Tuesday.
+
+---
+
+# PART 4 — ADMIN CALENDAR IMPROVEMENTS
+
+## 7. Add a Date Picker to the Admin Calendar
+
+Improve date navigation in the admin calendar.
+
+**Required behavior:**
+- Add a date picker to the admin calendar interface.
+- Allow administrators to jump directly to a specific date.
+- Automatically update the calendar view after selecting a date.
+- Preserve existing calendar navigation controls.
+- Ensure it works on desktop and mobile.
+
+Use the existing date picker component if available.
+
+## 8. Always Display Bay 4 in Red
+
+Golf Sim's Bay 4 must always be visually identified using red in the administrative calendar.
+
+**Required behavior:**
+- Assign Bay 4 a consistent red color.
+- Display that color in the admin calendar view and other relevant calendar representations.
+- Ensure reservations associated with Bay 4 use the correct bay identification color.
+- Preserve the existing colors of other bays.
+- Maintain sufficient text contrast and readability.
+
+**Important:** Red represents Bay 4's identity, not necessarily a cancellation, error, or unavailable status.
+
+## 9. Fix Incorrect Reservation Block Height
+
+**Problem:** A reservation with an end time of 4:00 PM is visually extending to the 4:30 PM line in the admin calendar.
+
+This causes confusion because the reservation's displayed duration does not match its actual scheduled time.
+
+**Required changes:**
+- Investigate how reservation blocks are positioned and sized in the calendar.
+- Fix the calculation of block height and vertical positioning.
+- Ensure the visual end position matches the reservation's actual end time.
+- Verify timezone conversion and calendar slot calculations.
+- Do not modify the actual reservation start or end times merely to fix the display.
+
+**Example:**
+- Reservation starts at 3:00 PM.
+- Reservation ends at 4:00 PM.
+- The block must end exactly at the 4:00 PM line, not 4:30 PM.
+
+**Acceptance criteria:**
+- A 30-minute reservation occupies 30 minutes visually.
+- A 60-minute reservation occupies 60 minutes visually.
+- Reservations align correctly with the calendar grid.
+- Test the issue using the December 4 example reported by staff, if the relevant reservation data is available.
+
+## 10. Drag-and-Drop Reservations Between Bays
+
+Allow administrators to move reservations between bays directly from the calendar.
+
+**Required behavior:**
+- Enable dragging a reservation from one bay to another.
+- Update the assigned bay when the reservation is dropped.
+- Automatically change the reservation color to match the destination bay.
+- Persist the updated bay assignment in the database.
+- Update the calendar immediately after a successful change.
+
+**Validation:**
+- Check availability before confirming the move.
+- Prevent overlapping reservations.
+- Prevent moves into closed or unavailable periods.
+- If the move is invalid, revert the reservation to its original position and show a clear error message.
+- Do not alter the reservation's date, duration, or time when moving between bays.
+- Do not create duplicate reservations.
+
+**Acceptance criteria:**
+- Moving a reservation to Bay 4 makes it red.
+- Moving it away from Bay 4 applies the destination bay's color.
+- Changes remain saved after refreshing the page.
+
+---
+
+# PART 5 — ADMIN RESERVATION MANAGEMENT
+
+## 11. Add a Manual Reservation Button
+
+Add a clearly accessible button to create reservations manually from the admin dashboard.
+
+**Suggested French label:** "Ajouter une réservation"
+
+**Required behavior:**
+- Open the existing reservation creation interface, or reuse the current booking form.
+- Allow administrators to select the customer, date, time, duration, and bay.
+- Save the reservation using the existing booking logic.
+- Update the calendar after successful creation.
+- Validate booking conflicts and closures.
+- Preserve existing customer and reservation records.
+
+Do not create a separate reservation system if one already exists.
+
+## 12. Duplicate an Existing Reservation
+
+Add a duplication action for existing reservations in the admin interface.
+
+**Suggested French label:** "Dupliquer la réservation"
+
+**Required behavior:**
+- Allow staff to select an existing reservation and duplicate it.
+- Prepopulate the new reservation form with relevant information from the original reservation.
+- Allow staff to adjust the date, time, bay, and other appropriate fields before saving.
+- Create a new reservation record.
+- Keep the original reservation unchanged.
+- Validate availability before saving.
+
+**Important:**
+- Generate a new reservation ID.
+- Do not duplicate payment transactions, payment confirmations, or payment status as though a new payment occurred.
+- Preserve accurate customer and booking associations.
+- Avoid sending duplicate notifications unintentionally.
+
+---
+
+# PART 6 — CUSTOMER EMAIL DATABASE
+
+## 13. Customer Email Database & CSV Export
+
+Create an administrative section for collecting, viewing, and exporting customer email addresses.
+
+**Suggested French section name:** "Banque de courriels"
+
+**Required capabilities:**
+- Collect email addresses provided during customer bookings.
+- Store customer email addresses securely using the existing customer database where possible.
+- Display a list of customer email addresses in the admin dashboard.
+- Remove duplicate email addresses from the export.
+- Provide a button labeled "Exporter en CSV".
+- Export the complete email database without requiring date filters.
+- Ensure the CSV is properly formatted and supports accented characters.
+- Restrict access to authorized administrators.
+
+**Marketing consent and privacy requirements:**
+
+Golf Sim intends to use customer email addresses for marketing communications.
+
+Update the privacy policy to transparently explain:
+- What customer information is collected.
+- Why email addresses are collected.
+- How booking-related emails differ from promotional emails.
+- How email addresses may be used for marketing when legally permitted.
+- How customers can withdraw consent.
+- How customers can contact Golf Sim regarding their personal information.
+
+Implement a separate, optional marketing consent checkbox in the booking process.
+
+**Suggested French checkbox:**
+
+"J'accepte de recevoir des courriels promotionnels, des offres et des nouvelles de Golf Sim."
+
+Requirements:
+- The checkbox must not be prechecked.
+- Booking must remain possible without marketing consent.
+- Store the customer's consent status and relevant consent evidence.
+- Track when consent was provided and its source.
+- Allow customers to withdraw consent.
+- Distinguish all customer emails from marketing-eligible contacts.
+- Include consent status in the admin database and CSV export.
+- Provide a marketing-eligible export that excludes customers without valid marketing consent.
+- Do not automatically classify historical booking customers as having consented to marketing.
+
+Ensure the implementation is compatible with applicable Quebec and Canadian privacy and commercial electronic messaging requirements, including Law 25 and CASL.
+
+Do not assume that adding a statement to the privacy policy constitutes marketing consent.
+
+---
+
+# PART 7 — ADMIN DASHBOARD ORGANIZATION
+
+## 14. Move Existing Statistics Into the Bottom Admin Dropdown
+
+The administrative interface already contains statistics.
+
+**The goal is NOT to create new statistics.**
+
+Instead, reorganize the interface so that the existing statistics are hidden by default and accessible through the admin dropdown/menu located at the bottom of the page.
+
+**Required behavior:**
+- Locate the existing statistics section.
+- Locate the existing admin dropdown at the bottom of the interface.
+- Move or expose the existing statistics within that dropdown's navigation structure.
+- Keep statistics hidden from the main view by default.
+- Allow administrators to access them through the dropdown.
+- Preserve all existing statistics, calculations, and data sources.
+- Do not create additional charts, metrics, or dashboard components unnecessarily.
+
+**Acceptance criteria:**
+- Existing statistics remain fully functional.
+- The main admin interface is less cluttered.
+- Statistics are accessible from the bottom admin dropdown.
+- The current design and menu structure are preserved.
+
+---
+
+# PART 8 — ADMIN AUTHENTICATION
+
+## 15. Show/Hide Password on Admin Login
+
+Add a password visibility toggle to the admin login page.
+
+**Required behavior:**
+- Add an eye icon inside or beside the password input.
+- Clicking the icon toggles between hidden and visible password text.
+- Passwords must remain hidden by default.
+- The icon must reflect the current visibility state.
+- Preserve the existing login form design and authentication logic.
+- Ensure the control works on mobile and desktop.
+- Provide an accessible label for the toggle.
+
+Do not modify how passwords are stored, validated, or authenticated.
+
+---
+
+# PART 9 — QUALITY ASSURANCE & TESTING
+
+After implementing the changes, test the following workflows.
+
+### Public Booking
+- Mobile calendar is fully visible.
+- Calendar closes after selecting a date.
+- Available times update correctly.
+- Closed dates and time periods cannot be booked.
+- Existing booking functionality remains operational.
+
+### Admin Availability
+- Admin can block reservations until a selected date.
+- Admin can close a full day.
+- Admin can close a specific time range.
+- Admin can reopen previously closed periods.
+- Closures persist after refreshing.
+
+### Recurring Reservations
+- Applicable recurring reservations end on April 30.
+- Tuesday is unchecked by default.
+- Manually selecting Tuesday works.
+- Existing recurring reservations are preserved.
+
+### Admin Calendar
+- Date picker navigates correctly.
+- Bay 4 is consistently red.
+- Reservation blocks align with their real start and end times.
+- Drag-and-drop updates the bay and color.
+- Invalid moves are rejected without losing data.
+
+### Reservation Management
+- Admin can create reservations manually.
+- Admin can duplicate existing reservations.
+- Duplicated reservations receive unique IDs.
+- No overlapping reservations are introduced.
+- Existing reservations remain intact.
+
+### Customer Email Database
+- Email addresses are collected and displayed correctly.
+- Duplicate emails are handled.
+- CSV export works.
+- Marketing consent is optional and recorded.
+- Nonconsenting customers are excluded from marketing-eligible exports.
+- Admin access is protected.
+
+### Dashboard & Authentication
+- Existing statistics are accessible from the bottom admin dropdown.
+- Statistics calculations remain unchanged.
+- Password visibility toggle works correctly.
+- Authentication remains secure.
+
+---
+
+# PART 10 — IMPLEMENTATION PROCESS
+
+Follow this workflow:
+
+**Step 1 — Codebase Audit**
+
+Inspect the relevant components, routes, services, database tables, and existing business logic.
+
+Identify:
+- Existing functionality that can be reused.
+- Bugs requiring fixes.
+- New components or database changes that are necessary.
+- Dependencies between features.
+- Potential compatibility or data integrity risks.
+
+**Step 2 — Implementation Plan**
+
+Create a concise implementation plan grouped into:
+1. Critical booking/calendar bug fixes.
+2. Admin availability management.
+3. Reservation management improvements.
+4. Customer email database and privacy.
+5. Admin interface refinements.
+
+Flag any unresolved business rules before implementing functionality that depends on them.
+
+**Step 3 — Implementation**
+
+Implement the improvements using the existing architecture.
+
+Prioritize fixing current bugs before adding new features.
+
+Use database migrations where required and ensure existing production data is preserved.
+
+**Step 4 — Validation**
+
+Run applicable tests, type checks, linting, and builds.
+
+Test booking conflicts, calendar display, recurring reservations, closures, and data persistence.
+
+Verify both desktop and mobile behavior.
+
+**Step 5 — Final Report**
+
+Provide a concise summary containing:
+- Features completed.
+- Bugs fixed.
+- Files and components modified.
+- Database changes or migrations.
+- Tests performed and their results.
+- Any unresolved issues or manual testing required.
+
+Do not claim a feature is tested unless it was actually verified.
+
+## Final Reminder
+
+Golf Sim already has an existing website and booking management application.
+
+**Do not redesign the website, replace the existing booking system, or change unrelated functionality.**
+
+The objective is to make targeted improvements that help Golf Sim staff manage reservations more efficiently while providing customers with a reliable, responsive booking experience.
