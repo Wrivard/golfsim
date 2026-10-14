@@ -1,3 +1,4 @@
+import { durationMinutes } from "@workspace/booking-domain";
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ function parseTimeToMinutes(time: string): number {
 }
 
 function getPriceForBooking(durationStr: string): number {
-  const hours = parseFloat(durationStr?.replace("h", "") || "0");
+  const hours = durationMinutes(durationStr || "") / 60;
   const pricePerHour = hours === 1 ? 25 : 28;
   return hours * pricePerHour;
 }
@@ -376,8 +377,8 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
       email: editEmail,
       phone: editPhone,
       date: editDate,
-      time: editTime,
-      duration: editDuration,
+      ...(editTime !== booking.time ? { time: editTime } : {}),
+      ...(editDuration !== booking.duration ? { duration: editDuration } : {}),
       bayType: editBay,
       players: Number(editPlayers),
       notes: editNotes,
@@ -482,6 +483,11 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
                   <Select value={editDuration} onValueChange={setEditDuration}>
                     <SelectTrigger data-testid="select-edit-duration"><SelectValue /></SelectTrigger>
                     <SelectContent>
+                      {!["1h","2h","3h","4h"].includes(booking.duration) && durationMinutes(booking.duration) > 0 && (
+                        <SelectItem value={booking.duration}>
+                          {Math.floor(durationMinutes(booking.duration) / 60)} h {durationMinutes(booking.duration) % 60 ? `${durationMinutes(booking.duration) % 60} min` : ""} (durée actuelle)
+                        </SelectItem>
+                      )}
                       <SelectItem value="1h">1h</SelectItem>
                       <SelectItem value="2h">2h</SelectItem>
                       <SelectItem value="3h">3h</SelectItem>

@@ -183,6 +183,9 @@ importers:
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
+      '@workspace/booking-domain':
+        specifier: workspace:*
+        version: link:../../lib/booking-domain
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
@@ -382,6 +385,9 @@ importers:
       '@workspace/api-client-react':
         specifier: workspace:*
         version: link:../../lib/api-client-react
+      '@workspace/booking-domain':
+        specifier: workspace:*
+        version: link:../../lib/booking-domain
       '@workspace/golf-seo':
         specifier: workspace:*
         version: link:../../lib/golf-seo
@@ -664,6 +670,8 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 3.25.76
+
+  lib/booking-domain: {}
 
   lib/db:
     dependencies:

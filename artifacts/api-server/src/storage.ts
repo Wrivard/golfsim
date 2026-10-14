@@ -135,6 +135,8 @@ export class DatabaseStorage implements IStorage {
       if (checkConflict(others,current)) return { booking:null, conflict:true };
       await beforeSave(next,current);
       const [updated] = await tx.update(bookings).set(updates).where(eq(bookings.id,id)).returning();
+      // Editing contact details does not grant (or restore) marketing consent.
+      if (updated) await recordContact(tx, updated, "personnel", false);
       return { booking:updated, conflict:false };
     });
   }

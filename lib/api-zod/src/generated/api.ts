@@ -221,6 +221,46 @@ export const ExportEmailContactsQueryParams = zod.object({
 export const ExportEmailContactsResponse = zod.unknown()
 
 
+export const recordStaffWithdrawalBodyReasonMin = 5;
+export const recordStaffWithdrawalBodyReasonMax = 500;
+
+
+
+export const RecordStaffWithdrawalBody = zod.object({
+  "email": zod.string().email(),
+  "reason": zod.string().min(recordStaffWithdrawalBodyReasonMin).max(recordStaffWithdrawalBodyReasonMax)
+})
+
+export const RecordStaffWithdrawalResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+export const PreviewHistoricalContactsResponse = zod.object({
+  "ok": zod.boolean(),
+  "fingerprint": zod.string(),
+  "scannedBookings": zod.number().int(),
+  "eligibleBookings": zod.number().int(),
+  "eligibleContacts": zod.number().int(),
+  "newContacts": zod.number().int(),
+  "excludedBookings": zod.number().int()
+})
+
+
+export const importHistoricalContactsBodyFingerprintRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const ImportHistoricalContactsBody = zod.object({
+  "fingerprint": zod.string().regex(importHistoricalContactsBodyFingerprintRegExp),
+  "confirmed": zod.literal(true)
+})
+
+export const ImportHistoricalContactsResponse = zod.object({
+  "ok": zod.boolean(),
+  "imported": zod.number().int()
+})
+
+
 export const withdrawMarketingConsentBodyTokenMin = 20;
 export const withdrawMarketingConsentBodyTokenMax = 1024;
 

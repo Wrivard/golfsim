@@ -53,6 +53,13 @@ test("real production bootstrap and staff routes authenticate, persist, reject a
   const headers = {"Content-Type":"application/json",Origin:"https://www.golfsimsorel.ca","X-Forwarded-Proto":"https"};
   try {
     const login = (password: string) => fetch(base+"/api/auth/login",{method:"POST",headers,body:JSON.stringify({username:"fixture",password})});
+    assert.equal((await fetch(base+"/api/book/batch",{method:"POST",headers,body:JSON.stringify({items:[{date:"2026-10-16",time:"08:01",bayType:"1",duration:"1h"}]})})).status,410);
+    for (const endpoint of ["/api/reservations","/api/admin/email-contacts/backfill-preview"]) {
+      assert.equal((await fetch(base+endpoint,{headers})).status,401);
+    }
+    for (const endpoint of ["/api/admin/email-contacts/backfill","/api/admin/email-contacts/withdrawal"]) {
+      assert.equal((await fetch(base+endpoint,{method:"POST",headers,body:"{}"})).status,401);
+    }
     assert.equal((await login("wrong")).status,401);
     const response = await login("fixture-password");
     assert.equal(response.status,200);

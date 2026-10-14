@@ -9,6 +9,7 @@
   },
   "include": ["src"],
   "references": [
+    { "path": "../../lib/booking-domain" },
     {
       "path": "../../lib/db"
     },

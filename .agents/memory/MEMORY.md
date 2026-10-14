@@ -16,3 +16,5 @@
 - [Consent integration](consent-integration.md) — tracking must not bypass consent or prevent the essential booking app from loading.
 - [Bay start policy](bay-start-policy.md) — all four bays accept whole-hour and half-hour starts, including public booking and recurring leagues.
 - [Fermetures et saisons](availability-business-rules.md) — fermetures ciblables ; blocage jusqu’à une date réservé au public ; nouvelles ligues au prochain 30 avril.
+- [Historical contact imports](historical-contact-policy.md) — verified customer provenance only; no inferred consent; preview and approval before production import.
+- [Release runtime checks](node-runtime-verification.md) — Nix launchers may pin another Node version; verify child tools, not only the parent build script.

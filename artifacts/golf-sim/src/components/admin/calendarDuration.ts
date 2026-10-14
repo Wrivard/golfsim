@@ -1,13 +1,7 @@
-export function parseDurationToMinutes(duration: string): number {
-  const match = duration.match(/^(?:(\d+(?:\.\d+)?)h|(\d+)h(\d{2}))$/);
-  if (!match) return 60;
+import { durationMinutes } from "@workspace/booking-domain";
 
-  if (match[1] !== undefined) {
-    return Math.round(Number(match[1]) * 60);
-  }
-
-  return Number(match[2]) * 60 + Number(match[3]);
-}
+// Keep the existing display fallback for corrupted historical values only.
+export const parseDurationToMinutes = (duration: string) => durationMinutes(duration) || 60;
 
 /** Positions use the same hour scale as grid lines, with no added row/padding. */
 export function bookingGeometry(time: string, duration: string, startHour = 8, hourHeight = 64) {

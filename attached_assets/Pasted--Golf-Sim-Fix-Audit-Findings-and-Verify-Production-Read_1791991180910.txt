@@ -1,0 +1,114 @@
+# Golf Sim — Fix Audit Findings and Verify Production Readiness
+
+You have completed an audit of the 15 Golf Sim improvements.
+
+The audit identified 9 passing features, 3 partially implemented features, and 3 features whose complete functionality remains unverified.
+
+Your next task is to resolve the confirmed issues and validate the remaining workflows.
+
+**Preserve the current website design, admin layout, branding, existing reservations, and working functionality. Do not redesign or unnecessarily refactor the application.**
+
+## Phase 1 — Fix Critical Issues (P0)
+
+### 1. Secure the legacy batch booking endpoint
+
+Investigate `POST /api/book/batch` and determine whether any active application functionality still depends on it.
+
+If unused, safely disable it and add regression tests confirming it cannot create reservations.
+
+If still required, update it to enforce all current booking rules, including closures, cutoff dates, bay availability, valid booking intervals, and conflict detection.
+
+Do not leave a publicly accessible endpoint capable of bypassing booking restrictions.
+
+### 2. Fix reservation overlap detection
+
+Replace any incomplete overlap detection with proper time interval comparisons.
+
+Two reservations overlap when:
+
+`newStart < existingEnd && newEnd > existingStart`
+
+Use the appropriate validated time representations and enforce the application's booking interval rules.
+
+Add automated tests for:
+- Exact adjacent reservations.
+- Partially overlapping reservations.
+- Completely overlapping reservations.
+- Off-grid start times.
+- Concurrent reservation attempts.
+- Closure conflicts.
+
+### 3. Remove customer information from public availability responses
+
+Inspect all public availability endpoints.
+
+Remove customer names, email addresses, phone numbers, and any other unnecessary personal information from their responses.
+
+The public booking system should receive only the information required to display available and unavailable time slots.
+
+Preserve the information needed by authenticated admin interfaces.
+
+## Phase 2 — Complete Email Database
+
+### 4. Collect all eligible customer emails
+
+The admin email bank must contain unique customer email addresses from legitimate customer reservations.
+
+Ensure new reservations and relevant booking modifications update the contact database.
+
+If the legacy batch endpoint is disabled, do not add new functionality to it solely for email collection.
+
+### 5. Import existing customer emails
+
+The audit identified 161 reservations, 13 distinct email addresses, and zero records in the new email contact database.
+
+Implement a safe, idempotent backfill process for existing customer email addresses from verified reservation records.
+
+Requirements:
+- Do not create duplicate contacts.
+- Do not import unrelated personal calendar attendees.
+- Do not assume historical customers consented to marketing.
+- Preserve existing consent and withdrawal records.
+- Do not overwrite valid consent information.
+- Allow administrators to export all customer email addresses and separately export only marketing-eligible contacts.
+
+Before executing any production backfill, show a preview with the expected number of records and obtain approval.
+
+### 6. Improve marketing consent management
+
+Allow authorized administrators to record consent withdrawals received directly from customers.
+
+Verify that withdrawal links work correctly and that failures are logged.
+
+Maintain separation between booking-related communications and marketing consent.
+
+## Phase 3 — Fix Duration Consistency
+
+### 7. Standardize reservation duration parsing
+
+The audit identified inconsistent handling of durations such as `1h30`.
+
+Use a shared, validated duration representation wherever practical.
+
+Ensure consistency across:
+- Admin calendar rendering.
+- Booking validation.
+- Google Calendar integration.
+- Reservation creation and modification.
+- Statistics calculations.
+
+Preserve existing reservation data and supported duration formats.
+
+Add regression tests.
+
+## Phase 4 — Verify Remaining Features
+
+Perform controlled integration tests for:
+
+1. Drag-and-drop between bays.
+2. Manual admin reservation creation.
+3. Reservation duplication.
+4. Full-day and partial-day closures.
+5. Recurring reservations ending April 30.
+6. SQL and Google Calendar synchronization.
+7. Persistence

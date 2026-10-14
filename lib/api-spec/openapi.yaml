@@ -139,6 +139,46 @@ paths:
           content:
             text/csv:
               schema: { type: string }
+  /admin/email-contacts/withdrawal:
+    post:
+      operationId: recordStaffWithdrawal
+      security: [{ staffSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StaffConsentWithdrawal" }
+      responses:
+        "200":
+          description: Retrait enregistré et audité
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OperationResult" }
+  /admin/email-contacts/backfill-preview:
+    get:
+      operationId: previewHistoricalContacts
+      security: [{ staffSession: [] }]
+      responses:
+        "200":
+          description: Provenance vérifiée, aucun import effectué
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HistoricalContactPreview" }
+  /admin/email-contacts/backfill:
+    post:
+      operationId: importHistoricalContacts
+      security: [{ staffSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HistoricalContactApproval" }
+      responses:
+        "200":
+          description: Import idempotent sans consentement présumé
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HistoricalContactResult" }
   /marketing/unsubscribe:
     post:
       operationId: withdrawMarketingConsent
@@ -344,6 +384,40 @@ components:
         conflicts:
           type: array
           items: { $ref: "#/components/schemas/ClosureBookingConflict" }
+    StaffConsentWithdrawal:
+      type: object
+      required: [email, reason]
+      properties:
+        email: { type: string, format: email }
+        reason: { type: string, minLength: 5, maxLength: 500 }
+    HistoricalContactApproval:
+      type: object
+      required: [fingerprint, confirmed]
+      properties:
+        fingerprint: { type: string, pattern: "^[a-f0-9]{64}$" }
+        confirmed: { type: boolean, const: true }
+    OperationResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    HistoricalContactPreview:
+      type: object
+      required: [ok, fingerprint, scannedBookings, eligibleBookings, eligibleContacts, newContacts, excludedBookings]
+      properties:
+        ok: { type: boolean }
+        fingerprint: { type: string }
+        scannedBookings: { type: integer }
+        eligibleBookings: { type: integer }
+        eligibleContacts: { type: integer }
+        newContacts: { type: integer }
+        excludedBookings: { type: integer }
+    HistoricalContactResult:
+      type: object
+      required: [ok, imported]
+      properties:
+        ok: { type: boolean }
+        imported: { type: integer }
     EmailContact:
       type: object
       required: [email, name, source, marketingConsent, consentAt, withdrawnAt, consentEvidence, createdAt]

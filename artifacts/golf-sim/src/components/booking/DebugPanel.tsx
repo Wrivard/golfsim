@@ -72,7 +72,7 @@ function BayTimeline({ bayId, bayName, bookings, hoveredSlot, schedule }: {
               key={i}
               className="absolute top-0 h-full bg-primary/80 rounded-sm"
               style={{ left: `${left}%`, width: `${width}%` }}
-              title={`${booking.customerName}: ${booking.startTime.split('T')[1]?.substring(0,5)} - ${booking.endTime.split('T')[1]?.substring(0,5)}`}
+              title={`Occupation: ${booking.startTime.split('T')[1]?.substring(0,5)} - ${booking.endTime.split('T')[1]?.substring(0,5)}`}
             />
           );
         })}

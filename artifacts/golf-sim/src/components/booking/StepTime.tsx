@@ -18,7 +18,7 @@ interface OptimizedResponse {
     simulatorId: string;
     startTime: string;
     endTime: string;
-    customerName: string;
+    customerName?: string;
   }>;
   schedule?: DaySchedule;
   meta: {

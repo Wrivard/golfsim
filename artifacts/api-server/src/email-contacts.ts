@@ -49,7 +49,7 @@ export function unsubscribeLink(contact: EmailContact): string | null {
   if (!contact.marketingConsent || !contact.consentAt || contact.withdrawnAt) return null;
   const payload = Buffer.from(JSON.stringify([contact.email, contact.consentAt.toISOString()])).toString("base64url");
   const origin = publicOrigin();
-  if (!origin) return null;
+  if (!origin) throw new Error("Public origin not configured for withdrawal links.");
   return `${origin}/desinscription#token=${payload}.${sign(payload)}`;
 }
 
@@ -71,16 +71,21 @@ export async function withdrawConsent(token: string): Promise<boolean> {
         parsed[0].length > 254 || !/^\d{4}-\d{2}-\d{2}T/.test(parsed[1])) return false;
     [email, timestamp] = parsed;
   } catch { return false; }
+  return withdrawContact(email, `Lien signé du consentement du ${timestamp}`, "lien de désinscription", timestamp);
+}
+
+/** The same row lock protects direct staff withdrawals and signed links. */
+export async function withdrawContact(email: string, evidence: string, source = "personnel", timestamp?: string): Promise<boolean> {
+  email = email.trim().toLowerCase();
   return db.transaction(async tx => {
     const [contact] = await tx.select().from(emailContacts).where(eq(emailContacts.email, email)).for("update");
-    if (!contact || !contact.consentAt || contact.consentAt.toISOString() !== timestamp) return false;
-    if (contact.marketingConsent && !contact.withdrawnAt) {
+    if (!contact || (timestamp && (!contact.consentAt || contact.consentAt.toISOString() !== timestamp))) return false;
+    if (!contact.withdrawnAt) {
       const at = new Date();
       await tx.update(emailContacts).set({ marketingConsent: false, withdrawnAt: at })
         .where(eq(emailContacts.email, email));
       await tx.insert(emailConsentEvents).values({
-        id: randomUUID(), email, action: "withdrawn", source: "lien de désinscription",
-        evidence: `Lien signé du consentement du ${timestamp}`,
+        id: randomUUID(), email, action: "withdrawn", source, evidence,
       });
     }
     return true;

@@ -92,10 +92,10 @@ test("booking notifications are wired only to public confirmation routes, after 
   const source = await readFile(new URL("./routes/routes.ts", import.meta.url), "utf8");
   const beforePublic = source.slice(source.indexOf("export async function registerRoutes"),source.indexOf('app.post("/api/book",'));
   assert.ok(!beforePublic.includes("sendBookingEmails("));
-  const single = source.slice(source.indexOf('app.post("/api/book",'),source.indexOf('app.post("/api/book/batch",'));
-  const batch = source.slice(source.indexOf('app.post("/api/book/batch",'));
-  for (const handler of [single,batch]) {
-    assert.ok(handler.indexOf("sendBookingEmails(") > handler.indexOf("await storage.updateBookingCalendarEventId"));
-    assert.match(handler, /emailStatus/);
-  }
+  const single = source.slice(source.indexOf('app.post("/api/book",'),source.indexOf('serverApp.post("/api/book/batch",'));
+  assert.ok(single.indexOf("sendBookingEmails(") > single.indexOf("await storage.updateBookingCalendarEventId"));
+  assert.match(single, /emailStatus/);
+  const retired = source.slice(source.indexOf('serverApp.post("/api/book/batch",'),source.indexOf('app.get("/api/reservations",'));
+  assert.match(retired,/status\(410\)/);
+  assert.doesNotMatch(retired,/storage\.|sendBookingEmails|createCalendarEvent/);
 });

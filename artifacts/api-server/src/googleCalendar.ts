@@ -1,4 +1,5 @@
 import { google, type calendar_v3 } from 'googleapis';
+import { durationMinutes as parseDurationStr } from "@workspace/booking-domain";
 import { storage } from './storage';
 import { markSourcePending, markSourceReady, sourceReady, withCalendarSource } from "./calendar-source";
 import crypto from 'crypto';
@@ -239,7 +240,7 @@ export async function revokeGoogleAccess(): Promise<void> {
   await storage.updateOAuthToken(tokenProvider, { accessToken: "", refreshToken: null, expiresAt: null });
 }
 
-async function getConfiguredCalendarId(): Promise<string> {
+export async function getConfiguredCalendarId(): Promise<string> {
   const settings = await storage.getCalendarSettings();
   if (previewRuntime()) {
     const id = process.env.PREVIEW_CALENDAR_ID;
@@ -251,7 +252,7 @@ async function getConfiguredCalendarId(): Promise<string> {
   return settings?.calendarId || 'primary';
 }
 
-function calendarEventForBooking(booking: {
+export function calendarEventForBooking(booking: {
   id?: string;
   name: string;
   email: string;
@@ -270,8 +271,8 @@ function calendarEventForBooking(booking: {
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, minutes] = booking.time.split(':').map(Number);
   
-  const durationHours = parseFloat(booking.duration.replace('h', ''));
-  const durationMinutes = Math.round(durationHours * 60);
+  const durationMinutes = parseDurationStr(booking.duration);
+  if (!durationMinutes) throw new Error("Invalid booking duration.");
   
   const startTotalMinutes = hours * 60 + minutes;
   const endTotalMinutes = startTotalMinutes + durationMinutes;
@@ -590,10 +591,6 @@ function parseTimeStr(time: string): number {
   return hours * 60 + (minutes || 0);
 }
 
-function parseDurationStr(duration: string): number {
-  const hours = parseFloat(duration.replace('h', ''));
-  return Math.round(hours * 60);
-}
 
 function parseCalendarEvent(event: any): {
   name: string;

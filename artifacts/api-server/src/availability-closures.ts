@@ -1,13 +1,10 @@
 import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
+import { durationMinutes, intervalsOverlap } from "@workspace/booking-domain";
 import { db } from "./db";
 import { availabilityClosures, bookings, type AvailabilityClosure, type InsertAvailabilityClosure } from "@workspace/db/schema";
 import { bookingSourceFilter } from "./calendar-source";
 import type { BookingRecord } from "./booking-logic";
-function durationMinutes(value: string): number {
-  const match = /^(\d+(?:\.\d+)?)h(\d{2})?$/.exec(value);
-  return match ? Math.round(Number(match[1]) * 60) + Number(match[2] || 0) : 60;
-}
 
 const validDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(
   value => !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
@@ -44,7 +41,7 @@ export function closureOverlaps(closure: Pick<AvailabilityClosure, "startDate" |
   if (date < closure.startDate || date > closure.endDate || !closure.bayIds.includes(bay)) return false;
   const [hours, minutes] = time.split(":").map(Number);
   const start = hours * 60 + minutes;
-  return start < closure.endMinute && start + durationMinutes > closure.startMinute;
+  return intervalsOverlap(start, start + durationMinutes, closure.startMinute, closure.endMinute);
 }
 
 export function isClosed(closures: AvailabilityClosure[], date: string, time: string,

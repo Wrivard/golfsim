@@ -1,8 +1,9 @@
 import { getOptimizedStartTimes, type BookingRecord, type DaySchedule } from "./booking-logic";
+import { isHalfHourStart } from "@workspace/booking-domain";
 
 /** The public POST booking window also applies to staff requests. */
 export function isWithinPublicBookingHours(time: string, durationMinutes: number): boolean {
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !Number.isFinite(durationMinutes) || durationMinutes < 60) return false;
+  if (!isHalfHourStart(time) || !Number.isInteger(durationMinutes) || durationMinutes < 60 || durationMinutes % 30 !== 0) return false;
   const [hours, minutes] = time.split(":").map(Number);
   const start = hours * 60 + minutes;
   return start >= 8 * 60 && start + durationMinutes <= 22 * 60;

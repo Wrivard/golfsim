@@ -38,7 +38,12 @@ import type {
   GetStaffAvailability200,
   GetStaffAvailabilityParams,
   HealthStatus,
+  HistoricalContactApproval,
+  HistoricalContactPreview,
+  HistoricalContactResult,
+  OperationResult,
   PublicBookingInput,
+  StaffConsentWithdrawal,
   SuccessResult
 } from './api.schemas';
 
@@ -670,6 +675,241 @@ export function useExportEmailContacts<TData = Awaited<ReturnType<typeof exportE
 
 
 
+
+export const getRecordStaffWithdrawalUrl = () => {
+
+
+
+
+  return `/api/admin/email-contacts/withdrawal`
+}
+
+export const recordStaffWithdrawal = async (staffConsentWithdrawal: StaffConsentWithdrawal, options?: Parameters<typeof customFetch>[1]): Promise<OperationResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<OperationResult>(getRecordStaffWithdrawalUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(staffConsentWithdrawal)
+  }
+);}
+
+
+
+
+
+export const getRecordStaffWithdrawalMutationKey = () => ['recordStaffWithdrawal'] as const;
+
+export const getRecordStaffWithdrawalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordStaffWithdrawal>>, TError,RecordStaffWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordStaffWithdrawal>>, TError,RecordStaffWithdrawalMutationVariables, TContext> => {
+
+const mutationKey = getRecordStaffWithdrawalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordStaffWithdrawal>>, RecordStaffWithdrawalMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordStaffWithdrawal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordStaffWithdrawalMutationResult = NonNullable<Awaited<ReturnType<typeof recordStaffWithdrawal>>>
+    export type RecordStaffWithdrawalMutationBody = BodyType<StaffConsentWithdrawal>
+    export type RecordStaffWithdrawalMutationError = ErrorType<unknown>
+    export type RecordStaffWithdrawalMutationVariables = {data: BodyType<StaffConsentWithdrawal>}
+
+    export const useRecordStaffWithdrawal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordStaffWithdrawal>>, TError,RecordStaffWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordStaffWithdrawal>>,
+        TError,
+        RecordStaffWithdrawalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecordStaffWithdrawalMutationOptions(options));
+    }
+
+export const getPreviewHistoricalContactsUrl = () => {
+
+
+
+
+  return `/api/admin/email-contacts/backfill-preview`
+}
+
+export const previewHistoricalContacts = async ( options?: Parameters<typeof customFetch>[1]): Promise<HistoricalContactPreview> => {
+
+  return customFetch<HistoricalContactPreview>(getPreviewHistoricalContactsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewHistoricalContactsQueryKey = () => {
+    return [
+    `/api/admin/email-contacts/backfill-preview`
+    ] as const;
+    }
+
+
+export const getPreviewHistoricalContactsQueryOptions = <TData = Awaited<ReturnType<typeof previewHistoricalContacts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewHistoricalContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewHistoricalContactsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewHistoricalContacts>>> = ({ signal }) => previewHistoricalContacts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewHistoricalContacts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewHistoricalContactsQueryResult = NonNullable<Awaited<ReturnType<typeof previewHistoricalContacts>>>
+export type PreviewHistoricalContactsQueryError = ErrorType<unknown>
+
+
+
+export function usePreviewHistoricalContacts<TData = Awaited<ReturnType<typeof previewHistoricalContacts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewHistoricalContacts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewHistoricalContactsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getImportHistoricalContactsUrl = () => {
+
+
+
+
+  return `/api/admin/email-contacts/backfill`
+}
+
+export const importHistoricalContacts = async (historicalContactApproval: HistoricalContactApproval, options?: Parameters<typeof customFetch>[1]): Promise<HistoricalContactResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<HistoricalContactResult>(getImportHistoricalContactsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(historicalContactApproval)
+  }
+);}
+
+
+
+
+
+export const getImportHistoricalContactsMutationKey = () => ['importHistoricalContacts'] as const;
+
+export const getImportHistoricalContactsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importHistoricalContacts>>, TError,ImportHistoricalContactsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importHistoricalContacts>>, TError,ImportHistoricalContactsMutationVariables, TContext> => {
+
+const mutationKey = getImportHistoricalContactsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importHistoricalContacts>>, ImportHistoricalContactsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  importHistoricalContacts(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportHistoricalContactsMutationResult = NonNullable<Awaited<ReturnType<typeof importHistoricalContacts>>>
+    export type ImportHistoricalContactsMutationBody = BodyType<HistoricalContactApproval>
+    export type ImportHistoricalContactsMutationError = ErrorType<unknown>
+    export type ImportHistoricalContactsMutationVariables = {data: BodyType<HistoricalContactApproval>}
+
+    export const useImportHistoricalContacts = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importHistoricalContacts>>, TError,ImportHistoricalContactsMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importHistoricalContacts>>,
+        TError,
+        ImportHistoricalContactsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getImportHistoricalContactsMutationOptions(options));
+    }
 
 export const getWithdrawMarketingConsentUrl = () => {
 

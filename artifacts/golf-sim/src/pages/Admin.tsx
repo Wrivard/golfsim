@@ -1,3 +1,4 @@
+import { durationMinutes } from "@workspace/booking-domain";
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -124,7 +125,7 @@ async function logout() {
 }
 
 function getPriceForBooking(durationStr: string): number {
-  const hours = parseFloat(durationStr?.replace('h', '') || '0');
+  const hours = durationMinutes(durationStr || "") / 60;
   const pricePerHour = hours === 1 ? 25 : 28;
   return hours * pricePerHour;
 }
@@ -391,7 +392,7 @@ export default function Admin() {
     });
     
     const totalHours = allBookings.reduce((acc: number, b: any) => {
-      const hours = parseFloat(b.duration?.replace('h', '') || '0');
+      const hours = durationMinutes(b.duration || "") / 60;
       return acc + hours;
     }, 0);
     

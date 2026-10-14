@@ -8,7 +8,7 @@ export interface Booking {
   simulatorId: string;
   startTime: string;
   endTime: string;
-  customerName: string;
+  customerName?: string;
 }
 
 export interface ScoreBreakdown {

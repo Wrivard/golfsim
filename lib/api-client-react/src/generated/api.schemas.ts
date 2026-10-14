@@ -82,6 +82,40 @@ export interface ClosureConflict {
   conflicts: ClosureBookingConflict[];
 }
 
+export interface StaffConsentWithdrawal {
+  email: string;
+  /**
+     * @minLength 5
+     * @maxLength 500
+     */
+  reason: string;
+}
+
+export interface HistoricalContactApproval {
+  /** @pattern ^[a-f0-9]{64}$ */
+  fingerprint: string;
+  confirmed: true;
+}
+
+export interface OperationResult {
+  ok: boolean;
+}
+
+export interface HistoricalContactPreview {
+  ok: boolean;
+  fingerprint: string;
+  scannedBookings: number;
+  eligibleBookings: number;
+  eligibleContacts: number;
+  newContacts: number;
+  excludedBookings: number;
+}
+
+export interface HistoricalContactResult {
+  ok: boolean;
+  imported: number;
+}
+
 export interface EmailContact {
   email: string;
   name: string;

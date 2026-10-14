@@ -15,6 +15,7 @@
     }
   },
   "references": [
+    { "path": "../../lib/booking-domain" },
     {
       "path": "../../lib/api-client-react"
     }

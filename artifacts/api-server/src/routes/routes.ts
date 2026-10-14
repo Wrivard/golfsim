@@ -29,12 +29,14 @@ import { getConfirmationBay } from "../confirmation-bay";
 import { isStaffSlotAvailable, isWithinPublicBookingHours } from "../staff-booking";
 import { bookingEditSchema, isEditedSlotAvailable } from "../booking-edit";
 import { z } from "zod";
+import { durationMinutes as parseDurationToMinutes, intervalsOverlap, isHalfHourStart, publicOccupancy } from "@workspace/booking-domain";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
 import { registerContact } from "../contact";
 import { registerCalendarJobs, runCalendarMaintenance } from "../calendar-jobs";
 import { closureInput, getClosuresForDate, closureOccupancy, isClosed, listClosures, saveClosure, removeClosure } from "../availability-closures";
-import { listContacts, csvContacts, withdrawConsent, contactUnsubscribeLink } from "../email-contacts";
+import { listContacts, csvContacts, withdrawConsent, withdrawContact, contactUnsubscribeLink } from "../email-contacts";
+import { historicalContactPreview, importHistoricalContacts } from "../email-backfill";
 
 declare module "express-session" {
   interface SessionData {
@@ -48,8 +50,8 @@ const bookingRequestSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   date: z.string().transform((str) => new Date(str)),
-  time: z.string(),
-  duration: z.string(),
+  time: z.string().refine(isHalfHourStart, "Choisissez une heure ou une demi-heure."),
+  duration: z.string().refine(value => parseDurationToMinutes(value) >= 60 && parseDurationToMinutes(value) <= 240 && parseDurationToMinutes(value) % 30 === 0),
   bayType: z.enum(["1", "2", "3", "4"]),
   players: z.number().min(1).max(4),
   notes: z.string().optional(),
@@ -62,7 +64,7 @@ const staffBookingSchema = z.object({
   phone: z.string().max(100).default(""),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =>
     !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value),
-  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  time: z.string().refine(isHalfHourStart, "Choisissez une heure ou une demi-heure."),
   duration: z.enum(["1h", "2h", "3h", "4h"]),
   bayType: z.enum(["1", "2", "3", "4"]),
   players: z.number().int().min(1).max(4),
@@ -91,7 +93,7 @@ function checkTimeOverlap(
   };
   
   const getDurationMinutes = (duration: string) => {
-    return parseInt(duration.replace('h', ''), 10) * 60;
+    return parseDurationToMinutes(duration);
   };
 
   const existingStart = parseTime(existingTime);
@@ -312,6 +314,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/email-contacts", requireAdmin, async (_req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "no-store");
     try { return res.json({ ok: true, contacts: await listContacts() }); }
     catch { return res.status(503).json({ ok: false, message: "Banque de courriels indisponible." }); }
   });
@@ -325,6 +328,43 @@ export async function registerRoutes(
       res.setHeader("Cache-Control", "no-store");
       return res.send(csvContacts(await listContacts(), marketing));
     } catch { return res.status(503).json({ ok: false, message: "Export indisponible." }); }
+  });
+  app.post("/api/admin/email-contacts/withdrawal", requireAdmin, async (req: Request, res: Response) => {
+    const input = z.object({
+      email: z.string().trim().email(), reason: z.string().trim().min(5).max(500),
+    }).strict().safeParse(req.body);
+    if (!input.success) return res.status(400).json({ ok: false, message: "Courriel et motif requis." });
+    try {
+      const found = await withdrawContact(input.data.email,
+        `Demande reçue par le personnel : ${input.data.reason}`, `personnel:${req.session.adminId}`);
+      if (!found) return res.status(404).json({ ok: false, message: "Contact introuvable." });
+      return res.json({ ok: true });
+    } catch {
+      console.error("Staff consent withdrawal failed.");
+      return res.status(503).json({ ok: false, message: "Retrait non enregistré. Réessayez." });
+    }
+  });
+  app.get("/api/admin/email-contacts/backfill-preview", requireAdmin, async (_req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "no-store");
+    try { return res.json({ ok: true, ...(await historicalContactPreview()).summary }); }
+    catch {
+      console.error("Historical contact verification failed.");
+      return res.status(503).json({ ok: false, message: "Impossible de vérifier la provenance dans le calendrier connecté. Aucun import effectué." });
+    }
+  });
+  app.post("/api/admin/email-contacts/backfill", requireAdmin, async (req: Request, res: Response) => {
+    const input = z.object({ fingerprint: z.string().regex(/^[a-f0-9]{64}$/), confirmed: z.literal(true) }).strict().safeParse(req.body);
+    if (!input.success) return res.status(400).json({ ok: false, message: "Prévisualisation et confirmation explicite requises." });
+    try {
+      const preview = await historicalContactPreview();
+      if (preview.summary.fingerprint !== input.data.fingerprint)
+        return res.status(409).json({ ok: false, message: "Les réservations ou le calendrier ont changé. Analysez de nouveau avant de confirmer." });
+      const imported = await importHistoricalContacts(preview.eligible);
+      return res.json({ ok: true, imported });
+    } catch {
+      console.error("Historical contact import failed.");
+      return res.status(503).json({ ok: false, message: "Import non enregistré. Aucun consentement n’est présumé." });
+    }
   });
   const unsubscribeLimiter = rateLimit({
     scope: "unsubscribe", windowMs: 60000, maxRequests: 20, message: "Réessayez dans une minute.",
@@ -340,7 +380,11 @@ export async function registerRoutes(
 
   app.get("/api/closures", async (_req: Request, res: Response) => {
     try {
-      const closures = await listClosures();
+      const closures = (await listClosures()).map(c => ({
+        id: c.id, kind: c.kind, startDate: c.startDate, endDate: c.endDate,
+        startMinute: c.startMinute, endMinute: c.endMinute, bayIds: c.bayIds,
+        title: c.kind === "physical" ? "Fermeture" : "Réservations en ligne suspendues",
+      }));
       return res.json({ ok: true, closures });
     } catch {
       return res.status(503).json({ ok: false, message: "Fermetures indisponibles." });
@@ -549,6 +593,11 @@ export async function registerRoutes(
         const result = await storage.updateBookingWithConflictCheck(id,updates,
           (others,current) => {
             const next = {...current,...updates};
+            // Correcting a name/email must not requalify an existing slot through
+            // today's optimizer/schedule. Only occupancy changes need validation.
+            const slotChanged = next.date.toISOString().slice(0,10) !== current.date.toISOString().slice(0,10) ||
+              next.time !== current.time || next.duration !== current.duration || next.bayType !== current.bayType;
+            if (!slotChanged) return false;
             return !isEditedSlotAvailable(id,targetDate,next.time,parseDurationToMinutes(next.duration),next.bayType,
                [...formatBookingsForLogic(others,dateStr), ...closureOccupancy(closures,dateStr,"staff")],daySchedule || undefined);
           },
@@ -739,10 +788,6 @@ export async function registerRoutes(
   const MIN_DURATION_HOURS = 1;
   const PRICE_PER_HOUR = 25;
   
-  function parseDurationToMinutes(duration: string): number {
-    const hours = parseFloat(duration.replace('h', ''));
-    return Math.round(hours * 60);
-  }
   
   function parseTimeToMinutes(time: string): number {
     const [hours, minutes] = time.split(':').map(Number);
@@ -852,7 +897,7 @@ export async function registerRoutes(
         };
       });
       
-      return res.json({ ok: true, bookings: formattedBookings });
+      return res.json({ ok: true, bookings: publicOccupancy(formattedBookings) });
     } catch (error) {
       console.error("Error fetching day bookings:", error);
       return res.status(500).json({ ok: false, message: "Erreur lors de la récupération des réservations" });
@@ -928,7 +973,7 @@ export async function registerRoutes(
           const clock = new Date(slot.time);
           return { ...slot, bookingTime: `${String(clock.getHours()).padStart(2, "0")}:${String(clock.getMinutes()).padStart(2, "0")}` };
         }),
-        bookings: formattedBookings,
+        bookings: audience === "staff" ? formattedBookings : publicOccupancy(formattedBookings),
         schedule,
         meta: {
           date,
@@ -959,7 +1004,9 @@ export async function registerRoutes(
       const endDate = new Date(end as string);
       endDate.setHours(23, 59, 59, 999);
       
-      const durationHours = duration ? parseFloat(duration as string) : MIN_DURATION_HOURS;
+      const durationHours = duration ? parseDurationToMinutes(String(duration)) / 60 : MIN_DURATION_HOURS;
+      if (durationHours < 1 || durationHours > 4 || (durationHours * 60) % 30 !== 0)
+        return res.status(400).json({ ok: false, message: "Durée invalide." });
       
       const bookings = await storage.getBookingsByDateRange(startDate, endDate);
       
@@ -1000,7 +1047,7 @@ export async function registerRoutes(
       const startMinutes = parseTimeToMinutes(validatedData.time);
       const durationMinutes = parseDurationToMinutes(validatedData.duration);
       const endMinutes = startMinutes + durationMinutes;
-      const durationHours = parseFloat(validatedData.duration.replace('h', ''));
+      const durationHours = durationMinutes / 60;
       
       if (startMinutes < OPENING_HOUR * 60) {
         return res.status(400).json({
@@ -1077,7 +1124,7 @@ export async function registerRoutes(
             const existingStartMinutes = parseTimeToMinutes(existing.time);
             const existingDurationMinutes = parseDurationToMinutes(existing.duration);
             const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
-            if (startMinutes < existingEndMinutes && endMinutes > existingStartMinutes) {
+            if (intervalsOverlap(startMinutes, endMinutes, existingStartMinutes, existingEndMinutes)) {
               return true;
             }
           }
@@ -1135,7 +1182,10 @@ export async function registerRoutes(
         });
       }
 
-      const withdrawalLink = await contactUnsubscribeLink(booking.email).catch(() => null);
+      const withdrawalLink = await contactUnsubscribeLink(booking.email).catch(() => {
+        console.warn("Booking saved; marketing withdrawal link unavailable.", { bookingId: booking.id });
+        return null;
+      });
       const emailStatus = await sendBookingEmails([booking], undefined, undefined, withdrawalLink);
       return res.status(201).json({
         ok: true,
@@ -1170,233 +1220,11 @@ export async function registerRoutes(
     }
   });
 
-  const batchBookingSchema = z.object({
-    items: z.array(z.object({
-      date: z.string().transform((str) => new Date(str)),
-      time: z.string(),
-      duration: z.string(),
-      bayType: z.enum(["1", "2", "3", "4"]),
-    })).min(1),
-    name: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    players: z.number().min(1).max(4),
-    notes: z.string().optional(),
-  });
+  // No active UI uses the retired batch flow. Never enter booking or Google code.
+  serverApp.post("/api/book/batch", (_req: Request, res: Response) =>
+    res.status(410).json({ ok: false, message: "Ce parcours n’est plus disponible. Utilisez la page de réservation." }));
 
-  app.post("/api/book/batch", bookingRateLimiter, async (req: Request, res: Response) => {
-    try {
-      const validatedData = batchBookingSchema.parse(req.body);
-      
-      const sanitizedName = sanitizeString(validatedData.name);
-      const sanitizedEmail = sanitizeEmail(validatedData.email);
-      const sanitizedPhone = validatedData.phone ? sanitizePhone(validatedData.phone) : null;
-      const sanitizedNotes = validatedData.notes ? sanitizeString(validatedData.notes) : null;
-      
-      if (!sanitizedEmail) {
-        return res.status(400).json({
-          ok: false,
-          message: "Adresse courriel invalide.",
-        });
-      }
-      
-      for (const item of validatedData.items) {
-        const startMinutes = parseTimeToMinutes(item.time);
-        const durationMinutes = parseDurationToMinutes(item.duration);
-        const endMinutes = startMinutes + durationMinutes;
-        const durationHours = parseFloat(item.duration.replace('h', ''));
-        
-        if (startMinutes < OPENING_HOUR * 60) {
-          return res.status(400).json({
-            ok: false,
-            message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
-          });
-        }
-        
-        if (endMinutes > CLOSING_HOUR * 60) {
-          return res.status(400).json({
-            ok: false,
-            message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
-          });
-        }
-        
-        if (durationHours < MIN_DURATION_HOURS) {
-          return res.status(400).json({
-            ok: false,
-            message: `La durée minimale est de ${MIN_DURATION_HOURS} heure.`,
-          });
-        }
-        
-        if (!BAY_NUMBERS.includes(item.bayType)) {
-          return res.status(400).json({
-            ok: false,
-            message: `Baie invalide. Choisissez parmi: ${BAY_NUMBERS.join(', ')}.`,
-          });
-        }
-      }
-      
-      const createdBookings: any[] = [];
-      const createdCalendarEvents: string[] = [];
-      
-      try {
-        for (const item of validatedData.items) {
-          const bookingData = {
-            name: sanitizedName,
-            email: sanitizedEmail,
-            phone: sanitizedPhone,
-            date: item.date,
-            time: item.time,
-            duration: item.duration,
-            bayType: item.bayType,
-            players: validatedData.players,
-            notes: sanitizedNotes,
-          };
-
-          const { booking, conflict } = await storage.createBookingWithConflictCheck(
-            bookingData,
-            (existingBookings: Booking[]) => {
-              const requestedBay = item.bayType;
-              const newStartMinutes = parseTimeToMinutes(item.time);
-              const newDurationMinutes = parseDurationToMinutes(item.duration);
-              const newEndMinutes = newStartMinutes + newDurationMinutes;
-              
-              const newSlots = new Set<number>();
-              for (let m = newStartMinutes; m < newEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
-                newSlots.add(m);
-              }
-              
-              for (const existing of existingBookings) {
-                if (existing.bayType !== requestedBay) continue;
-                
-                const existingStartMinutes = parseTimeToMinutes(existing.time);
-                const existingDurationMinutes = parseDurationToMinutes(existing.duration);
-                const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
-                
-                for (let m = existingStartMinutes; m < existingEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
-                  if (newSlots.has(m)) {
-                    return true;
-                  }
-                }
-              }
-              
-              for (const prevBooking of createdBookings) {
-                if (prevBooking.bayType !== requestedBay) continue;
-                
-                const prevDateStr = new Date(prevBooking.date).toISOString().split('T')[0];
-                const currentDateStr = item.date.toISOString().split('T')[0];
-                if (prevDateStr !== currentDateStr) continue;
-                
-                const prevStartMinutes = parseTimeToMinutes(prevBooking.time);
-                const prevDurationMinutes = parseDurationToMinutes(prevBooking.duration);
-                const prevEndMinutes = prevStartMinutes + prevDurationMinutes;
-                
-                for (let m = prevStartMinutes; m < prevEndMinutes && m < CLOSING_HOUR * 60; m += 30) {
-                  if (newSlots.has(m)) {
-                    return true;
-                  }
-                }
-              }
-              
-              return false;
-            }
-          );
-
-          if (conflict || !booking) {
-            for (const prevBooking of createdBookings) {
-              await storage.deleteBooking(prevBooking.id);
-            }
-            for (const eventId of createdCalendarEvents) {
-              try {
-                await deleteCalendarEvent(eventId);
-              } catch (e) {
-                console.error("Failed to cleanup calendar event:", e);
-              }
-            }
-            
-            return res.status(409).json({
-              ok: false,
-              message: `Le créneau pour la Baie ${item.bayType} le ${item.date.toLocaleDateString('fr-CA')} à ${item.time} n'est pas disponible.`,
-            });
-          }
-
-          createdBookings.push(booking);
-
-          try {
-            const calendarEventId = await createCalendarEvent({
-              name: validatedData.name,
-              email: validatedData.email,
-              phone: validatedData.phone || null,
-              date: item.date,
-              time: item.time,
-              duration: item.duration,
-              bayType: item.bayType,
-              players: validatedData.players,
-              notes: validatedData.notes || null,
-            });
-
-            if (!calendarEventId) throw new Error("Calendar did not confirm an event ID.");
-            if (calendarEventId) {
-              createdCalendarEvents.push(calendarEventId);
-              await storage.updateBookingCalendarEventId(booking.id, calendarEventId);
-            }
-          } catch (calendarError) {
-            console.error("Failed to create calendar event:", calendarError);
-            throw calendarError;
-          }
-        }
-
-        const emailStatus = await sendBookingEmails(createdBookings);
-        return res.status(201).json({
-          ok: true,
-          emailStatus,
-          count: createdBookings.length,
-          reservations: createdBookings.map(b => ({
-            id: b.id,
-            name: b.name,
-            email: b.email,
-            date: b.date,
-            time: b.time,
-            duration: b.duration,
-            bayType: b.bayType,
-            players: b.players,
-          })),
-        });
-      } catch (innerError) {
-        for (const prevBooking of createdBookings) {
-          try {
-            await storage.deleteBooking(prevBooking.id);
-          } catch (e) {
-            console.error("Failed to cleanup booking:", e);
-          }
-        }
-        for (const eventId of createdCalendarEvents) {
-          try {
-            await deleteCalendarEvent(eventId);
-          } catch (e) {
-            console.error("Failed to cleanup calendar event:", e);
-          }
-        }
-        throw innerError;
-      }
-    } catch (error) {
-      console.error("Batch booking error:", error);
-      
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          ok: false,
-          message: "Données de réservation invalides.",
-          errors: error.errors,
-        });
-      }
-
-      return res.status(500).json({
-        ok: false,
-        message: "Une erreur est survenue. Veuillez réessayer.",
-      });
-    }
-  });
-
-  app.get("/api/reservations", async (_req: Request, res: Response) => {
+  app.get("/api/reservations", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const bookings = await storage.getAllBookings();
       return res.json({ ok: true, reservations: bookings });
