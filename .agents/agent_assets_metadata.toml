@@ -147,3 +147,17 @@ mtime_ms = 1791860645724
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/9075429f-0594-41a7-ad5c-9516db80cd66/87adc443-6f69-4224-ab8c-78a410398678"
 storage_version_token = "1791861819955744"
 content_type = "text/html"
+
+[[outputs]]
+id = "YdFLQJMsQToOEycSlVi-p"
+uri = "file://generated-artifacts/guide-reservation-admin/Golf-SIM-guide-personnel-reservation-admin.pdf"
+type = "pdf"
+title = "Golf SIM — Guide du personnel : réservation admin"
+description = "PDF imprimable de 3 pages en français, avec captures de l’interface actuelle et flèches numérotées. Parcours « Ajouter une réservation » du calendrier admin uniquement. Format Lettre paysage, fond blanc."
+logical_id = "76b8f2ab-46b7-4acc-870d-ce783e9623ce"
+content_hash = "sha256:a43e72f0867548e46710af3628381db8e4855771eadf6958341fd95b0901657d"
+size = 433610
+mtime_ms = 1792006834511
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/76b8f2ab-46b7-4acc-870d-ce783e9623ce/b2c7d2dc-d941-442f-9e5d-42410e224af0"
+storage_version_token = "1792006855937754"
+content_type = "application/pdf"

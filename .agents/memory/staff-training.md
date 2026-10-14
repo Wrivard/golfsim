@@ -21,9 +21,9 @@ Réduire les marges inutiles du PDF imprimable et agrandir le contenu sans défo
 
 **How to apply:** Éviter de cumuler le padding des diapositives et les marges d’impression. Garder une marge sûre pour le papier Lettre et vérifier l’alignement des accès confidentiels après tout changement de mise à l’échelle.
 
-Le guide compte sept pages : quatre pour réserver côté client, deux pour se connecter et modifier une réservation existante, puis une dernière pour repérer les trous dans le calendrier admin et comprendre « Meilleur choix » côté client. Utiliser des instructions simples « 1, 2, 3 », avec chaque numéro une seule fois et son texte juste à côté. Retirer les étapes évidentes comme ouvrir le site.
+Le guide actuel doit couvrir uniquement la création d’une réservation depuis « Ajouter une réservation » dans la vue calendrier admin, et non le parcours public. Utiliser des instructions simples « 1, 2, 3 », avec chaque numéro une seule fois et son texte juste à côté. Retirer les étapes évidentes comme ouvrir le site.
 
-**Why:** Le personnel doit pouvoir suivre rapidement le guide imprimé. Après avoir demandé six pages, l’utilisateur a explicitement ajouté une septième page avec un exemple de calendrier rempli et de trous disponibles.
+**Why:** L’utilisateur a demandé de refaire le PDF uniquement pour réserver depuis le nouveau bouton du calendrier admin, à la place de la réservation publique. Le personnel doit pouvoir suivre rapidement le guide imprimé.
 
 **How to apply:** Regrouper les actions nécessaires, ne pas répéter les numéros sur les captures et dans le texte, et éviter les parcours alternatifs non essentiels.
 
