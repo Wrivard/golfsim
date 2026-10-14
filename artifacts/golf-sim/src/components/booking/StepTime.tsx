@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { useBookingStore } from "@/lib/booking-store";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -43,6 +43,7 @@ interface StepTimeProps {
 }
 
 export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTimeProps) {
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { 
     selectedDate, 
     selectedDuration, 
@@ -54,7 +55,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
   } = useBookingStore();
 
   const dateStr = useMemo(() => {
-    return selectedDate.toISOString().split('T')[0];
+    return format(selectedDate, "yyyy-MM-dd");
   }, [selectedDate]);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -111,7 +112,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
           Retour
         </Button>
 
-        <Popover>
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -125,15 +126,22 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
               {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : <span>Choisir une date</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 rounded-2xl border-border/50 shadow-lg overflow-hidden" align="center" sideOffset={8}>
+          <PopoverContent
+            className="w-[min(350px,calc(100vw-24px))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto p-0 rounded-2xl border-border/50 shadow-lg"
+            align="end" sideOffset={8} collisionPadding={12}
+          >
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={(date) => date && setDate(date)}
+              onSelect={(date) => {
+                if (!date) return;
+                setDate(date);
+                setCalendarOpen(false);
+              }}
               initialFocus
               locale={fr}
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              className="p-5 min-w-[350px] rounded-2xl"
+              className="p-3 w-full [--cell-size:2.25rem] sm:[--cell-size:2.75rem] rounded-2xl"
               classNames={{
                 today: "ring-2 ring-primary/30 rounded-lg",
                 day: "group/day relative aspect-square h-full w-full select-none p-0 text-center",

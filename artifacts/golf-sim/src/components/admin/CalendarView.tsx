@@ -12,6 +12,8 @@ import { parseDurationToMinutes } from "./calendarDuration";
 import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
 import RecurringBookingDialog from "./RecurringBookingDialog";
 import DeleteSeriesDialog from "./DeleteSeriesDialog";
+import { Calendar as DateCalendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Booking {
   id: string;
@@ -38,7 +40,7 @@ const BAY_COLORS: Record<string, { bg: string; bgSolid: string; border: string; 
   "1": { bg: "bg-emerald-50", bgSolid: "#ecfdf5", border: "border-emerald-400", text: "text-emerald-800", headerBg: "bg-emerald-100" },
   "2": { bg: "bg-blue-50", bgSolid: "#eff6ff", border: "border-blue-400", text: "text-blue-800", headerBg: "bg-blue-100" },
   "3": { bg: "bg-amber-50", bgSolid: "#fffbeb", border: "border-amber-400", text: "text-amber-800", headerBg: "bg-amber-100" },
-  "4": { bg: "bg-purple-50", bgSolid: "#faf5ff", border: "border-purple-400", text: "text-purple-800", headerBg: "bg-purple-100" },
+  "4": { bg: "bg-red-50", bgSolid: "#fef2f2", border: "border-red-400", text: "text-red-800", headerBg: "bg-red-100" },
 };
 
 function parseTimeToMinutes(time: string): number {
@@ -60,6 +62,7 @@ const TIME_COL_WIDTH = 56;
 
 export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [recurring, setRecurring] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [createPrefill, setCreatePrefill] = useState<BookingPrefill | null>(null);
@@ -114,14 +117,30 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" onClick={() => openCreate()} className="bg-[#2B5734] hover:bg-[#23482b] text-white gap-1.5">
-                <Plus className="w-4 h-4" /> Ajouter
+                <Plus className="w-4 h-4" /> Ajouter une réservation
               </Button>
               <Button size="sm" onClick={()=>setRecurring(true)} className="bg-[#2B5734] hover:bg-[#23482b] text-white" data-testid="button-recurring">Réservation récurrente</Button>
               <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-prev-day">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))} className={`text-white hover:bg-white/10 text-sm font-heading uppercase tracking-wider ${isToday ? "bg-white/10" : ""}`} data-testid="button-today">
-                {format(selectedDate, "EEEE d MMMM", { locale: fr })}
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-sm font-heading uppercase tracking-wider" data-testid="button-admin-date-picker" aria-label="Choisir la date du calendrier">
+                    {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" collisionPadding={12} className="w-[min(350px,calc(100vw-24px))] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
+                  <DateCalendar mode="single" selected={selectedDate} defaultMonth={selectedDate} locale={fr} initialFocus
+                    className="w-full p-3 [--cell-size:2.25rem] sm:[--cell-size:2.75rem]"
+                    onSelect={date => {
+                      if (!date) return;
+                      setSelectedDate(startOfDay(date));
+                      setDatePickerOpen(false);
+                    }} />
+                </PopoverContent>
+              </Popover>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))} className={`text-white hover:bg-white/10 text-sm ${isToday ? "bg-white/10" : ""}`} data-testid="button-today">
+                Aujourd’hui
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-next-day">
                 <ChevronRight className="w-4 h-4" />

@@ -305,7 +305,7 @@ function calendarEventForBooking(booking: {
     "1": "10",
     "2": "7",
     "3": "9",
-    "4": "6",
+    "4": "11",
   };
   
   const event = {
