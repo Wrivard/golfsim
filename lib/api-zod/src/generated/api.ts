@@ -8,6 +8,28 @@
 import * as zod from 'zod';
 
 
+export const getStaffAvailabilityQueryDurationMin = 60;
+export const getStaffAvailabilityQueryDurationMax = 240;
+
+
+
+export const GetStaffAvailabilityQueryParams = zod.object({
+  "date": zod.date(),
+  "duration": zod.coerce.number().int().min(getStaffAvailabilityQueryDurationMin).max(getStaffAvailabilityQueryDurationMax)
+})
+
+export const GetStaffAvailabilityResponse = zod.object({
+  "ok": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "time": zod.string(),
+  "bookingTime": zod.string(),
+  "assignedBayId": zod.string(),
+  "score": zod.number(),
+  "label": zod.string().optional()
+}))
+})
+
+
 export const getPublicClosuresResponseClosuresItemOneStartMinuteMin = 0;
 export const getPublicClosuresResponseClosuresItemOneStartMinuteMax = 1439;
 

@@ -11,6 +11,38 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /admin/availability/optimized:
+    get:
+      operationId: getStaffAvailability
+      security: [{ staffSession: [] }]
+      parameters:
+        - { in: query, name: date, required: true, schema: { type: string, format: date } }
+        - { in: query, name: duration, required: true, schema: { type: integer, minimum: 60, maximum: 240 } }
+      responses:
+        "200":
+          description: Disponibilités personnel ; fermetures physiques respectées, restriction publique ignorée
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, slots]
+                properties:
+                  ok: { type: boolean }
+                  slots:
+                    type: array
+                    items:
+                      type: object
+                      required: [time, bookingTime, assignedBayId, score]
+                      properties:
+                        time: { type: string }
+                        bookingTime: { type: string }
+                        assignedBayId: { type: string }
+                        score: { type: number }
+                        label: { type: string }
+                      additionalProperties: true
+                additionalProperties: true
+        "401":
+          description: Session personnel requise
   /closures:
     get:
       operationId: getPublicClosures

@@ -8,7 +8,7 @@ import { format, addDays, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { parseDurationToMinutes } from "./calendarDuration";
+import { parseDurationToMinutes, bookingGeometry } from "./calendarDuration";
 import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
 import RecurringBookingDialog from "./RecurringBookingDialog";
 import DeleteSeriesDialog from "./DeleteSeriesDialog";
@@ -240,10 +240,8 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                 </div>
                               ))}
                               {bayBookings.map((booking) => {
-                                const startMin = parseTimeToMinutes(booking.time);
                                 const durMin = parseDurationToMinutes(booking.duration);
-                                const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT;
-                                const height = (durMin / 60) * HOUR_HEIGHT;
+                                const { top, height, endTime } = bookingGeometry(booking.time, booking.duration, START_HOUR, HOUR_HEIGHT);
                                 const isShort = durMin <= 60;
 
                                 return (
@@ -251,6 +249,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                     key={booking.id}
                                     className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-grab overflow-hidden z-[2]`}
                                     style={{ top, height }}
+                                    title={`${booking.name} · ${booking.time}–${endTime} · Baie ${booking.bayType}`}
                                     draggable
                                     onDragStart={e => {
                                       e.stopPropagation();
@@ -266,6 +265,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       <p className={`font-bold truncate ${colors.text} ${isShort ? "text-[11px]" : "text-xs"}`}>
                                         {booking.name}
                                       </p>
+                                      {isShort && durMin >= 60 && <p className="text-[10px] text-muted-foreground truncate">{booking.time}–{endTime}</p>}
                                       {!isShort && (
                                         <>
                                           <p className="text-[10px] text-muted-foreground truncate mt-0.5">
@@ -610,7 +610,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
           <Button variant="outline" className="text-red-700" disabled={isDeleting} onClick={()=>setDeleteSeries(true)} data-testid="button-delete-series">Supprimer toute la série</Button>
         </div>}
         {deleteSeries && seriesId && <DeleteSeriesDialog seriesId={seriesId} onClose={()=>setDeleteSeries(false)} onDeleted={onClose}/>}
-        <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
+        <div className="px-6 py-4 bg-gray-50 border-t flex flex-wrap gap-3 items-center justify-between">
           {isEditing ? (
             <>
               <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setIsEditing(false)}>
@@ -632,7 +632,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
               <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onClose}>
                 Fermer
               </Button>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Button variant="outline" size="default" onClick={() => onDuplicate?.(booking)} data-testid="button-duplicate-booking">
                   Dupliquer la réservation
                 </Button>

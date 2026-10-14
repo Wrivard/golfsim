@@ -48,7 +48,7 @@ export default function EmailContactBank() {
       </div>
 
       <div className="flex flex-wrap gap-3 items-center">
-        <Button disabled={busy !== null} onClick={() => download(false)} data-testid="button-export-all"><Download className="h-4 w-4 mr-2" />{busy === "all" ? "Préparation..." : "CSV complet"}</Button>
+        <Button disabled={busy !== null} onClick={() => download(false)} data-testid="button-export-all"><Download className="h-4 w-4 mr-2" />{busy === "all" ? "Préparation..." : "Exporter en CSV"}</Button>
         <Button variant="outline" disabled={busy !== null} onClick={() => download(true)} data-testid="button-export-marketing"><Download className="h-4 w-4 mr-2" />{busy === "marketing" ? "Préparation..." : "CSV marketing seulement"}</Button>
         <span className="text-sm text-muted-foreground">Les exports sont toujours complets, indépendamment de la recherche.</span>
       </div>

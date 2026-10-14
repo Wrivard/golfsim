@@ -35,6 +35,8 @@ import type {
   CreatePublicBooking201,
   EmailContactList,
   ExportEmailContactsParams,
+  GetStaffAvailability200,
+  GetStaffAvailabilityParams,
   HealthStatus,
   PublicBookingInput,
   SuccessResult
@@ -66,6 +68,84 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetStaffAvailabilityUrl = (params: GetStaffAvailabilityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/availability/optimized?${stringifiedParams}` : `/api/admin/availability/optimized`
+}
+
+export const getStaffAvailability = async (params: GetStaffAvailabilityParams, options?: Parameters<typeof customFetch>[1]): Promise<GetStaffAvailability200> => {
+
+  return customFetch<GetStaffAvailability200>(getGetStaffAvailabilityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStaffAvailabilityQueryKey = (params?: GetStaffAvailabilityParams,) => {
+    return [
+    `/api/admin/availability/optimized`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStaffAvailabilityQueryOptions = <TData = Awaited<ReturnType<typeof getStaffAvailability>>, TError = ErrorType<void>>(params: GetStaffAvailabilityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStaffAvailability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStaffAvailabilityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStaffAvailability>>> = ({ signal }) => getStaffAvailability(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStaffAvailability>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStaffAvailabilityQueryResult = NonNullable<Awaited<ReturnType<typeof getStaffAvailability>>>
+export type GetStaffAvailabilityQueryError = ErrorType<void>
+
+
+
+export function useGetStaffAvailability<TData = Awaited<ReturnType<typeof getStaffAvailability>>, TError = ErrorType<void>>(
+ params: GetStaffAvailabilityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStaffAvailability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStaffAvailabilityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetPublicClosuresUrl = () => {
 

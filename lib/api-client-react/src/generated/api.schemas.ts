@@ -287,6 +287,30 @@ export interface HealthStatus {
   status: string;
 }
 
+export type GetStaffAvailabilityParams = {
+date: string;
+/**
+ * @minimum 60
+ * @maximum 240
+ */
+duration: number;
+};
+
+export type GetStaffAvailability200SlotsItem = {
+  time: string;
+  bookingTime: string;
+  assignedBayId: string;
+  score: number;
+  label?: string;
+  [key: string]: unknown;
+ };
+
+export type GetStaffAvailability200 = {
+  ok: boolean;
+  slots: GetStaffAvailability200SlotsItem[];
+  [key: string]: unknown;
+ };
+
 export type ExportEmailContactsParams = {
 marketingOnly?: boolean;
 };
