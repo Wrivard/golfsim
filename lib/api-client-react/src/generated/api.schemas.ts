@@ -188,6 +188,12 @@ export interface PublicBookingInput {
      * @maxLength 0
      */
   website?: string;
+  /**
+     * Jeton Cloudflare vérifié côté serveur avant tout enregistrement.
+     * @minLength 1
+     * @maxLength 2048
+     */
+  turnstileToken: string;
 }
 
 export interface BookingSeriesSession {
@@ -361,6 +367,8 @@ export type GetBookingProtection200 = {
   ok: boolean;
   token: string;
   waitMs: number;
+  /** Clé publique du widget Turnstile. */
+  turnstileSiteKey: string;
 };
 
 export type CreatePublicBooking201 = {

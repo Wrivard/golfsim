@@ -5,8 +5,9 @@ import { fr } from "date-fns/locale";
 import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BookingProtection } from "@/hooks/use-booking-protection";
+import { TurnstileChallenge } from "./TurnstileChallenge";
 
 function getPricePerHour(durationMinutes: number): number {
   return durationMinutes === 60 ? 25 : 28;
@@ -14,6 +15,7 @@ function getPricePerHour(durationMinutes: number): number {
 
 async function createBooking(data: {
   bookingToken: string;
+  turnstileToken: string;
   website: string;
   name: string;
   email: string;
@@ -40,7 +42,8 @@ async function createBooking(data: {
   try { result = await response.json(); }
   catch { throw new Error(uncertain); }
   if (!response.ok || !result.ok) {
-    throw Object.assign(new Error(response.status >= 500 ? uncertain : (result.message || "Erreur lors de la réservation")), { status: response.status, code: result.code });
+    const knownPreWrite = ["TURNSTILE_INVALID", "TURNSTILE_UNAVAILABLE", "TURNSTILE_CONFIGURATION"].includes(result.code);
+    throw Object.assign(new Error(response.status >= 500 && !knownPreWrite ? uncertain : (result.message || "Erreur lors de la réservation")), { status: response.status, code: result.code });
   }
   if (typeof result.reservation?.bayType !== "string") {
     throw new Error("La réservation a été créée, mais la baie confirmée n'a pas été retournée. Veuillez nous contacter avant de réessayer.");
@@ -50,6 +53,8 @@ async function createBooking(data: {
 
 export function StepConfirmation({ protection }: { protection: BookingProtection }) {
   const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  useEffect(() => setTurnstileToken(""), [protection.token]);
   const { 
     selectedTimeSlot, 
     selectedDuration, 
@@ -79,7 +84,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
     },
     onError: (error: Error & { status?: number; code?: string }) => {
       setIsSubmitting(false);
-      if ([400, 409].includes(error.status || 0) || error.code === "BOOKING_PROTECTION_INVALID") void protection.refresh();
+      if ([400, 409].includes(error.status || 0) || ["BOOKING_PROTECTION_INVALID", "TURNSTILE_INVALID", "TURNSTILE_UNAVAILABLE"].includes(error.code || "")) void protection.refresh();
       toast({
         title: "Erreur",
         description: error.message,
@@ -89,7 +94,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
   });
 
   const handleConfirm = () => {
-    if (!selectedTimeSlot || !selectedDuration || !userDetails || !assignedBayId || !protection.ready || bookingMutation.isPending) return;
+    if (!selectedTimeSlot || !selectedDuration || !userDetails || !assignedBayId || !protection.ready || !turnstileToken || bookingMutation.isPending) return;
     
     setIsSubmitting(true);
     
@@ -98,6 +103,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
 
     bookingMutation.mutate({
       bookingToken: protection.token,
+      turnstileToken,
       website,
       name: userDetails.name,
       email: userDetails.email,
@@ -232,6 +238,8 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
           {protection.error && <Button type="button" variant="link" onClick={() => void protection.refresh()}>Réessayer la vérification</Button>}
         </div>
       )}
+      {protection.token && protection.siteKey && <TurnstileChallenge siteKey={protection.siteKey}
+        binding={protection.token.split(".").at(-1) || ""} onToken={setTurnstileToken} />}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Button 
           variant="outline" 
@@ -246,7 +254,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
           size="lg" 
           className="w-full sm:w-2/3 bg-primary hover:bg-primary/90 text-base sm:text-lg font-bold uppercase tracking-wider shadow-lg shadow-primary/20 rounded-full"
           onClick={handleConfirm}
-          disabled={bookingMutation.isPending || !protection.ready}
+          disabled={bookingMutation.isPending || !protection.ready || !turnstileToken}
           data-testid="button-confirm"
         >
           {bookingMutation.isPending ? (

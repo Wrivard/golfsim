@@ -281,7 +281,8 @@ export const WithdrawMarketingConsentResponse = zod.object({
 export const GetBookingProtectionResponse = zod.object({
   "ok": zod.boolean(),
   "token": zod.string(),
-  "waitMs": zod.number().int()
+  "waitMs": zod.number().int(),
+  "turnstileSiteKey": zod.string().describe('Clé publique du widget Turnstile.')
 })
 
 
@@ -297,6 +298,8 @@ export const createPublicBookingBodyPlayersMax = 4;
 export const createPublicBookingBodyMarketingConsentDefault = false;
 export const createPublicBookingBodyWebsiteMax = 0;
 
+export const createPublicBookingBodyTurnstileTokenMax = 2048;
+
 
 
 export const CreatePublicBookingBody = zod.object({
@@ -310,7 +313,8 @@ export const CreatePublicBookingBody = zod.object({
   "phone": zod.string().optional(),
   "notes": zod.string().optional(),
   "marketingConsent": zod.boolean().default(createPublicBookingBodyMarketingConsentDefault),
-  "website": zod.string().max(createPublicBookingBodyWebsiteMax).optional().describe('Champ-piège qui doit rester vide.')
+  "website": zod.string().max(createPublicBookingBodyWebsiteMax).optional().describe('Champ-piège qui doit rester vide.'),
+  "turnstileToken": zod.string().min(1).max(createPublicBookingBodyTurnstileTokenMax).describe('Jeton Cloudflare vérifié côté serveur avant tout enregistrement.')
 })
 
 export const CreatePublicBookingResponse = zod.object({

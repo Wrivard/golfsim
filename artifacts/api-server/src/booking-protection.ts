@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import { rateLimit, sanitizeEmail } from "./middleware/security";
 import { durableRuntime } from "./runtime/config";
 import { runtimeSql } from "./runtime/sql";
+import { turnstileSettings, validateTurnstile } from "./turnstile";
 
 export const PROOF_WAIT_MS = 2_000;
 export const PROOF_TTL_MS = 2 * 60 * 60 * 1000;
@@ -34,13 +35,19 @@ export const proofIssueLimit = rateLimit({
   message: "Trop de demandes. Veuillez patienter 15 minutes avant de recommencer.",
 });
 export async function sendBookingProof(req: Request, res: Response): Promise<void> {
+  let siteKey: string;
+  try { siteKey = turnstileSettings().siteKey; }
+  catch {
+    res.status(503).json({ ok: false, message: "La vérification anti-robot est indisponible. Veuillez contacter le responsable." });
+    return;
+  }
   if (durableRuntime()) {
     // Nonces are never reused: discard expired technical counters in bounded
     // batches instead of retaining one row per submission forever.
     await runtimeSql.query("DELETE FROM gsim_rate_limits WHERE key IN (SELECT key FROM gsim_rate_limits WHERE key LIKE 'booking-proof-use:%' AND expires_at <= now() LIMIT 100)");
   }
   res.setHeader("Cache-Control", "no-store");
-  res.json({ ok: true, token: issueBookingProof(address(req)), waitMs: PROOF_WAIT_MS });
+  res.json({ ok: true, token: issueBookingProof(address(req)), waitMs: PROOF_WAIT_MS, turnstileSiteKey: siteKey });
 }
 export function validateBookingProtection(req: Request, res: Response, next: NextFunction) {
   // Validate before sanitizing: sanitization intentionally strips non-booking fields.
@@ -79,7 +86,7 @@ const emailDaily = rateLimit({
   scope: "public-booking-email-daily", windowMs: 24 * 60 * 60_000, maxRequests: 10, keyGenerator: emailKey,
   message: "La limite de demandes pour ce courriel est atteinte. Veuillez nous contacter.",
 });
-export const publicBookingProtection = [burst, daily, validateBookingProtection, once, emailHourly, emailDaily];
+export const publicBookingProtection = [burst, daily, validateBookingProtection, once, emailHourly, emailDaily, validateTurnstile];
 export const publicAvailabilityLimit = rateLimit({
   scope: "public-availability-read", windowMs: 60_000, maxRequests: 90,
   message: "Trop de consultations des disponibilités. Veuillez patienter une minute.",

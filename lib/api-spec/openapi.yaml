@@ -206,11 +206,12 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [ok, token, waitMs]
+                required: [ok, token, waitMs, turnstileSiteKey]
                 properties:
                   ok: { type: boolean }
                   token: { type: string }
                   waitMs: { type: integer }
+                  turnstileSiteKey: { type: string, description: Clé publique du widget Turnstile. }
         "429":
           description: Trop de demandes de vérification
   /book:
@@ -477,7 +478,7 @@ components:
         token: { type: string, minLength: 20, maxLength: 1024 }
     PublicBookingInput:
       type: object
-      required: [name, email, date, time, duration, bayType, players]
+      required: [name, email, date, time, duration, bayType, players, turnstileToken]
       properties:
         name: { type: string, minLength: 2 }
         email: { type: string, format: email }
@@ -490,6 +491,7 @@ components:
         notes: { type: string }
         marketingConsent: { type: boolean, default: false }
         website: { type: string, maxLength: 0, description: Champ-piège qui doit rester vide. }
+        turnstileToken: { type: string, minLength: 1, maxLength: 2048, description: Jeton Cloudflare vérifié côté serveur avant tout enregistrement. }
     BookingSeriesSession:
       type: object
       required: [id, date, time, bayType]

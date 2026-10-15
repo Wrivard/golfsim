@@ -10,4 +10,6 @@ export type GetBookingProtection200 = {
   ok: boolean;
   token: string;
   waitMs: number;
+  /** Clé publique du widget Turnstile. */
+  turnstileSiteKey: string;
 };

@@ -30,4 +30,10 @@ export interface PublicBookingInput {
      * @maxLength 0
      */
   website?: string;
+  /**
+     * Jeton Cloudflare vérifié côté serveur avant tout enregistrement.
+     * @minLength 1
+     * @maxLength 2048
+     */
+  turnstileToken: string;
 }

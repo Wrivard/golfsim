@@ -15,6 +15,12 @@ Do not describe signed form tokens, waiting periods or hidden fields as proof th
 
 **How to apply:** Explain the distinction accurately when reviewing or strengthening protection.
 
+Keep real Turnstile credentials restricted to the production hosting project; use Cloudflare’s official test credentials for development and isolated previews.
+
+**Why:** Replit preview addresses change, and widening the production widget’s trusted domains to accommodate them is unnecessary. Testing must remain possible without exposing production credentials or weakening the live booking check.
+
+**How to apply:** Preserve this environment separation when changing hosting or booking protection. Test-mode success is not evidence that the production domain has passed a real challenge.
+
 Release changes to the public booking protection protocol in the frontend and API together.
 
 **Why:** Older open browser tabs may lack the newly required request headers and need a page reload; deploying only one side can prevent legitimate booking.

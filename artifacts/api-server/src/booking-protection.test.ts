@@ -27,6 +27,14 @@ test("public booking middleware blocks direct posts, traps, replays and excessiv
   // This test never uses a real database, Calendar or email provider.
   process.env.RUNTIME_STORAGE = "memory";
   delete process.env.VERCEL;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    if (String(input) === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+      const params = new URLSearchParams(String(init?.body));
+      return new Response(JSON.stringify({ success: params.get("response") === "fixture-turnstile" }), { status: 200 });
+    }
+    return originalFetch(input, init);
+  };
   const app = express();
   app.set("trust proxy", 1); // Explicit test proxy; remote identities below are fixtures.
   app.use(express.json());
@@ -40,7 +48,7 @@ test("public booking middleware blocks direct posts, traps, replays and excessiv
   const base = `http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}`;
   const post = (ip: string, email: string, extra: object = {}, token = issueBookingProof(ip, Date.now() - 3000)) =>
     fetch(`${base}/api/book`, { method: "POST", headers: { "Content-Type": "application/json", "X-Forwarded-For": ip, "X-Booking-Token": token },
-      body: JSON.stringify({ email, website: "", ...extra }) });
+      body: JSON.stringify({ email, website: "", turnstileToken: "fixture-turnstile", ...extra }) });
   try {
     await t.test("issue endpoint is uncached and rate limited", async () => {
       const ip = "192.0.2.200";
@@ -68,6 +76,12 @@ test("public booking middleware blocks direct posts, traps, replays and excessiv
       const responses = await Promise.all([post(ip, "replay@example.test", {}, token), post(ip, "replay@example.test", {}, token)]);
       assert.deepEqual(responses.map(r => r.status).sort(), [201, 429]);
       assert.equal(writes, 1);
+    });
+    await t.test("missing and invalid Turnstile challenges never create bookings", async () => {
+      const before = writes;
+      assert.equal((await post("192.0.2.220", "captcha@example.test", { turnstileToken: "" })).status, 403);
+      assert.equal((await post("192.0.2.221", "captcha@example.test", { turnstileToken: "forged" })).status, 403);
+      assert.equal(writes, before);
     });
     await t.test("email limits span IP addresses and normalize case", async () => {
       for (let i = 0; i < 5; i++) {
@@ -115,6 +129,7 @@ test("public booking middleware blocks direct posts, traps, replays and excessiv
       }
     });
   } finally {
+    globalThis.fetch = originalFetch;
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
 });

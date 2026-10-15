@@ -24,6 +24,7 @@ Object.assign(process.env, {
   SITE_URL: "https://www.golfsimsorel.ca", CALENDAR_ENABLED: "true",
   GOOGLE_CLIENT_ID: "isolated-client", GOOGLE_CLIENT_SECRET: "isolated-secret",
   SESSION_SECRET: "isolated-readiness-not-a-production-secret", CONTACT_EMAIL_ENABLED: "false",
+  TURNSTILE_SITE_KEY: "isolated-sitekey", TURNSTILE_SECRET_KEY: "isolated-turnstile-secret",
 });
 const require = createRequire(new URL("../artifacts/api-server/package.json", import.meta.url));
 const express = require("express");
@@ -81,6 +82,13 @@ const originalFetch = globalThis.fetch;
 let base;
 globalThis.fetch = (input, init) => {
   const target = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+  if (target.href === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+    const form = new URLSearchParams(String(init?.body));
+    assert.equal(form.get("secret"), "isolated-turnstile-secret");
+    const token = form.get("response") || "";
+    return Promise.resolve(new Response(JSON.stringify({ success: token.startsWith("fixture-"),
+      hostname: "www.golfsimsorel.ca", action: "booking", cdata: token.slice("fixture-".length) }), { status: 200 }));
+  }
   if (target.origin !== base) throw new Error("External HTTP blocked in isolated integration test.");
   return originalFetch(input, init);
 };
@@ -93,6 +101,7 @@ const request = async (path, method = "GET", body, admin = true) => {
     const proof = await issued.json();
     await new Promise(resolve => setTimeout(resolve, proof.waitMs + 100));
     proofHeaders = { "X-Booking-Token": proof.token };
+    body = { ...body, turnstileToken: `fixture-${proof.token.split(".").at(-1)}` };
   }
   const response = await fetch(base + path, {
     method, headers: { "Content-Type": "application/json", ...proofHeaders, ...(admin ? { "X-Test-Staff": "yes" } : {}) },
