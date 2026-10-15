@@ -35,6 +35,7 @@ import type {
   CreatePublicBooking201,
   EmailContactList,
   ExportEmailContactsParams,
+  GetBookingProtection200,
   GetStaffAvailability200,
   GetStaffAvailabilityParams,
   HealthStatus,
@@ -992,6 +993,80 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getWithdrawMarketingConsentMutationOptions(options));
     }
+
+export const getGetBookingProtectionUrl = () => {
+
+
+
+
+  return `/api/booking/protection`
+}
+
+/**
+ * Jeton temporaire lié à la connexion, sans cache, utilisable après deux secondes et une seule fois pour une réservation publique.
+ */
+export const getBookingProtection = async ( options?: Parameters<typeof customFetch>[1]): Promise<GetBookingProtection200> => {
+
+  return customFetch<GetBookingProtection200>(getGetBookingProtectionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBookingProtectionQueryKey = () => {
+    return [
+    `/api/booking/protection`
+    ] as const;
+    }
+
+
+export const getGetBookingProtectionQueryOptions = <TData = Awaited<ReturnType<typeof getBookingProtection>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBookingProtection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBookingProtectionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBookingProtection>>> = ({ signal }) => getBookingProtection({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBookingProtection>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBookingProtectionQueryResult = NonNullable<Awaited<ReturnType<typeof getBookingProtection>>>
+export type GetBookingProtectionQueryError = ErrorType<void>
+
+
+
+export function useGetBookingProtection<TData = Awaited<ReturnType<typeof getBookingProtection>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBookingProtection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBookingProtectionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getCreatePublicBookingUrl = () => {
 

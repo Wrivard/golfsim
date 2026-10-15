@@ -275,12 +275,29 @@ export const WithdrawMarketingConsentResponse = zod.object({
 })
 
 
+/**
+ * Jeton temporaire lié à la connexion, sans cache, utilisable après deux secondes et une seule fois pour une réservation publique.
+ */
+export const GetBookingProtectionResponse = zod.object({
+  "ok": zod.boolean(),
+  "token": zod.string(),
+  "waitMs": zod.number().int()
+})
+
+
+export const CreatePublicBookingHeader = zod.object({
+  "X-Booking-Token": zod.string().describe('Jeton obtenu sur /booking/protection, âgé de 2 secondes à 2 heures, à usage unique.')
+})
+
 export const createPublicBookingBodyNameMin = 2;
 
 export const createPublicBookingBodyTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const createPublicBookingBodyPlayersMax = 4;
 
 export const createPublicBookingBodyMarketingConsentDefault = false;
+export const createPublicBookingBodyWebsiteMax = 0;
+
+
 
 export const CreatePublicBookingBody = zod.object({
   "name": zod.string().min(createPublicBookingBodyNameMin),
@@ -292,7 +309,8 @@ export const CreatePublicBookingBody = zod.object({
   "players": zod.number().int().min(1).max(createPublicBookingBodyPlayersMax),
   "phone": zod.string().optional(),
   "notes": zod.string().optional(),
-  "marketingConsent": zod.boolean().default(createPublicBookingBodyMarketingConsentDefault)
+  "marketingConsent": zod.boolean().default(createPublicBookingBodyMarketingConsentDefault),
+  "website": zod.string().max(createPublicBookingBodyWebsiteMax).optional().describe('Champ-piège qui doit rester vide.')
 })
 
 export const CreatePublicBookingResponse = zod.object({

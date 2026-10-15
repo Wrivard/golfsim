@@ -33,6 +33,7 @@ import { durationMinutes as parseDurationToMinutes, intervalsOverlap, isHalfHour
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
 import { registerContact } from "../contact";
+import { publicBookingProtection, publicAvailabilityLimit, proofIssueLimit, sendBookingProof } from "../booking-protection";
 import { registerCalendarJobs, runCalendarMaintenance } from "../calendar-jobs";
 import { closureInput, getClosuresForDate, closureOccupancy, isClosed, listClosures, saveClosure, removeClosure } from "../availability-closures";
 import { listContacts, csvContacts, withdrawConsent, withdrawContact, contactUnsubscribeLink } from "../email-contacts";
@@ -116,13 +117,6 @@ const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   maxRequests: 5,
   message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
-});
-
-const bookingRateLimiter = rateLimit({
-  scope: "public-booking",
-  windowMs: 60 * 1000,
-  maxRequests: 10,
-  message: 'Trop de réservations. Veuillez réessayer dans une minute.',
 });
 
 export async function registerRoutes(
@@ -860,7 +854,7 @@ export async function registerRoutes(
     return slots;
   }
 
-  app.get("/api/availability/bookings", async (req: Request, res: Response) => {
+  app.get("/api/availability/bookings", publicAvailabilityLimit, async (req: Request, res: Response) => {
     try {
       const { date } = req.query;
       
@@ -987,15 +981,20 @@ export async function registerRoutes(
       return res.status(500).json({ ok: false, message: "Erreur lors du calcul des disponibilités" });
     }
   };
-  app.get("/api/availability/optimized", optimizedAvailability);
+  app.get("/api/availability/optimized", publicAvailabilityLimit, optimizedAvailability);
   app.get("/api/admin/availability/optimized", requireAdmin, optimizedAvailability);
 
-  app.get("/api/availability", async (req: Request, res: Response) => {
+  app.get("/api/availability", publicAvailabilityLimit, async (req: Request, res: Response) => {
     try {
       const { start, end, duration } = req.query;
       
-      if (!start || !end) {
+      if (typeof start !== "string" || typeof end !== "string") {
         return res.status(400).json({ ok: false, message: "Les paramètres start et end sont requis" });
+      }
+      const startEpoch = Date.parse(start), endEpoch = Date.parse(end);
+      if (!Number.isFinite(startEpoch) || !Number.isFinite(endEpoch) ||
+          endEpoch < startEpoch || endEpoch - startEpoch > 61 * 86_400_000) {
+        return res.status(400).json({ ok: false, message: "Choisissez une période valide d’au plus 62 jours." });
       }
       
       const startDate = new Date(start as string);
@@ -1039,7 +1038,8 @@ export async function registerRoutes(
     }
   });
   
-  app.post("/api/book", bookingRateLimiter, async (req: Request, res: Response) => {
+  serverApp.get("/api/booking/protection", proofIssueLimit, sendBookingProof);
+  app.post("/api/book", ...publicBookingProtection, async (req: Request, res: Response) => {
     try {
       const sanitizedBody = sanitizeBookingInput(req.body);
       const validatedData = bookingRequestSchema.parse(sanitizedBody);
@@ -1237,7 +1237,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/availability/:date/:bayType", async (req: Request, res: Response) => {
+  app.get("/api/availability/:date/:bayType", publicAvailabilityLimit, async (req: Request, res: Response) => {
     try {
       const date = String(req.params.date), bayType = String(req.params.bayType);
       const bookings = await storage.getBookingsByDateAndBay(new Date(date), bayType);

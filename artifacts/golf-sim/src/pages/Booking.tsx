@@ -11,6 +11,7 @@ import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import headerBg from "@assets/20260105-2-02_1790696495856.webp";
+import { useBookingProtection } from "@/hooks/use-booking-protection";
 
 const stepTitles: Record<number, string> = {
   1: "Sélectionnez la durée de votre session",
@@ -22,6 +23,7 @@ const stepTitles: Record<number, string> = {
 export default function BookingPage() {
   const step = useBookingStore((s) => s.step);
   const isConfirmed = useBookingStore((s) => s.isConfirmed);
+  const protection = useBookingProtection(isConfirmed);
   const selectedDuration = useBookingStore((s) => s.selectedDuration);
   const bookings = useBookingStore((s) => s.bookings);
 
@@ -110,7 +112,7 @@ export default function BookingPage() {
                 />
               )}
               {step === 3 && <StepDetails />}
-              {step === 4 && <StepConfirmation />}
+              {step === 4 && <StepConfirmation protection={protection} />}
             </BookingLayout>
           </div>
 

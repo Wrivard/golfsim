@@ -5,12 +5,16 @@ import { fr } from "date-fns/locale";
 import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import type { BookingProtection } from "@/hooks/use-booking-protection";
 
 function getPricePerHour(durationMinutes: number): number {
   return durationMinutes === 60 ? 25 : 28;
 }
 
 async function createBooking(data: {
+  bookingToken: string;
+  website: string;
   name: string;
   email: string;
   phone?: string;
@@ -22,14 +26,21 @@ async function createBooking(data: {
   notes?: string;
   marketingConsent?: boolean;
 }): Promise<{ reservation: { bayType: string }; emailStatus?: "accepted" | "unavailable" }> {
-  const response = await fetch("/api/book", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const result = await response.json();
+  const { bookingToken, ...body } = data;
+  const uncertain = "Impossible de vérifier le résultat de l’enregistrement. Contactez-nous avant de recommencer pour éviter une réservation en double.";
+  let response: Response;
+  try {
+    response = await fetch("/api/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Booking-Token": bookingToken },
+      body: JSON.stringify(body),
+    });
+  } catch { throw new Error(uncertain); }
+  let result;
+  try { result = await response.json(); }
+  catch { throw new Error(uncertain); }
   if (!response.ok || !result.ok) {
-    throw new Error(result.message || "Erreur lors de la réservation");
+    throw Object.assign(new Error(response.status >= 500 ? uncertain : (result.message || "Erreur lors de la réservation")), { status: response.status, code: result.code });
   }
   if (typeof result.reservation?.bayType !== "string") {
     throw new Error("La réservation a été créée, mais la baie confirmée n'a pas été retournée. Veuillez nous contacter avant de réessayer.");
@@ -37,7 +48,8 @@ async function createBooking(data: {
   return result;
 }
 
-export function StepConfirmation() {
+export function StepConfirmation({ protection }: { protection: BookingProtection }) {
+  const [website, setWebsite] = useState("");
   const { 
     selectedTimeSlot, 
     selectedDuration, 
@@ -65,8 +77,9 @@ export function StepConfirmation() {
       confirmBay(request.bayType, result.reservation.bayType);
       setIsSubmitting(false);
     },
-    onError: (error: Error) => {
+    onError: (error: Error & { status?: number; code?: string }) => {
       setIsSubmitting(false);
+      if ([400, 409].includes(error.status || 0) || error.code === "BOOKING_PROTECTION_INVALID") void protection.refresh();
       toast({
         title: "Erreur",
         description: error.message,
@@ -76,7 +89,7 @@ export function StepConfirmation() {
   });
 
   const handleConfirm = () => {
-    if (!selectedTimeSlot || !selectedDuration || !userDetails || !assignedBayId) return;
+    if (!selectedTimeSlot || !selectedDuration || !userDetails || !assignedBayId || !protection.ready || bookingMutation.isPending) return;
     
     setIsSubmitting(true);
     
@@ -84,6 +97,8 @@ export function StepConfirmation() {
     const timeStr = selectedTimeSlot.slice(11, 16);
 
     bookingMutation.mutate({
+      bookingToken: protection.token,
+      website,
       name: userDetails.name,
       email: userDetails.email,
       phone: userDetails.phone,
@@ -206,6 +221,17 @@ export function StepConfirmation() {
         </div>
       </div>
 
+      <div aria-hidden="true" className="absolute -left-[10000px] top-0 h-px w-px overflow-hidden">
+        <label htmlFor="booking-website">Laisser ce champ vide</label>
+        <input id="booking-website" name="website" type="text" tabIndex={-1} autoComplete="off"
+          value={website} onChange={event => setWebsite(event.target.value)} />
+      </div>
+      {!protection.ready && (
+        <div role="status" className="text-sm text-muted-foreground text-center">
+          {protection.error || "Préparation de la vérification de sécurité…"}
+          {protection.error && <Button type="button" variant="link" onClick={() => void protection.refresh()}>Réessayer la vérification</Button>}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Button 
           variant="outline" 
@@ -220,7 +246,7 @@ export function StepConfirmation() {
           size="lg" 
           className="w-full sm:w-2/3 bg-primary hover:bg-primary/90 text-base sm:text-lg font-bold uppercase tracking-wider shadow-lg shadow-primary/20 rounded-full"
           onClick={handleConfirm}
-          disabled={bookingMutation.isPending}
+          disabled={bookingMutation.isPending || !protection.ready}
           data-testid="button-confirm"
         >
           {bookingMutation.isPending ? (

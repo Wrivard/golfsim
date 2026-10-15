@@ -86,13 +86,21 @@ globalThis.fetch = (input, init) => {
 };
 const source = "google\u001ffixture@example.com\u001fprimary";
 const request = async (path, method = "GET", body, admin = true) => {
+  let proofHeaders = {};
+  if (path === "/api/book" && method === "POST") {
+    const issued = await fetch(base + "/api/booking/protection");
+    assert.equal(issued.status, 200);
+    const proof = await issued.json();
+    await new Promise(resolve => setTimeout(resolve, proof.waitMs + 100));
+    proofHeaders = { "X-Booking-Token": proof.token };
+  }
   const response = await fetch(base + path, {
-    method, headers: { "Content-Type": "application/json", ...(admin ? { "X-Test-Staff": "yes" } : {}) },
+    method, headers: { "Content-Type": "application/json", ...proofHeaders, ...(admin ? { "X-Test-Staff": "yes" } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const text = await response.text();
   let data; try { data = JSON.parse(text); } catch { data = text; }
-  return { status: response.status, data };
+  return { status: response.status, data, proofToken: proofHeaders["X-Booking-Token"] };
 };
 const must = async (path, method = "GET", body, status = 200) => {
   const result = await request(path, method, body);
@@ -143,6 +151,9 @@ try {
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   base = `http://127.0.0.1:${server.address().port}`;
   const original = (await must("/api/admin/bookings", "POST", bookingInput, 201)).booking;
+  for (const query of ["start=2026-01-01&end=2027-01-01", "start=invalid&end=2026-10-16", "start=2026-10-17&end=2026-10-16"]) {
+    assert.equal((await request(`/api/availability?${query}`)).status, 400);
+  }
   assert.ok(original.id && original.calendarEventId);
   assert.equal((await must("/api/admin/bookings")).bookings.length, 1);
   assert.equal(stores.get("fixture-token-A|primary").size, 1);
@@ -289,6 +300,15 @@ try {
   const site = await request("/api/book","POST",{...bookingInput,date:"2026-10-30",
     email:"website@example.com",marketingConsent:true},false);
   assert.equal(site.status,201);
+  const beforeReplay = await count();
+  const replay = await fetch(base + "/api/book", {
+    method: "POST", headers: { "Content-Type": "application/json", "X-Booking-Token": site.proofToken },
+    body: JSON.stringify({ ...bookingInput, date: "2026-10-30", email: "website@example.com" }),
+  });
+  assert.equal(replay.status, 429);
+  assert.equal(await count(), beforeReplay);
+  assert.ok(Number(replay.headers.get("retry-after")) > 0);
+  console.log("PASS durable PostgreSQL nonce prevents replay without creating a duplicate booking");
   assert.equal((await listContacts()).find(c=>c.email==="website@example.com").marketingConsent,true);
   console.log("PASS account AND selected-calendar source isolation; old events untouched; website confirmation and explicit consent persisted");
 } finally {

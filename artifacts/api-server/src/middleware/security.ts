@@ -73,6 +73,7 @@ export function rateLimit(options: {
     }
 
     if (record.count >= maxRequests) {
+      res.setHeader("Retry-After", String(Math.max(1, Math.ceil((record.resetTime - now) / 1000))));
       return res.status(429).json({ ok: false, message });
     }
 

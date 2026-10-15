@@ -183,6 +183,11 @@ export interface PublicBookingInput {
   phone?: string;
   notes?: string;
   marketingConsent?: boolean;
+  /**
+     * Champ-piège qui doit rester vide.
+     * @maxLength 0
+     */
+  website?: string;
 }
 
 export interface BookingSeriesSession {
@@ -350,6 +355,12 @@ export type GetStaffAvailability200 = {
 
 export type ExportEmailContactsParams = {
 marketingOnly?: boolean;
+};
+
+export type GetBookingProtection200 = {
+  ok: boolean;
+  token: string;
+  waitMs: number;
 };
 
 export type CreatePublicBooking201 = {

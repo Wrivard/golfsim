@@ -195,9 +195,33 @@ paths:
               schema: { $ref: "#/components/schemas/SuccessResult" }
         "400":
           description: Lien invalide
+  /booking/protection:
+    get:
+      operationId: getBookingProtection
+      description: Jeton temporaire lié à la connexion, sans cache, utilisable après deux secondes et une seule fois pour une réservation publique.
+      responses:
+        "200":
+          description: Vérification prête à démarrer
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, token, waitMs]
+                properties:
+                  ok: { type: boolean }
+                  token: { type: string }
+                  waitMs: { type: integer }
+        "429":
+          description: Trop de demandes de vérification
   /book:
     post:
       operationId: createPublicBooking
+      parameters:
+        - in: header
+          name: X-Booking-Token
+          required: true
+          schema: { type: string }
+          description: Jeton obtenu sur /booking/protection, âgé de 2 secondes à 2 heures, à usage unique.
       requestBody:
         required: true
         content:
@@ -211,6 +235,10 @@ paths:
               schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
         "409":
           description: Créneau indisponible ou fermé
+        "403":
+          description: Vérification anti-abus invalide ou expirée
+        "429":
+          description: Limite de demandes atteinte ou jeton déjà utilisé
   /admin/booking-series/{seriesId}:
     parameters:
       - in: path
@@ -461,6 +489,7 @@ components:
         phone: { type: string }
         notes: { type: string }
         marketingConsent: { type: boolean, default: false }
+        website: { type: string, maxLength: 0, description: Champ-piège qui doit rester vide. }
     BookingSeriesSession:
       type: object
       required: [id, date, time, bayType]

@@ -29,6 +29,7 @@ export * from './createPublicBooking201';
 export * from './emailContact';
 export * from './emailContactList';
 export * from './exportEmailContactsParams';
+export * from './getBookingProtection200';
 export * from './getStaffAvailability200';
 export * from './getStaffAvailability200SlotsItem';
 export * from './getStaffAvailabilityParams';

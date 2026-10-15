@@ -25,4 +25,9 @@ export interface PublicBookingInput {
   phone?: string;
   notes?: string;
   marketingConsent?: boolean;
+  /**
+     * Champ-piège qui doit rester vide.
+     * @maxLength 0
+     */
+  website?: string;
 }
