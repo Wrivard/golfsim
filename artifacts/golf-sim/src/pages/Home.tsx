@@ -29,20 +29,20 @@ export default function Home() {
            </span>
         </div>
 
-        <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-12 items-center relative z-10">
+        <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
           
           {/* Left Content */}
-          <div className="md:col-span-6 space-y-8">
+          <div className="md:col-span-7 space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl sm:text-5xl md:text-8xl font-heading font-bold text-foreground leading-[1.15] tracking-tighter mb-6">
-                AMENEZ LE <br />
-                PARCOURS <br />
-                À L'INTÉRIEUR <br />
-                À CHAQUE ÉLAN
+              <h1 className="text-4xl sm:text-5xl md:text-4xl lg:text-5xl xl:text-7xl font-heading font-bold text-foreground uppercase leading-[1.15] tracking-tighter mb-6">
+                Le meilleur <br />
+                simulateur de golf <br />
+                intérieur à <br />
+                Sorel-Tracy
               </h1>
               
               <p className="text-lg md:text-xl text-foreground font-sans max-w-md leading-relaxed mb-8">
@@ -65,7 +65,7 @@ export default function Home() {
           </div>
 
           {/* Right Content - Image Composition */}
-          <div className="md:col-span-6 relative h-[450px] md:h-[600px] flex items-center justify-center">
+          <div className="md:col-span-5 relative h-[450px] md:h-[600px] flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
