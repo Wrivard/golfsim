@@ -100,7 +100,7 @@ export default function About() {
             <div className="w-12 h-12 bg-foreground text-background rounded-full flex items-center justify-center mb-8 font-heading font-bold text-xl group-hover:bg-primary group-hover:text-white transition-colors">3</div>
             <h3 className="text-3xl font-heading font-bold mb-4 uppercase">Accès</h3>
             <p className="text-foreground/70 leading-relaxed font-sans">
-              Système de réservation simple, abonnements flexibles et horaires étendus pour s'adapter à votre style de vie.
+              Système de réservation simple et horaires étendus pour s'adapter à votre style de vie.
             </p>
           </div>
         </div>
