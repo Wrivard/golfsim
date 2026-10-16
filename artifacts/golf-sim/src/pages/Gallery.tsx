@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Images
 import img1 from "@assets/20260105-1-01_1790696495855.webp";
@@ -35,6 +38,26 @@ const images = [
 ];
 
 export default function Gallery() {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const selectedImage = selectedIndex === null ? null : images[selectedIndex];
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setSelectedIndex((index) => index === null ? null : (index - 1 + images.length) % images.length);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setSelectedIndex((index) => index === null ? null : (index + 1) % images.length);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIndex]);
+
   return (
     <Layout>
        <div className="relative pt-32 pb-12 border-b border-foreground/5">
@@ -53,14 +76,18 @@ export default function Gallery() {
       <div className="container mx-auto px-4 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((img, idx) => (
-            <div 
-              key={idx} 
-              className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-muted cursor-pointer"
+            <button
+              key={img.src}
+              type="button"
+              aria-label={`Voir en grand : ${img.alt}`}
+              onClick={() => setSelectedIndex(idx)}
+              className="group relative block w-full aspect-[4/3] overflow-hidden rounded-lg bg-muted text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
             >
               <img 
                 src={img.src} 
                 alt={img.alt} 
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
               />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -73,10 +100,50 @@ export default function Gallery() {
                   </span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
+
+      <Dialog open={selectedIndex !== null} onOpenChange={(open) => { if (!open) setSelectedIndex(null); }}>
+        <DialogContent className="w-[calc(100vw-1.5rem)] max-w-6xl max-h-[90vh] overflow-hidden border-0 bg-black p-3 text-white sm:w-[calc(100vw-3rem)] sm:p-5">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{selectedImage ? `${selectedImage.category} — Photo ${selectedIndex! + 1} sur ${images.length}` : "Photo de la galerie"}</DialogTitle>
+            <DialogDescription>{selectedImage?.alt ?? "Image de la galerie Golf SIM Sorel-Tracy."}</DialogDescription>
+          </DialogHeader>
+          {selectedImage && selectedIndex !== null && (
+            <>
+              <div className="relative flex min-h-0 items-center justify-center">
+                <img
+                  src={selectedImage.src}
+                  alt={selectedImage.alt}
+                  className="max-h-[72vh] max-w-full object-contain"
+                />
+                <button
+                  type="button"
+                  aria-label="Photo précédente"
+                  onClick={() => setSelectedIndex((selectedIndex - 1 + images.length) % images.length)}
+                  className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Photo suivante"
+                  onClick={() => setSelectedIndex((selectedIndex + 1) % images.length)}
+                  className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-4 pr-10 text-sm">
+                <p className="truncate text-white/80">{selectedImage.alt}</p>
+                <p aria-live="polite" className="shrink-0 text-white/60">{selectedIndex + 1} / {images.length}</p>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
