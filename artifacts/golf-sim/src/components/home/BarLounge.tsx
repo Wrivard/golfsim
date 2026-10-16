@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Wine, Beer, Coffee } from "lucide-react";
+import { Beer, GlassWater } from "lucide-react";
 import barImage from "@assets/20260105-6-06_1790696495857.webp";
 
 export default function BarLounge() {
@@ -18,7 +18,7 @@ export default function BarLounge() {
                   Le <br/> <span className="text-primary">Shank</span>
                 </h2>
                 <p className="text-lg text-foreground/80 font-sans leading-relaxed">
-                  Détendez-vous après votre partie dans notre espace lounge exclusif. Profitez d'une sélection de bières de microbrasserie, de vins et de cocktails signature.
+                  Détendez-vous après votre partie dans notre espace lounge. Profitez d'une sélection de bières de microbrasserie, de vins et de cocktails signature.
                 </p>
               </div>
 
@@ -29,9 +29,9 @@ export default function BarLounge() {
                   <p className="text-sm text-foreground/60 font-sans">Sélection locale et importée en fût et bouteille.</p>
                 </div>
                 <div className="bg-background/50 p-6 border border-foreground/5 hover:border-primary/50 transition-colors group">
-                  <Wine className="w-8 h-8 text-foreground mb-4 group-hover:text-primary transition-colors" />
-                  <h4 className="font-heading font-bold uppercase text-lg mb-2">Vins & Cocktails</h4>
-                  <p className="text-sm text-foreground/60 font-sans">Carte des vins soignée et mixologie créative.</p>
+                  <GlassWater className="w-8 h-8 text-foreground mb-4 group-hover:text-primary transition-colors" />
+                  <h4 className="font-heading font-bold uppercase text-lg mb-2">Shooters</h4>
+                  <p className="text-sm text-foreground/60 font-sans">Disponibles au bar.</p>
                 </div>
               </div>
 
