@@ -82,7 +82,7 @@ export default function Home() {
               </div>
 
               {/* Floating Black Card - Overlapping Right */}
-              <div className="absolute top-[10%] md:top-[20%] right-0 md:-right-12 bg-foreground text-background p-6 md:p-10 z-20 shadow-2xl max-w-[180px] md:max-w-[280px]">
+              <div className="absolute top-[10%] md:top-[20%] right-0 md:-right-6 bg-foreground text-background p-6 md:p-10 z-20 shadow-2xl max-w-[180px] md:max-w-[280px]">
                 <h2 className="text-4xl md:text-7xl font-heading font-bold leading-none mb-2">
                   4
                 </h2>
