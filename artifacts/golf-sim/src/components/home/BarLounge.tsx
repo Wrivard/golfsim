@@ -18,7 +18,7 @@ export default function BarLounge() {
                   Le <br/> <span className="text-primary">Shank</span>
                 </h2>
                 <p className="text-lg text-foreground/80 font-sans leading-relaxed">
-                  Détendez-vous après votre partie dans notre espace lounge. Profitez d'une sélection de bières de microbrasserie, de vins et de cocktails signature.
+                  Détendez-vous après votre partie dans notre espace lounge. Profitez d'une sélection de bières et de shooters au Shank.
                 </p>
               </div>
 
