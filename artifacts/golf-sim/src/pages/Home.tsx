@@ -29,10 +29,10 @@ export default function Home() {
            </span>
         </div>
 
-        <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+        <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-12 items-center relative z-10">
           
           {/* Left Content */}
-          <div className="md:col-span-7 space-y-8">
+          <div className="md:col-span-6 space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -40,9 +40,9 @@ export default function Home() {
             >
               <h1 className="text-4xl sm:text-5xl md:text-4xl lg:text-5xl xl:text-7xl font-heading font-bold text-foreground uppercase leading-[1.15] tracking-tighter mb-6">
                 Le meilleur <br />
-                simulateur de golf <br />
-                intérieur à <br />
-                Sorel-Tracy
+                simulateur de <br />
+                golf intérieur <br />
+                à Sorel-Tracy
               </h1>
               
               <p className="text-lg md:text-xl text-foreground font-sans max-w-md leading-relaxed mb-8">
@@ -65,7 +65,7 @@ export default function Home() {
           </div>
 
           {/* Right Content - Image Composition */}
-          <div className="md:col-span-5 relative h-[450px] md:h-[600px] flex items-center justify-center">
+          <div className="md:col-span-6 relative h-[450px] md:h-[600px] flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -82,7 +82,7 @@ export default function Home() {
               </div>
 
               {/* Floating Black Card - Overlapping Right */}
-              <div className="absolute top-[10%] md:top-[20%] right-0 bg-foreground text-background p-6 md:p-10 z-20 shadow-2xl max-w-[180px] md:max-w-[280px]">
+              <div className="absolute top-[10%] md:top-[20%] right-0 md:-right-12 bg-foreground text-background p-6 md:p-10 z-20 shadow-2xl max-w-[180px] md:max-w-[280px]">
                 <h2 className="text-4xl md:text-7xl font-heading font-bold leading-none mb-2">
                   4
                 </h2>
