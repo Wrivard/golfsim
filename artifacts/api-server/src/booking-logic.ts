@@ -245,7 +245,11 @@ export function getOptimizedStartTimes(
   schedule: DaySchedule = DEFAULT_SCHEDULE
 ): TimeSlot[] {
   const { openTime, lastBookingTime, closeTime } = buildScheduleTimes(date, schedule);
-  const dayBookings = bookings.filter(b => isSameDay(parseISO(b.startTime), date));
+  const dayBookings = bookings.filter(b => {
+    const start = parseISO(b.startTime);
+    const end = parseISO(b.endTime);
+    return start.getTime() < closeTime.getTime() && end.getTime() > openTime.getTime();
+  });
   const candidateGranularities = simulators.map(bay => getBayGranularity(bay.id));
 
   const candidateTimes = new Set<string>();

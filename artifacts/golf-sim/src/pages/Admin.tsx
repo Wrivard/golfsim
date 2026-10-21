@@ -852,8 +852,10 @@ export default function Admin() {
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-open-hour-${day}`}
                               >
-                                {Array.from({ length: 24 }, (_, i) => (
-                                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                                {Array.from({ length: 27 }, (_, i) => (
+                                  <option key={i} value={i}>
+                                    {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
+                                  </option>
                                 ))}
                               </select>
                               <span>:</span>
@@ -900,7 +902,7 @@ export default function Admin() {
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-close-hour-${day}`}
                               >
-                                {Array.from({ length: 26 }, (_, i) => (
+                                {Array.from({ length: 31 }, (_, i) => (
                                   <option key={i} value={i}>
                                     {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
                                   </option>

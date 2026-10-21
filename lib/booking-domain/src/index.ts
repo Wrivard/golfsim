@@ -14,7 +14,16 @@ export function intervalsOverlap(start: number, end: number, otherStart: number,
 }
 
 export function isHalfHourStart(time: string): boolean {
-  return /^(?:[01]\d|2[0-3]):(?:00|30)$/.test(time);
+  return /^(?:[01]\d|2[0-6]):(?:00|30)$/.test(time);
+}
+
+/** Format an operating-day time while making next-day starts unambiguous. */
+export function formatOperatingTime(time: string): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(time);
+  if (!match) return time;
+  const hours = Number(match[1]);
+  if (hours < 24) return time;
+  return `${String(hours - 24).padStart(2, "0")}:${match[2]} (+1j)`;
 }
 
 /** Public occupancy carries no customer identifiers or local reservation IDs. */

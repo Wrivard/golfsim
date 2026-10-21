@@ -165,6 +165,15 @@ export async function registerRoutes(
         return res.status(400).json({ ok: false, message: "Jour invalide" });
       }
       const { openHour, openMinute, lastBookingHour, lastBookingMinute, closeHour, closeMinute } = req.body;
+
+      const validHour = (value: unknown, max: number) =>
+        Number.isInteger(value) && Number(value) >= 0 && Number(value) <= max;
+      const validMinute = (value: unknown) => value === 0 || value === 30;
+      if (!validHour(openHour, 23) || !validMinute(openMinute)
+        || !validHour(lastBookingHour, 26) || !validMinute(lastBookingMinute)
+        || !validHour(closeHour, 30) || !validMinute(closeMinute)) {
+        return res.status(400).json({ ok: false, message: "Heures invalides. La dernière réservation peut aller jusqu’à 02 h 30 (+1j) et la fermeture jusqu’à 06 h 30 (+1j)." });
+      }
       
       const openTotal = openHour * 60 + (openMinute || 0);
       const lastBookingTotal = lastBookingHour * 60 + (lastBookingMinute || 0);
@@ -175,6 +184,9 @@ export async function registerRoutes(
       }
       if (lastBookingTotal >= closeTotal) {
         return res.status(400).json({ ok: false, message: "La dernière réservation doit être avant la fermeture" });
+      }
+      if (closeTotal - lastBookingTotal < 60) {
+        return res.status(400).json({ ok: false, message: "Il faut au moins une heure entre la dernière réservation et la fermeture." });
       }
 
       const schedule = await storage.updateScheduleForDay(dayOfWeek, {
@@ -902,18 +914,18 @@ export async function registerRoutes(
     return dayBookings.map(booking => {
       const [hours, minutes] = booking.time.split(':').map(Number);
       const durationMinutes = parseDurationToMinutes(booking.duration);
-
-      const startHour = String(hours).padStart(2, '0');
-      const startMin = String(minutes || 0).padStart(2, '0');
-      const endTotalMinutes = hours * 60 + (minutes || 0) + durationMinutes;
-      const endHour = String(Math.floor(endTotalMinutes / 60)).padStart(2, '0');
-      const endMin = String(endTotalMinutes % 60).padStart(2, '0');
+      const storedDate = booking.date
+        ? new Date(booking.date).toISOString().slice(0, 10)
+        : dateStr;
+      const start = new Date(`${storedDate}T00:00:00.000Z`);
+      start.setUTCHours(hours, minutes || 0, 0, 0);
+      const end = new Date(start.getTime() + durationMinutes * 60_000);
 
       return {
         id: booking.id,
         simulatorId: booking.bayType,
-        startTime: `${dateStr}T${startHour}:${startMin}:00`,
-        endTime: `${dateStr}T${endHour}:${endMin}:00`,
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
         customerName: booking.name,
       };
     });
@@ -936,18 +948,24 @@ export async function registerRoutes(
         return res.status(400).json({ ok: false, message: "Durée invalide (minimum 60 minutes)" });
       }
 
-      const targetDate = new Date(date);
-      targetDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(`${date}T00:00:00.000Z`);
+      const bookingsStart = new Date(targetDate);
+      bookingsStart.setUTCDate(bookingsStart.getUTCDate() - 1);
+      const bookingsEnd = new Date(targetDate);
+      bookingsEnd.setUTCDate(bookingsEnd.getUTCDate() + 3);
 
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-
-      const dayBookings = await storage.getBookingsByDateRange(targetDate, endDate);
+      const dayBookings = await storage.getBookingsByDateRange(bookingsStart, bookingsEnd);
       const formattedBookings = formatBookingsForLogic(dayBookings, date);
-      const closures = await getClosuresForDate(date);
+      const nextDate = new Date(targetDate);
+      nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+      const nextDateStr = nextDate.toISOString().slice(0, 10);
+      const closures = [...new Map(
+        [...await getClosuresForDate(date), ...await getClosuresForDate(nextDateStr)]
+          .map(closure => [closure.id, closure])
+      ).values()];
       const audience = req.path.startsWith("/api/admin/") ? "staff" : "public";
 
-      const dayOfWeek = new Date(date).getUTCDay();
+      const dayOfWeek = targetDate.getUTCDay();
       const daySchedule = await storage.getScheduleForDay(dayOfWeek);
       const schedule = daySchedule ? {
         openHour: daySchedule.openHour,
@@ -959,13 +977,17 @@ export async function registerRoutes(
       } : undefined;
 
       const slots = getOptimizedStartTimes(targetDate, durationMinutes,
-        [...formattedBookings, ...closureOccupancy(closures, date, audience)], undefined, schedule);
+        [...formattedBookings,
+          ...closureOccupancy(closures, date, audience),
+          ...closureOccupancy(closures, nextDateStr, audience)], undefined, schedule);
 
       return res.json({
         ok: true,
         slots: slots.map(slot => {
-          const clock = new Date(slot.time);
-          return { ...slot, bookingTime: `${String(clock.getHours()).padStart(2, "0")}:${String(clock.getMinutes()).padStart(2, "0")}` };
+          const elapsedMinutes = Math.round((new Date(slot.time).getTime() - targetDate.getTime()) / 60_000);
+          const hour = Math.floor(elapsedMinutes / 60);
+          const minute = elapsedMinutes % 60;
+          return { ...slot, bookingTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}` };
         }),
         bookings: audience === "staff" ? formattedBookings : publicOccupancy(formattedBookings),
         schedule,

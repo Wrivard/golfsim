@@ -152,18 +152,26 @@ export class DatabaseStorage implements IStorage {
     return await db.transaction(async (tx) => {
       const startOfDay = new Date(insertBooking.date);
       startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(insertBooking.date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const [hours, minutes] = insertBooking.time.split(":").map(Number);
+      const actualDay = new Date(startOfDay);
+      actualDay.setDate(actualDay.getDate() + Math.floor((hours * 60 + minutes) / 1440));
+      const endOfRange = new Date(startOfDay);
+      endOfRange.setDate(endOfRange.getDate() + 3);
 
-      // Serialize conflict-checking inserts for this date across server instances.
-      // The lock is released automatically at the end of the transaction.
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bookings:${startOfDay.toISOString().slice(0, 10)}`}))`);
+      // Lock both the operating date and the real calendar date for overnight
+      // slots, then inspect bookings from the full possible overlap window.
+      const lockDates = [...new Set([
+        startOfDay.toISOString().slice(0, 10),
+        actualDay.toISOString().slice(0, 10),
+      ])].sort();
+      for (const lockDate of lockDates) {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bookings:${lockDate}`}))`);
+      }
 
       const existingBookings = await tx.select().from(bookings).where(
         and(
           gte(bookings.date, startOfDay),
-          lt(bookings.date, endOfDay)
+          lt(bookings.date, endOfRange)
           , await bookingSourceFilter()
         )
       );
