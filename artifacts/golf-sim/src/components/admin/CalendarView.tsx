@@ -1,5 +1,5 @@
 import { durationMinutes } from "@workspace/booking-domain";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useLayoutEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +56,7 @@ function getPriceForBooking(durationStr: string): number {
   return hours * pricePerHour;
 }
 
-const HOUR_HEIGHT = 64;
+const HOUR_HEIGHT = 32;
 const START_HOUR = 8;
 const END_HOUR = 25;
 const BAYS = ["1", "2", "3", "4"];
@@ -66,9 +66,43 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT);
+  const [calendarViewportHeight, setCalendarViewportHeight] = useState<number | null>(null);
+  const calendarViewportRef = useRef<HTMLDivElement>(null);
+  const tableHeadRef = useRef<HTMLTableSectionElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const closuresQuery = useGetAdminClosures({ query: { queryKey: getGetAdminClosuresQueryKey(), refetchInterval: 30000 } });
+
+  useLayoutEffect(() => {
+    const fitCalendarToViewport = () => {
+      const viewport = calendarViewportRef.current;
+      if (!viewport) return;
+
+      const top = viewport.getBoundingClientRect().top;
+      // Keep the compact default until the calendar is close enough to fit onscreen.
+      if (top > window.innerHeight - 120) return;
+
+      const availableHeight = Math.max(0, window.innerHeight - Math.max(0, top) - 12);
+      const headerHeight = tableHeadRef.current?.getBoundingClientRect().height ?? 50;
+      const dayHours = END_HOUR - START_HOUR;
+      const fittedHourHeight = Math.min(64, Math.max(12, (availableHeight - headerHeight) / dayHours));
+
+      setHourHeight(fittedHourHeight);
+      setCalendarViewportHeight(headerHeight + fittedHourHeight * dayHours);
+    };
+
+    fitCalendarToViewport();
+    window.addEventListener("resize", fitCalendarToViewport);
+    const observer = new ResizeObserver(fitCalendarToViewport);
+    if (calendarViewportRef.current) observer.observe(calendarViewportRef.current);
+    if (tableHeadRef.current) observer.observe(tableHeadRef.current);
+
+    return () => {
+      window.removeEventListener("resize", fitCalendarToViewport);
+      observer.disconnect();
+    };
+  }, []);
   const moveBooking = useMutation({
     mutationFn: ({ id, bayType }: { id: string; bayType: string }) => updateBookingApi(id, { bayType }),
     onSuccess: () => {
@@ -109,8 +143,8 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
     const now = new Date();
     const minutes = now.getHours() * 60 + now.getMinutes();
     if (minutes < START_HOUR * 60 || minutes > END_HOUR * 60) return null;
-    return ((minutes - START_HOUR * 60) / 60) * HOUR_HEIGHT;
-  }, [isToday, selectedDate]);
+    return ((minutes - START_HOUR * 60) / 60) * hourHeight;
+  }, [hourHeight, isToday, selectedDate]);
 
   const handleBookingClick = useCallback((booking: Booking, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -121,7 +155,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
     setSelectedBooking(null);
   }, []);
 
-  const totalHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
+  const totalHeight = (END_HOUR - START_HOUR) * hourHeight;
 
   return (
     <>
@@ -168,9 +202,13 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
           {closuresQuery.isError && <p role="alert" className="text-sm text-amber-100 mt-2">Impossible de charger les fermetures. Vérifiez la section Disponibilités avant d’ajouter une réservation.</p>}
         </CardHeader>
         <CardContent className="p-0 bg-white overflow-hidden rounded-b-lg">
-          <div className="overflow-auto max-h-[760px]">
+          <div
+            ref={calendarViewportRef}
+            className="overflow-x-auto overflow-y-hidden"
+            style={calendarViewportHeight === null ? undefined : { height: calendarViewportHeight }}
+          >
             <table className="w-full border-collapse" style={{ minWidth: 600 }}>
-              <thead className="sticky top-0 z-10">
+              <thead ref={tableHeadRef} className="sticky top-0 z-10">
                 <tr>
                   <th className="bg-gray-50 border-b border-r border-gray-200" style={{ width: TIME_COL_WIDTH }} />
                   {BAYS.map((bay) => {
@@ -192,16 +230,16 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                   <td colSpan={1 + BAYS.length} className="p-0 relative">
                     <div className="relative" style={{ height: totalHeight }}>
                       {hours.map((h) => (
-                        <div key={`line-${h}`} className="absolute left-0 right-0 border-t border-gray-200" style={{ top: (h - START_HOUR) * HOUR_HEIGHT }} />
+                        <div key={`line-${h}`} className="absolute left-0 right-0 border-t border-gray-200" style={{ top: (h - START_HOUR) * hourHeight }} />
                       ))}
                       {hours.filter((h) => h < END_HOUR).map((h) => (
-                        <div key={`half-${h}`} className="absolute right-0 border-t border-dashed border-gray-100" style={{ top: (h - START_HOUR) * HOUR_HEIGHT + HOUR_HEIGHT / 2, left: TIME_COL_WIDTH }} />
+                        <div key={`half-${h}`} className="absolute right-0 border-t border-dashed border-gray-100" style={{ top: (h - START_HOUR) * hourHeight + hourHeight / 2, left: TIME_COL_WIDTH }} />
                       ))}
 
                       <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(${BAYS.length}, 1fr)` }}>
                         <div className="relative border-r border-gray-200">
                           {hours.map((h) => (
-                            <div key={h} className="absolute w-full text-right pr-2 -translate-y-1/2" style={{ top: (h - START_HOUR) * HOUR_HEIGHT }}>
+                            <div key={h} className="absolute w-full text-right pr-2 -translate-y-1/2" style={{ top: (h - START_HOUR) * hourHeight }}>
                               <span className="text-[11px] text-muted-foreground font-mono bg-white px-0.5">
                                 {(h >= 24 ? h - 24 : h).toString().padStart(2, "0")}:00
                               </span>
@@ -219,7 +257,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                               title={`Ajouter une réservation — baie ${bay}`}
                               onClick={e => {
                                 const bounds = e.currentTarget.getBoundingClientRect();
-                                const halfHours = Math.floor(Math.max(0, e.clientY - bounds.top) / (HOUR_HEIGHT / 2));
+                                const halfHours = Math.floor(Math.max(0, e.clientY - bounds.top) / (hourHeight / 2));
                                 const minutes = START_HOUR * 60 + Math.min(halfHours * 30, (END_HOUR - START_HOUR) * 60 - 30);
                                 openCreate(bay, `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
                               }}
@@ -235,14 +273,14 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                             >
                               {dayClosures.filter(c => c.bayIds.some(id => id === bay)).map(c => (
                                 <div key={c.id} className="absolute left-0 right-0 z-[1] border-y border-slate-400 bg-slate-200/70 pointer-events-none overflow-hidden"
-                                  style={{ top: Math.max(0, (c.startMinute - START_HOUR * 60) / 60 * HOUR_HEIGHT),
-                                    height: Math.max(0, Math.min(c.endMinute, END_HOUR * 60) - Math.max(c.startMinute, START_HOUR * 60)) / 60 * HOUR_HEIGHT }}>
+                                  style={{ top: Math.max(0, (c.startMinute - START_HOUR * 60) / 60 * hourHeight),
+                                    height: Math.max(0, Math.min(c.endMinute, END_HOUR * 60) - Math.max(c.startMinute, START_HOUR * 60)) / 60 * hourHeight }}>
                                   <span className="text-[10px] font-bold text-slate-800 px-1">{c.title} · Fermé</span>
                                 </div>
                               ))}
                               {bayBookings.map((booking) => {
                                 const durMin = parseDurationToMinutes(booking.duration);
-                                const { top, height, endTime } = bookingGeometry(booking.time, booking.duration, START_HOUR, HOUR_HEIGHT);
+                                const { top, height, endTime } = bookingGeometry(booking.time, booking.duration, START_HOUR, hourHeight);
                                 const isShort = durMin <= 60;
 
                                 return (
