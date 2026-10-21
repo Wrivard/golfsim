@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { staffSlotTime } from "./staffSlotTime";
+import { staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
 
 export interface BookingPrefill {
   date: string;
@@ -22,13 +22,7 @@ export interface BookingPrefill {
   duplicate?: boolean;
 }
 
-interface AvailableSlot {
-  time: string;
-  bookingTime?: string;
-  allBays?: { bayId: string; isValid: boolean }[];
-}
-
-async function fetchStaffSlots(date: string, durationMinutes: number): Promise<AvailableSlot[]> {
+async function fetchStaffSlots(date: string, durationMinutes: number): Promise<StaffAvailabilitySlot[]> {
   const response = await fetch(`/api/admin/availability/optimized?date=${encodeURIComponent(date)}&duration=${durationMinutes}`);
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error(result.message || "Impossible de charger les disponibilités");
@@ -56,15 +50,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
   });
-  const availableTimes = (slotsQuery.data || [])
-    .filter(slot => slot.allBays?.some(bay => bay.bayId === bayType && bay.isValid))
-    .map(staffSlotTime)
-    .filter(value => {
-      const [hour, minute] = value.split(":").map(Number);
-      const start = hour * 60 + minute;
-      return start >= 8 * 60 && start + durationMinutes <= 22 * 60;
-    })
-    .sort();
+  const availableTimes = staffAvailableTimes(slotsQuery.data || [], bayType);
   const selectedTime = !slotsQuery.isFetching && !slotsQuery.isError && availableTimes.includes(time) ? time : "";
   const create = useMutation({
     mutationFn: async () => {
