@@ -115,7 +115,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
   const [recurring, setRecurring] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [createPrefill, setCreatePrefill] = useState<BookingPrefill | null>(null);
-  const openCreate = (bayType = "1", time = "08:00") => setCreatePrefill({
+  const openCreate = (bayType?: string, time?: string) => setCreatePrefill({
     date: format(selectedDate, "yyyy-MM-dd"), time, bayType,
   });
 

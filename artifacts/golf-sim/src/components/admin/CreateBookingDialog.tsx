@@ -7,12 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
+import { staffAvailableBays, staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
 
 export interface BookingPrefill {
   date: string;
-  time: string;
-  bayType: string;
+  time?: string;
+  bayType?: string;
   duration?: string;
   players?: number;
   name?: string;
@@ -31,9 +31,9 @@ async function fetchStaffSlots(date: string, durationMinutes: number): Promise<S
 
 export default function CreateBookingDialog({ prefill, onClose }: { prefill: BookingPrefill; onClose: () => void }) {
   const [date, setDate] = useState(prefill.date);
-  const [time, setTime] = useState(prefill.time);
+  const [time, setTime] = useState(prefill.time || "");
   const [duration, setDuration] = useState(prefill.duration || "1h");
-  const [bayType, setBayType] = useState(prefill.bayType);
+  const [bayType, setBayType] = useState(prefill.bayType || "");
   const [players, setPlayers] = useState(String(prefill.players || 1));
   const [name, setName] = useState(prefill.name || "");
   const [email, setEmail] = useState(prefill.email || "");
@@ -50,8 +50,9 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
   });
-  const availableTimes = staffAvailableTimes(slotsQuery.data || [], bayType);
+  const availableTimes = staffAvailableTimes(slotsQuery.data || [], bayType || undefined);
   const selectedTime = !slotsQuery.isFetching && !slotsQuery.isError && availableTimes.includes(time) ? time : "";
+  const availableBays = staffAvailableBays(slotsQuery.data || [], selectedTime || undefined);
   const create = useMutation({
     mutationFn: async () => {
       const response = await fetch("/api/admin/bookings", {
@@ -94,7 +95,9 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
           <DialogTitle>{prefill.duplicate ? "Dupliquer la réservation" : "Ajouter une réservation"}</DialogTitle>
           <DialogDescription>{prefill.duplicate
             ? "Nouvelle réservation : ajustez d'abord une date, une heure ou une baie disponible. L'original reste inchangé et aucun paiement n'est copié."
-            : "Choisissez un créneau et une baie disponibles selon les heures d'ouverture."}</DialogDescription>
+            : prefill.bayType && prefill.time
+              ? "La date, l'heure et la baie sont préremplies depuis le calendrier. Vous pouvez les modifier."
+              : "Choisissez une heure libre, puis une baie disponible pour ce créneau."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -121,9 +124,9 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
             </div>
             <div className="space-y-2">
               <Label htmlFor="staff-bay">Baie</Label>
-              <Select value={bayType} onValueChange={setBayType}>
-                <SelectTrigger id="staff-bay" aria-label="Baie"><SelectValue /></SelectTrigger>
-                <SelectContent>{["1", "2", "3", "4"].map(value => <SelectItem key={value} value={value}>Baie {value}</SelectItem>)}</SelectContent>
+              <Select value={bayType} onValueChange={setBayType} disabled={slotsQuery.isFetching || slotsQuery.isError || availableBays.length === 0}>
+                <SelectTrigger id="staff-bay" aria-label="Baie"><SelectValue placeholder="Choisir une baie" /></SelectTrigger>
+                <SelectContent>{availableBays.map(value => <SelectItem key={value} value={value}>Baie {value}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
@@ -154,7 +157,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={create.isPending}>Annuler</Button>
-            <Button type="submit" disabled={create.isPending || !selectedTime}>{create.isPending ? "Enregistrement..." : "Ajouter la réservation"}</Button>
+            <Button type="submit" disabled={create.isPending || !selectedTime || !bayType}>{create.isPending ? "Enregistrement..." : "Ajouter la réservation"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
