@@ -20,3 +20,4 @@
 - [Release runtime checks](node-runtime-verification.md) — Nix launchers may pin another Node version; verify child tools, not only the parent build script.
 - [Booking abuse protection](booking-abuse-policy.md) — public quotas must not affect staff or leagues; signed form tokens are not human verification; release both sides together.
 - [Shared package typechecks](shared-package-typechecks.md) — rebuild shared TypeScript packages after export changes before typechecking their consumers.
+- [Overnight schedule ceiling](overnight-operating-hours.md) — operating hours and calendar display stop at 02:00; the last-start cutoff is separate from session end.

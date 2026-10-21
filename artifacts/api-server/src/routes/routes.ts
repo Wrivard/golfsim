@@ -29,7 +29,7 @@ import { getConfirmationBay } from "../confirmation-bay";
 import { isStaffSlotAvailable, isWithinPublicBookingHours } from "../staff-booking";
 import { bookingEditSchema, isEditedSlotAvailable } from "../booking-edit";
 import { z } from "zod";
-import { durationMinutes as parseDurationToMinutes, intervalsOverlap, isHalfHourStart, publicOccupancy } from "@workspace/booking-domain";
+import { durationMinutes as parseDurationToMinutes, intervalsOverlap, isHalfHourStart, MAX_OPERATING_HOUR, publicOccupancy } from "@workspace/booking-domain";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
 import { registerContact } from "../contact";
@@ -169,10 +169,13 @@ export async function registerRoutes(
       const validHour = (value: unknown, max: number) =>
         Number.isInteger(value) && Number(value) >= 0 && Number(value) <= max;
       const validMinute = (value: unknown) => value === 0 || value === 30;
+      const validOperatingTime = (hour: unknown, minute: unknown) =>
+        validHour(hour, MAX_OPERATING_HOUR) && validMinute(minute)
+        && (Number(hour) < MAX_OPERATING_HOUR || minute === 0);
       if (!validHour(openHour, 23) || !validMinute(openMinute)
-        || !validHour(lastBookingHour, 26) || !validMinute(lastBookingMinute)
-        || !validHour(closeHour, 30) || !validMinute(closeMinute)) {
-        return res.status(400).json({ ok: false, message: "Heures invalides. La dernière réservation peut aller jusqu’à 02 h 30 (+1j) et la fermeture jusqu’à 06 h 30 (+1j)." });
+        || !validOperatingTime(lastBookingHour, lastBookingMinute)
+        || !validOperatingTime(closeHour, closeMinute)) {
+        return res.status(400).json({ ok: false, message: "Les heures de dernière réservation et de fermeture ne peuvent pas dépasser 02 h 00 (+1j)." });
       }
       
       const openTotal = openHour * 60 + (openMinute || 0);
@@ -182,11 +185,8 @@ export async function registerRoutes(
       if (openTotal >= lastBookingTotal) {
         return res.status(400).json({ ok: false, message: "L'heure d'ouverture doit être avant la dernière réservation" });
       }
-      if (lastBookingTotal >= closeTotal) {
-        return res.status(400).json({ ok: false, message: "La dernière réservation doit être avant la fermeture" });
-      }
-      if (closeTotal - lastBookingTotal < 60) {
-        return res.status(400).json({ ok: false, message: "Il faut au moins une heure entre la dernière réservation et la fermeture." });
+      if (lastBookingTotal > closeTotal) {
+        return res.status(400).json({ ok: false, message: "La dernière heure de départ ne peut pas dépasser la fermeture." });
       }
 
       const schedule = await storage.updateScheduleForDay(dayOfWeek, {

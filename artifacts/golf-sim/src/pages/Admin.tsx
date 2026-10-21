@@ -872,7 +872,13 @@ export default function Admin() {
                             <div className="flex items-center gap-1">
                               <select
                                 value={sched.lastBookingHour}
-                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], lastBookingHour: parseInt(e.target.value) } }))}
+                                onChange={(e) => {
+                                  const hour = parseInt(e.target.value);
+                                  setEditingSchedule(prev => ({ ...prev, [day]: {
+                                    ...prev[day], lastBookingHour: hour,
+                                    ...(hour === 26 ? { lastBookingMinute: 0 } : {}),
+                                  } }));
+                                }}
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-lastbooking-hour-${day}`}
                               >
@@ -890,7 +896,7 @@ export default function Admin() {
                                 data-testid={`select-lastbooking-minute-${day}`}
                               >
                                 <option value={0}>00</option>
-                                <option value={30}>30</option>
+                                <option value={30} disabled={sched.lastBookingHour === 26}>30</option>
                               </select>
                             </div>
                           </td>
@@ -898,11 +904,17 @@ export default function Admin() {
                             <div className="flex items-center gap-1">
                               <select
                                 value={sched.closeHour}
-                                onChange={(e) => setEditingSchedule(prev => ({ ...prev, [day]: { ...prev[day], closeHour: parseInt(e.target.value) } }))}
+                                onChange={(e) => {
+                                  const hour = parseInt(e.target.value);
+                                  setEditingSchedule(prev => ({ ...prev, [day]: {
+                                    ...prev[day], closeHour: hour,
+                                    ...(hour === 26 ? { closeMinute: 0 } : {}),
+                                  } }));
+                                }}
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-close-hour-${day}`}
                               >
-                                {Array.from({ length: 31 }, (_, i) => (
+                                {Array.from({ length: 27 }, (_, i) => (
                                   <option key={i} value={i}>
                                     {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
                                   </option>
@@ -916,7 +928,7 @@ export default function Admin() {
                                 data-testid={`select-close-minute-${day}`}
                               >
                                 <option value={0}>00</option>
-                                <option value={30}>30</option>
+                                <option value={30} disabled={sched.closeHour === 26}>30</option>
                               </select>
                             </div>
                             <span className="text-[10px] text-muted-foreground mt-0.5 block">

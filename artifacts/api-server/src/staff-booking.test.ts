@@ -37,9 +37,10 @@ test("staff requests follow the configured schedule, including overnight hours",
   assert.equal(isStaffSlotAvailable(date, "07:30", 60, "1", [], extended), true);
   assert.equal(isStaffSlotAvailable(date, "21:30", 60, "1", [], extended), true);
   assert.equal(isStaffSlotAvailable(date, "24:00", 60, "1", [], extended), false);
-  const overnight: DaySchedule = { ...schedule, openHour: 23, lastBookingHour: 26, closeHour: 27 };
+  const overnight: DaySchedule = { ...schedule, openHour: 23, lastBookingHour: 26, closeHour: 26 };
   assert.equal(isStaffSlotAvailable(date, "24:00", 60, "1", [], overnight), true);
-  assert.equal(isStaffSlotAvailable(date, "26:00", 60, "1", [], overnight), true);
+  assert.equal(isStaffSlotAvailable(date, "25:00", 60, "1", [], overnight), true);
+  assert.equal(isStaffSlotAvailable(date, "26:00", 60, "1", [], overnight), false);
 });
 
 test("last reservation limits start time only; duration is bounded by closing", () => {

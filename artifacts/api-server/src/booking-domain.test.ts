@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { durationMinutes, formatOperatingTime, intervalsOverlap, isHalfHourStart, publicOccupancy } from "@workspace/booking-domain";
+import { durationMinutes, formatOperatingTime, intervalsOverlap, isHalfHourStart, normalizeOperatingSchedule, publicOccupancy } from "@workspace/booking-domain";
 import { isStaffSlotAvailable } from "./staff-booking";
 import { calendarEventForBooking } from "./googleCalendar";
 import { verifiedHistoricalBookings } from "./email-backfill";
@@ -19,11 +19,18 @@ test("interval overlap is continuous, symmetric and allows exact adjacency", () 
     assert.equal(intervalsOverlap(480,540,a,b),true);
   }
   assert.ok(isHalfHourStart("08:30")); assert.ok(isHalfHourStart("08:00"));
-  assert.ok(isHalfHourStart("24:00")); assert.ok(isHalfHourStart("26:30"));
-  for (const value of ["08:01","08:60","27:00","8:00"]) assert.equal(isHalfHourStart(value),false);
+  assert.ok(isHalfHourStart("24:00")); assert.ok(isHalfHourStart("26:00"));
+  for (const value of ["08:01","08:60","26:30","27:00","8:00"]) assert.equal(isHalfHourStart(value),false);
   assert.equal(formatOperatingTime("00:30"), "00:30");
   assert.equal(formatOperatingTime("24:30"), "00:30 (+1j)");
   assert.equal(formatOperatingTime("26:00"), "02:00 (+1j)");
+  assert.deepEqual(normalizeOperatingSchedule({
+    openHour: 8, openMinute: 0, lastBookingHour: 29, lastBookingMinute: 30,
+    closeHour: 30, closeMinute: 30,
+  }), {
+    openHour: 8, openMinute: 0, lastBookingHour: 26, lastBookingMinute: 0,
+    closeHour: 26, closeMinute: 0,
+  });
 });
 test("staff collision rules reject partial imported overlaps and off-grid starts", () => {
   const date = new Date("2026-10-16T00:00:00");

@@ -58,7 +58,7 @@ function getPriceForBooking(durationStr: string): number {
 
 const HOUR_HEIGHT = 32;
 const START_HOUR = 8;
-const END_HOUR = 31;
+const END_HOUR = 26;
 const BAYS = ["1", "2", "3", "4"];
 const TIME_COL_WIDTH = 56;
 

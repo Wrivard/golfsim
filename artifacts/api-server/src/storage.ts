@@ -9,6 +9,7 @@ import { db } from "./db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
 import { bookingSourceFilter, tagBooking } from "./calendar-source";
 import { recordContact } from "./email-contacts";
+import { normalizeOperatingSchedule } from "@workspace/booking-domain";
 type StoredBookingInput = InsertBooking & { calendarEventId?: string | null };
 
 export interface IStorage {
@@ -293,12 +294,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSchedule(): Promise<OperatingSchedule[]> {
-    return db.select().from(operatingSchedule).orderBy(operatingSchedule.dayOfWeek);
+    return (await db.select().from(operatingSchedule).orderBy(operatingSchedule.dayOfWeek))
+      .map(normalizeOperatingSchedule);
   }
 
   async getScheduleForDay(dayOfWeek: number): Promise<OperatingSchedule | undefined> {
     const [schedule] = await db.select().from(operatingSchedule).where(eq(operatingSchedule.dayOfWeek, dayOfWeek));
-    return schedule;
+    return schedule ? normalizeOperatingSchedule(schedule) : undefined;
   }
 
   async updateScheduleForDay(dayOfWeek: number, data: Partial<InsertOperatingSchedule>): Promise<OperatingSchedule> {
@@ -308,12 +310,12 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(operatingSchedule.dayOfWeek, dayOfWeek))
         .returning();
-      return updated;
+      return normalizeOperatingSchedule(updated);
     } else {
       const [created] = await db.insert(operatingSchedule)
         .values({ ...data, dayOfWeek })
         .returning();
-      return created;
+      return normalizeOperatingSchedule(created);
     }
   }
 
