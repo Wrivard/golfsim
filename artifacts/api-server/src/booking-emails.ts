@@ -3,6 +3,7 @@ import type { Booking } from "@workspace/db/schema";
 import { brandedEmail } from "./email-brand";
 import { mailConfig, type MailConfig } from "./contact";
 import { previewRuntime } from "./runtime/config";
+import { formatOperatingTime } from "@workspace/booking-domain";
 
 type ConfirmedBooking = Pick<Booking, "id" | "name" | "email" | "phone" | "date" | "time" | "duration" | "bayType" | "players" | "notes">;
 export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" | "customer", unsubscribeUrl?: string | null) {
@@ -13,7 +14,7 @@ export function bookingTemplate(bookings: ConfirmedBooking[], audience: "owner" 
     fields.push(
       ["Réservation", booking.id],
       ["Date", new Intl.DateTimeFormat("fr-CA", { dateStyle: "long", timeZone: "UTC" }).format(booking.date)],
-      ["Heure (Québec)", booking.time], ["Durée", booking.duration],
+      ["Heure (Québec)", formatOperatingTime(booking.time)], ["Durée", booking.duration],
       ["Simulateur confirmé", `Baie ${booking.bayType}`], ["Joueurs", String(booking.players)],
     );
     if (booking.notes) fields.push(["Notes du client", booking.notes]);

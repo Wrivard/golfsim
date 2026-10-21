@@ -1,12 +1,10 @@
 import { getOptimizedStartTimes, type BookingRecord, type DaySchedule } from "./booking-logic";
 import { isHalfHourStart } from "@workspace/booking-domain";
 
-/** The public POST booking window also applies to staff requests. */
+/** Validate the slot shape here; the selected weekday schedule sets its real hours. */
 export function isWithinPublicBookingHours(time: string, durationMinutes: number): boolean {
   if (!isHalfHourStart(time) || !Number.isInteger(durationMinutes) || durationMinutes < 60 || durationMinutes % 30 !== 0) return false;
-  const [hours, minutes] = time.split(":").map(Number);
-  const start = hours * 60 + minutes;
-  return start >= 8 * 60 && start + durationMinutes <= 22 * 60;
+  return true;
 }
 
 /** Keep the staff's chosen bay while applying the same schedule and grid rules as public booking. */

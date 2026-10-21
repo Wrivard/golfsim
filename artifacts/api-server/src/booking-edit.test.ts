@@ -6,10 +6,11 @@ const records = [
   { id: "self", simulatorId: "2", startTime: "2026-10-16T10:00:00", endTime: "2026-10-16T12:00:00", customerName: "Demo" },
   { id: "other", simulatorId: "2", startTime: "2026-10-16T14:00:00", endTime: "2026-10-16T16:00:00", customerName: "Demo B" },
 ];
-test("edit validates real dates, clock values, whole player counts and duration", () => {
-  for (const input of [{date:"2026-02-30"}, {date:"16/10/2026"}, {time:"25:00"}, {time:"10:75"}, {players:1.5}, {duration:"5h"}])
+test("edit validates real dates, extended operating-day times, whole player counts and duration", () => {
+  for (const input of [{date:"2026-02-30"}, {date:"16/10/2026"}, {time:"27:00"}, {time:"10:75"}, {players:1.5}, {duration:"5h"}])
     assert.equal(bookingEditSchema.safeParse(input).success, false);
   assert.equal(bookingEditSchema.safeParse({date:"2026-10-16",time:"12:00",duration:"2h",players:2}).success, true);
+  assert.equal(bookingEditSchema.safeParse({date:"2026-10-16",time:"25:00",duration:"2h",players:2}).success, true);
   assert.equal(bookingEditSchema.safeParse({time:"12:00"}).success, true);
 });
 test("editing excludes itself but refuses another booking, adjacent slots work", () => {

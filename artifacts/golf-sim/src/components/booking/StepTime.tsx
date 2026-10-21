@@ -11,6 +11,7 @@ import { CalendarIcon, ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { useQuery } from "@tanstack/react-query";
+import { formatOperatingTime } from "@workspace/booking-domain";
 
 interface OptimizedResponse {
   ok: boolean;
@@ -116,7 +117,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
   }, [slots, onSlotsReady]);
 
   const handleTimeSelect = (slot: TimeSlot) => {
-    setTimeSlot(slot.time, slot.assignedBayId);
+    setTimeSlot(`${dateStr}T${slot.bookingTime || slot.time.slice(11, 16)}:00`, slot.assignedBayId);
     setStep(3);
   };
 
@@ -250,7 +251,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
                   "relative group flex flex-col items-center justify-center py-4 px-2 rounded-lg border transition-all duration-200",
                   "bg-background border-foreground/10 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/5 text-foreground"
                 )}
-                data-testid={`timeslot-${slot.time.slice(11, 16)}`}
+                data-testid={`timeslot-${slot.bookingTime || slot.time.slice(11, 16)}`}
               >
                 {slot.label && (
                   <span className="absolute -top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide bg-primary text-white">
@@ -258,7 +259,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
                   </span>
                 )}
                 <span className="text-lg font-semibold group-hover:text-primary transition-colors">
-                  {slot.time.slice(11, 16)}
+                  {formatOperatingTime(slot.bookingTime || slot.time.slice(11, 16))}
                 </span>
                 <span className="text-[11px] text-muted-foreground mt-0.5">
                   Baie {slot.assignedBayId}

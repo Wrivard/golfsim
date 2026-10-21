@@ -126,11 +126,22 @@ export class DatabaseStorage implements IStorage {
       const [current] = await tx.select().from(bookings).where(and(eq(bookings.id,id),scope)).for("update");
       if (!current) return { booking:null, conflict:false };
       const next = { ...current, ...updates };
-      const dates = [...new Set([current.date.toISOString().slice(0,10),next.date.toISOString().slice(0,10)])].sort();
+      const rowDates = [current, next].map(booking => {
+        const day = new Date(booking.date);
+        day.setHours(0, 0, 0, 0);
+        const [hours, minutes] = booking.time.split(":").map(Number);
+        const actual = new Date(day);
+        actual.setDate(actual.getDate() + Math.floor((hours * 60 + minutes) / 1440));
+        return [day.toISOString().slice(0, 10), actual.toISOString().slice(0, 10)];
+      }).flat();
+      const dates = [...new Set(rowDates)].sort();
       for (const date of dates)
         await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bookings:${date}`}))`);
-      const start = new Date(next.date); start.setHours(0,0,0,0);
-      const end = new Date(start); end.setDate(end.getDate()+1);
+      const start = new Date(Math.min(new Date(current.date).getTime(), new Date(next.date).getTime()));
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(Math.max(new Date(current.date).getTime(), new Date(next.date).getTime()));
+      end.setHours(0, 0, 0, 0);
+      end.setDate(end.getDate() + 3);
       const others = await tx.select().from(bookings).where(and(gte(bookings.date,start),lt(bookings.date,end),scope));
       if (checkConflict(others,current)) return { booking:null, conflict:true };
       await beforeSave(next,current);

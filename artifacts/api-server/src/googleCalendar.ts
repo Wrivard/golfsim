@@ -268,37 +268,18 @@ export function calendarEventForBooking(booking: {
     ? booking.date.toISOString().split('T')[0]
     : new Date(booking.date).toISOString().split('T')[0];
   
-  const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, minutes] = booking.time.split(':').map(Number);
   
   const durationMinutes = parseDurationStr(booking.duration);
   if (!durationMinutes) throw new Error("Invalid booking duration.");
-  
-  const startTotalMinutes = hours * 60 + minutes;
-  const endTotalMinutes = startTotalMinutes + durationMinutes;
-  
-  let endDay = day;
-  let endMonth = month;
-  let endYear = year;
-  let endHour = Math.floor(endTotalMinutes / 60);
-  const endMinute = endTotalMinutes % 60;
-  
-  if (endHour >= 24) {
-    endHour -= 24;
-    endDay += 1;
-    const daysInMonth = new Date(year, month, 0).getDate();
-    if (endDay > daysInMonth) {
-      endDay = 1;
-      endMonth += 1;
-      if (endMonth > 12) {
-        endMonth = 1;
-        endYear += 1;
-      }
-    }
-  }
-
-  const startTimeStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-  const endTimeStr = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00`;
+  // Use UTC only for calendar arithmetic; the resulting components are local
+  // wall-clock values interpreted by Google with the Toronto time zone below.
+  const start = new Date(`${dateStr}T00:00:00.000Z`);
+  start.setUTCHours(hours, minutes, 0, 0);
+  const end = new Date(start.getTime() + durationMinutes * 60_000);
+  const localDateTime = (value: Date) => `${value.toISOString().slice(0, 10)}T${value.toISOString().slice(11, 19)}`;
+  const startTimeStr = localDateTime(start);
+  const endTimeStr = localDateTime(end);
 
   const bayLabel = `Baie ${booking.bayType}`;
 
@@ -323,7 +304,14 @@ Durée: ${booking.duration}
 ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     `.trim(),
     colorId: BAY_COLORS[booking.bayType] || "10",
-    ...(booking.id ? { extendedProperties: { private: { golfSimBookingId: booking.id } } } : {}),
+    ...(booking.id ? {
+      extendedProperties: {
+        private: {
+          golfSimBookingId: booking.id,
+          ...(hours >= 24 ? { golfSimOperatingDate: dateStr, golfSimOperatingTime: booking.time } : {}),
+        },
+      },
+    } : {}),
     start: {
       dateTime: startTimeStr,
       timeZone: 'America/Toronto',
@@ -505,6 +493,26 @@ async function syncActiveCalendar(until?: Date): Promise<CalendarSyncResult> {
           continue;
         }
 
+        // Calendar events are stored with their real wall-clock date. Reattach
+        // early-morning events to the preceding operating day when that day's
+        // configured schedule includes the event.
+        if (Number(parsed.time.slice(0, 2)) < 24) {
+          const [eventHour, eventMinute] = parsed.time.split(":").map(Number);
+          const previousOperatingDate = new Date(parsed.date);
+          previousOperatingDate.setUTCHours(0, 0, 0, 0);
+          previousOperatingDate.setUTCDate(previousOperatingDate.getUTCDate() - 1);
+          const previousSchedule = await storage.getScheduleForDay(previousOperatingDate.getUTCDay());
+          if (previousSchedule) {
+            const elapsedStart = 24 * 60 + eventHour * 60 + eventMinute;
+            const lastStart = previousSchedule.lastBookingHour * 60 + previousSchedule.lastBookingMinute;
+            const close = previousSchedule.closeHour * 60 + previousSchedule.closeMinute;
+            if (elapsedStart <= lastStart && elapsedStart + parseDurationStr(parsed.duration) <= close) {
+              parsed.date = previousOperatingDate;
+              parsed.time = `${String(24 + eventHour).padStart(2, "0")}:${String(eventMinute).padStart(2, "0")}`;
+            }
+          }
+        }
+
         if (existingBooking) {
           const dateChanged = new Date(existingBooking.date).toISOString().slice(0, 10) !== new Date(parsed.date).toISOString().slice(0, 10);
           const timeChanged = existingBooking.time !== parsed.time;
@@ -617,8 +625,24 @@ function parseCalendarEvent(event: any): {
       : `${durationHours}h`;
     
     const slot = torontoSlot(event.start.dateTime);
-    const timeStr = slot.time;
-    const dateOnly = slot.date;
+    let timeStr = slot.time;
+    let dateOnly = slot.date;
+    const operatingDate = event.extendedProperties?.private?.golfSimOperatingDate;
+    const operatingTime = event.extendedProperties?.private?.golfSimOperatingTime;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(operatingDate || "")
+      && /^(?:2[4-6]):(?:00|30)$/.test(operatingTime || "")) {
+      const [hours, minutes] = operatingTime.split(":").map(Number);
+      const expected = new Date(`${operatingDate}T00:00:00.000Z`);
+      expected.setUTCHours(hours, minutes, 0, 0);
+      const expectedDate = expected.toISOString().slice(0, 10);
+      const expectedTime = `${String(expected.getUTCHours()).padStart(2, "0")}:${String(expected.getUTCMinutes()).padStart(2, "0")}`;
+      // Keep the previous operating day only while the event still matches the
+      // actual time written to Google Calendar.
+      if (expectedDate === slot.day && expectedTime === slot.time) {
+        dateOnly = new Date(`${operatingDate}T00:00:00.000Z`);
+        timeStr = operatingTime;
+      }
+    }
     
     let bayType = '1';
     const summary = event.summary || '';

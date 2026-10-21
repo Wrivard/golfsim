@@ -10,6 +10,7 @@ import { ChevronLeft, User, Mail, Phone, Users, MessageSquare } from "lucide-rea
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "wouter";
+import { formatOperatingTime } from "@workspace/booking-domain";
 
 const formSchema = z.object({
   name: z.string().min(2, "Le nom est requis (minimum 2 caractères)"),
@@ -55,7 +56,7 @@ export function StepDetails() {
             })()}
           </p>
           <p className="text-sm text-muted-foreground">
-            {selectedTimeSlot && selectedTimeSlot.slice(11, 16)} • {selectedDuration ? selectedDuration / 60 : 0}h • Baie {assignedBayId}
+            {selectedTimeSlot && formatOperatingTime(selectedTimeSlot.slice(11, 16))} • {selectedDuration ? selectedDuration / 60 : 0}h • Baie {assignedBayId}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setStep(2)} data-testid="button-modify-time">

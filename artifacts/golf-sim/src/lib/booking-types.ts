@@ -48,6 +48,7 @@ export interface BayEvaluation {
 
 export interface TimeSlot {
   time: string;
+  bookingTime?: string;
   label?: string;
   score: number;
   assignedBayId: string;

@@ -35,8 +35,9 @@ test("a half-hour start cannot overlap a reservation but can start at its exact 
     }
     assert.equal(isStaffSlotAvailable(day, "18:30", 60, bay, records), true);
     assert.equal(isEditedSlotAvailable("existing", day, "17:30", 60, bay, records), true);
-    assert.equal(isStaffSlotAvailable(day, "20:30", 120, bay, []), false);
+    assert.equal(isStaffSlotAvailable(day, "20:30", 120, bay, []), true);
     assert.equal(isStaffSlotAvailable(day, "20:30", 60, bay, []), true);
+    assert.equal(isStaffSlotAvailable(day, "22:30", 60, bay, []), false);
   }
 });
 

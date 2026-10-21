@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown } from "lucide-react";
 import { staffAvailableBays, staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
+import { formatOperatingTime } from "@workspace/booking-domain";
 
 export interface BookingPrefill {
   date: string;
@@ -146,7 +147,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
                           setTimePickerOpen(false);
                         }}
                       >
-                        {value}
+                        {formatOperatingTime(value)}
                       </Button>
                     ))}
                   </div>

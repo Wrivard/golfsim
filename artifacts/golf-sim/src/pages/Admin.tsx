@@ -1,4 +1,4 @@
-import { durationMinutes } from "@workspace/booking-domain";
+import { durationMinutes, formatOperatingTime } from "@workspace/booking-domain";
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -644,7 +644,7 @@ export default function Admin() {
                             })()}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground">
-                            {booking.time} - {booking.duration}
+                            {formatOperatingTime(booking.time)} - {booking.duration}
                           </p>
                         </div>
                         <AlertDialog>
@@ -666,7 +666,7 @@ export default function Admin() {
                                   const d = typeof booking.date === 'string' ? booking.date : new Date(booking.date).toISOString();
                                   const [y, mo, dy] = d.split('T')[0].split('-').map(Number);
                                   return format(new Date(y, mo - 1, dy), "d MMMM yyyy", { locale: fr });
-                                })()} à {booking.time} sera supprimée définitivement.
+                                })()} à {formatOperatingTime(booking.time)} sera supprimée définitivement.
                                 {booking.calendarEventId && " L'événement sera également retiré du calendrier Google."}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -797,7 +797,7 @@ export default function Admin() {
               Horaire d'ouverture
             </CardTitle>
             <CardDescription className="text-white/80">
-              Gérez les heures d'ouverture et de fermeture pour chaque jour
+              La dernière réservation limite l’heure de départ; la session peut se terminer plus tard, jusqu’à la fermeture.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 md:p-6 bg-white">
@@ -831,10 +831,10 @@ export default function Admin() {
                     ].map(({ day, name }) => {
                       const sched = editingSchedule[day];
                       if (!sched) return null;
-                      const closeMinutes = (sched.closeHour * 60 + sched.closeMinute) - (sched.lastBookingHour * 60 + sched.lastBookingMinute);
-                      const maxDurationH = Math.floor(closeMinutes / 60);
-                      const maxDurationM = closeMinutes % 60;
-                      const maxDurationLabel = maxDurationM > 0 ? `${maxDurationH}h${maxDurationM}` : `${maxDurationH}h`;
+                      const businessMinutes = Math.max(0,
+                        sched.closeHour * 60 + sched.closeMinute - sched.openHour * 60 - sched.openMinute);
+                      const maxDurationH = Math.min(4, Math.floor(businessMinutes / 60));
+                      const maxDurationLabel = `${maxDurationH}h`;
                       
                       const formatCloseDisplay = (h: number, m: number) => {
                         if (h >= 24) return `${String(h - 24).padStart(2, '0')}:${String(m).padStart(2, '0')} (+1j)`;
@@ -852,10 +852,8 @@ export default function Admin() {
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-open-hour-${day}`}
                               >
-                                {Array.from({ length: 27 }, (_, i) => (
-                                  <option key={i} value={i}>
-                                    {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
-                                  </option>
+                                {Array.from({ length: 24 }, (_, i) => (
+                                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
                                 ))}
                               </select>
                               <span>:</span>
@@ -878,8 +876,10 @@ export default function Admin() {
                                 className="border rounded px-1.5 py-1 text-sm w-16"
                                 data-testid={`select-lastbooking-hour-${day}`}
                               >
-                                {Array.from({ length: 24 }, (_, i) => (
-                                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                                {Array.from({ length: 27 }, (_, i) => (
+                                  <option key={i} value={i}>
+                                    {i >= 24 ? `${String(i - 24).padStart(2, '0')} (+1j)` : String(i).padStart(2, '0')}
+                                  </option>
                                 ))}
                               </select>
                               <span>:</span>

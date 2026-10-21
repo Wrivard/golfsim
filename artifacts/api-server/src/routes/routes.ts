@@ -463,7 +463,7 @@ export async function registerRoutes(
     const date = new Date(`${input.date}T00:00:00.000Z`);
     const durationMinutes = parseDurationToMinutes(input.duration);
     if (!isWithinPublicBookingHours(input.time, durationMinutes)) {
-      return res.status(400).json({ ok: false, message: "Les réservations doivent commencer à partir de 8h et se terminer au plus tard à 22h." });
+      return res.status(400).json({ ok: false, message: "Heure ou durée de réservation invalide." });
     }
     try {
       let seriesMarker="";
@@ -484,7 +484,13 @@ export async function registerRoutes(
         }
       }
       const daySchedule = await storage.getScheduleForDay(date.getUTCDay());
-      const closures = await getClosuresForDate(input.date);
+      const nextServiceDate = new Date(`${input.date}T00:00:00.000Z`);
+      nextServiceDate.setUTCDate(nextServiceDate.getUTCDate() + 1);
+      const nextServiceDateStr = nextServiceDate.toISOString().slice(0, 10);
+      const closures = [...new Map(
+        [...await getClosuresForDate(input.date), ...await getClosuresForDate(nextServiceDateStr)]
+          .map(closure => [closure.id, closure])
+      ).values()];
       const schedule = daySchedule ? {
         openHour: daySchedule.openHour, openMinute: daySchedule.openMinute,
         lastBookingHour: daySchedule.lastBookingHour, lastBookingMinute: daySchedule.lastBookingMinute,
@@ -505,14 +511,16 @@ export async function registerRoutes(
         bookingData,
         existing => !isStaffSlotAvailable(
           date, input.time, durationMinutes, input.bayType,
-          [...formatBookingsForLogic(existing, input.date), ...closureOccupancy(closures, input.date, "staff")], schedule,
+            [...formatBookingsForLogic(existing, input.date),
+              ...closureOccupancy(closures, input.date, "staff"),
+              ...closureOccupancy(closures, nextServiceDateStr, "staff")], schedule,
         ),
       );
       if (conflict || !booking) {
         return res.status(409).json({ ok: false, message: "Ce créneau n'est pas disponible pour cette baie et cet horaire." });
       }
       try {
-        const calendarEventId = await createCalendarEvent(bookingData);
+        const calendarEventId = await createCalendarEvent({ ...bookingData, id: booking.id });
         if (!calendarEventId) {
           console.error("Google Calendar returned no event ID for staff booking");
           await storage.deleteBooking(booking.id);
@@ -591,7 +599,13 @@ export async function registerRoutes(
       const targetDate = updates.date || existing.date;
       const dateStr = targetDate.toISOString().slice(0,10);
       const daySchedule = await storage.getScheduleForDay(targetDate.getUTCDay());
-      const closures = await getClosuresForDate(dateStr);
+      const nextDate = new Date(`${dateStr}T00:00:00.000Z`);
+      nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+      const nextDateStr = nextDate.toISOString().slice(0, 10);
+      const closures = [...new Map(
+        [...await getClosuresForDate(dateStr), ...await getClosuresForDate(nextDateStr)]
+          .map(closure => [closure.id, closure])
+      ).values()];
       let calendarChanged = false;
       let createdEventId: string | null = null;
       let previous: Booking | undefined;
@@ -605,7 +619,9 @@ export async function registerRoutes(
               next.time !== current.time || next.duration !== current.duration || next.bayType !== current.bayType;
             if (!slotChanged) return false;
             return !isEditedSlotAvailable(id,targetDate,next.time,parseDurationToMinutes(next.duration),next.bayType,
-               [...formatBookingsForLogic(others,dateStr), ...closureOccupancy(closures,dateStr,"staff")],daySchedule || undefined);
+               [...formatBookingsForLogic(others,dateStr),
+                 ...closureOccupancy(closures,dateStr,"staff"),
+                 ...closureOccupancy(closures,nextDateStr,"staff")],daySchedule || undefined);
           },
           async (next,current) => {
             previous = current;
@@ -789,8 +805,6 @@ export async function registerRoutes(
   });
 
   const BAY_NUMBERS = ["1", "2", "3", "4"];
-  const OPENING_HOUR = 8;
-  const CLOSING_HOUR = 22;
   const MIN_DURATION_HOURS = 1;
   const PRICE_PER_HOUR = 25;
   
@@ -800,6 +814,16 @@ export async function registerRoutes(
     return hours * 60 + (minutes || 0);
   }
 
+  function actualCalendarSlot(dateStr: string, time: string): { date: string; time: string } {
+    const [hours, minutes] = time.split(":").map(Number);
+    const actual = new Date(`${dateStr}T00:00:00.000Z`);
+    actual.setUTCHours(hours, minutes || 0, 0, 0);
+    return {
+      date: actual.toISOString().slice(0, 10),
+      time: `${String(actual.getUTCHours()).padStart(2, "0")}:${String(actual.getUTCMinutes()).padStart(2, "0")}`,
+    };
+  }
+
   function getBayOccupancy(bookings: Booking[], targetDate: Date): Map<string, Set<number>> {
     const bayOccupancy = new Map<string, Set<number>>();
     
@@ -807,21 +831,25 @@ export async function registerRoutes(
       bayOccupancy.set(bay, new Set<number>());
     }
     
-    const targetDateStr = targetDate.toISOString().split('T')[0];
+    const targetDay = new Date(targetDate);
+    targetDay.setUTCHours(0, 0, 0, 0);
     
     for (const booking of bookings) {
       const bookingDateStr = new Date(booking.date).toISOString().split('T')[0];
-      if (bookingDateStr !== targetDateStr) continue;
       
       const bay = booking.bayType;
       if (!BAY_NUMBERS.includes(bay)) continue;
       
-      const startMinutes = parseTimeToMinutes(booking.time);
+      const bookingStart = new Date(`${bookingDateStr}T00:00:00.000Z`);
+      const [hours, minutes] = booking.time.split(":").map(Number);
+      bookingStart.setUTCHours(hours, minutes || 0, 0, 0);
+      const startMinutes = Math.round((bookingStart.getTime() - targetDay.getTime()) / 60_000);
       const durationMinutes = parseDurationToMinutes(booking.duration);
       const endMinutes = startMinutes + durationMinutes;
+      if (endMinutes <= 0 || startMinutes >= 3 * 24 * 60) continue;
       
       const occupiedSlots = bayOccupancy.get(bay) || new Set<number>();
-      for (let m = startMinutes; m < endMinutes && m < CLOSING_HOUR * 60; m += 30) {
+      for (let m = Math.max(0, startMinutes); m < endMinutes; m += 30) {
         occupiedSlots.add(m);
       }
       bayOccupancy.set(bay, occupiedSlots);
@@ -830,13 +858,19 @@ export async function registerRoutes(
     return bayOccupancy;
   }
 
-  function getAvailableSlots(bayOccupancy: Map<string, Set<number>>, durationHours: number): Array<{ time: string; availableBays: string[] }> {
+  function getAvailableSlots(
+    bayOccupancy: Map<string, Set<number>>,
+    durationHours: number,
+    schedule: { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number },
+  ): Array<{ time: string; availableBays: string[] }> {
     const slots: Array<{ time: string; availableBays: string[] }> = [];
     
     const durationMinutes = Math.round(durationHours * 60);
-    const lastValidStartMinutes = CLOSING_HOUR * 60 - durationMinutes;
+    const openMinutes = schedule.openHour * 60 + schedule.openMinute;
+    const lastBookingMinutes = schedule.lastBookingHour * 60 + schedule.lastBookingMinute;
+    const closeMinutes = schedule.closeHour * 60 + schedule.closeMinute;
     
-    for (let minutes = OPENING_HOUR * 60; minutes <= lastValidStartMinutes; minutes += 30) {
+    for (let minutes = openMinutes; minutes <= lastBookingMinutes && minutes + durationMinutes <= closeMinutes; minutes += 30) {
       const availableBays: string[] = [];
       
       for (const bay of BAY_NUMBERS) {
@@ -1020,16 +1054,20 @@ export async function registerRoutes(
       }
       
       const startDate = new Date(start as string);
-      startDate.setHours(0, 0, 0, 0);
+      startDate.setUTCHours(0, 0, 0, 0);
       
       const endDate = new Date(end as string);
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setUTCHours(23, 59, 59, 999);
       
       const durationHours = duration ? parseDurationToMinutes(String(duration)) / 60 : MIN_DURATION_HOURS;
       if (durationHours < 1 || durationHours > 4 || (durationHours * 60) % 30 !== 0)
         return res.status(400).json({ ok: false, message: "Durée invalide." });
       
-      const bookings = await storage.getBookingsByDateRange(startDate, endDate);
+      const bookingsStart = new Date(startDate);
+      bookingsStart.setUTCDate(bookingsStart.getUTCDate() - 1);
+      const bookingsEnd = new Date(endDate);
+      bookingsEnd.setUTCDate(bookingsEnd.getUTCDate() + 3);
+      const bookings = await storage.getBookingsByDateRange(bookingsStart, bookingsEnd);
       
       const availability: Record<string, { slots: Array<{ time: string; availableBays: string[] }>; fullyBooked: boolean }> = {};
       
@@ -1037,11 +1075,23 @@ export async function registerRoutes(
       while (currentDate <= endDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
         const bayOccupancy = getBayOccupancy(bookings, currentDate);
-        const closures = await getClosuresForDate(dateStr);
-        const slots = getAvailableSlots(bayOccupancy, durationHours)
+        const nextDate = new Date(currentDate);
+        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+        const nextDateStr = nextDate.toISOString().split("T")[0];
+        const closures = [...new Map(
+          [...await getClosuresForDate(dateStr), ...await getClosuresForDate(nextDateStr)]
+            .map(closure => [closure.id, closure])
+        ).values()];
+        const daySchedule = await storage.getScheduleForDay(currentDate.getUTCDay()) || {
+          openHour: 8, openMinute: 0, lastBookingHour: 22, lastBookingMinute: 0, closeHour: 23, closeMinute: 0,
+        };
+        const slots = getAvailableSlots(bayOccupancy, durationHours, daySchedule)
           .map(slot => ({
             ...slot,
-            availableBays: slot.availableBays.filter(bay => !isClosed(closures, dateStr, slot.time, durationHours * 60, bay, "public")),
+            availableBays: slot.availableBays.filter(bay => {
+              const actual = actualCalendarSlot(dateStr, slot.time);
+              return !isClosed(closures, actual.date, actual.time, durationHours * 60, bay, "public");
+            }),
           }))
           .filter(slot => slot.availableBays.length > 0);
         
@@ -1050,7 +1100,7 @@ export async function registerRoutes(
           fullyBooked: slots.length === 0,
         };
         
-        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
       
       return res.json({ ok: true, availability });
@@ -1066,24 +1116,8 @@ export async function registerRoutes(
       const sanitizedBody = sanitizeBookingInput(req.body);
       const validatedData = bookingRequestSchema.parse(sanitizedBody);
       
-      const startMinutes = parseTimeToMinutes(validatedData.time);
       const durationMinutes = parseDurationToMinutes(validatedData.duration);
-      const endMinutes = startMinutes + durationMinutes;
       const durationHours = durationMinutes / 60;
-      
-      if (startMinutes < OPENING_HOUR * 60) {
-        return res.status(400).json({
-          ok: false,
-          message: `Les réservations ne peuvent commencer avant ${OPENING_HOUR}h.`,
-        });
-      }
-      
-      if (endMinutes > CLOSING_HOUR * 60) {
-        return res.status(400).json({
-          ok: false,
-          message: `Les réservations doivent se terminer avant ${CLOSING_HOUR}h.`,
-        });
-      }
       
       if (durationHours < MIN_DURATION_HOURS) {
         return res.status(400).json({
@@ -1122,7 +1156,13 @@ export async function registerRoutes(
         players: validatedData.players,
         notes: validatedData.notes || null,
       };
-      const closures = await getClosuresForDate(bookingDateStr);
+      const nextBookingDate = new Date(`${bookingDateStr}T00:00:00.000Z`);
+      nextBookingDate.setUTCDate(nextBookingDate.getUTCDate() + 1);
+      const nextBookingDateStr = nextBookingDate.toISOString().slice(0, 10);
+      const closures = [...new Map(
+        [...await getClosuresForDate(bookingDateStr), ...await getClosuresForDate(nextBookingDateStr)]
+          .map(closure => [closure.id, closure])
+      ).values()];
 
       const { booking, conflict } = await storage.createBookingWithConflictCheck(
         bookingData,
@@ -1134,19 +1174,24 @@ export async function registerRoutes(
             validatedData.time,
             durationMinutes,
             [...formatBookingsForLogic(existingBookings, bookingDateStr),
-              ...closureOccupancy(closures, bookingDateStr, "public")],
+              ...closureOccupancy(closures, bookingDateStr, "public"),
+              ...closureOccupancy(closures, nextBookingDateStr, "public")],
             bookingSchedule
           );
-          if (!finalBayId || isClosed(closures, bookingDateStr, validatedData.time, durationMinutes, finalBayId, "public")) return true;
+          const actualSlot = actualCalendarSlot(bookingDateStr, validatedData.time);
+          if (!finalBayId || isClosed(closures, actualSlot.date, actualSlot.time, durationMinutes, finalBayId, "public")) return true;
           bookingData.bayType = finalBayId;
 
           for (const existing of existingBookings) {
             if (existing.bayType !== finalBayId) continue;
-            
-            const existingStartMinutes = parseTimeToMinutes(existing.time);
+            const existingDate = new Date(existing.date).toISOString().slice(0, 10);
+            const existingSlot = actualCalendarSlot(existingDate, existing.time);
             const existingDurationMinutes = parseDurationToMinutes(existing.duration);
-            const existingEndMinutes = existingStartMinutes + existingDurationMinutes;
-            if (intervalsOverlap(startMinutes, endMinutes, existingStartMinutes, existingEndMinutes)) {
+            const requestedStart = new Date(`${actualSlot.date}T${actualSlot.time}:00.000Z`).getTime();
+            const requestedEnd = requestedStart + durationMinutes * 60_000;
+            const existingStart = new Date(`${existingSlot.date}T${existingSlot.time}:00.000Z`).getTime();
+            const existingEnd = existingStart + existingDurationMinutes * 60_000;
+            if (intervalsOverlap(requestedStart, requestedEnd, existingStart, existingEnd)) {
               return true;
             }
           }
@@ -1165,6 +1210,7 @@ export async function registerRoutes(
       let calendarEventId: string | null = null;
       try {
         calendarEventId = await createCalendarEvent({
+          id: booking.id,
           name: validatedData.name,
           email: validatedData.email,
           phone: validatedData.phone || null,

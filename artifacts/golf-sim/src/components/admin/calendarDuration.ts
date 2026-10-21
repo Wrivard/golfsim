@@ -12,6 +12,6 @@ export function bookingGeometry(time: string, duration: string, startHour = 8, h
   return {
     top: (start - startHour * 60) * hourHeight / 60,
     height: minutes * hourHeight / 60,
-    endTime: `${String(Math.floor(end / 60) % 24).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`,
+    endTime: `${String(Math.floor(end / 60)).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`,
   };
 }

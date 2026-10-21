@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import type { BookingProtection } from "@/hooks/use-booking-protection";
 import { TurnstileChallenge } from "./TurnstileChallenge";
+import { formatOperatingTime } from "@workspace/booking-domain";
 
 function getPricePerHour(durationMinutes: number): number {
   return durationMinutes === 60 ? 25 : 28;
@@ -160,11 +161,11 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
     );
   }
 
-  const startTimeStr = selectedTimeSlot ? selectedTimeSlot.slice(11, 16) : null;
+  const startTimeStr = selectedTimeSlot ? formatOperatingTime(selectedTimeSlot.slice(11, 16)) : null;
   const endTimeStr = selectedTimeSlot && selectedDuration ? (() => {
     const [h, m] = selectedTimeSlot.slice(11, 16).split(':').map(Number);
     const totalMin = h * 60 + m + selectedDuration;
-    return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+    return formatOperatingTime(`${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`);
   })() : null;
     
   const bayName = simulators.find(s => s.id === assignedBayId)?.name || `Baie ${assignedBayId}`;

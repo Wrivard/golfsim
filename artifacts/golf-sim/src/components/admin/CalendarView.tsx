@@ -1,4 +1,4 @@
-import { durationMinutes } from "@workspace/booking-domain";
+import { durationMinutes, formatOperatingTime } from "@workspace/booking-domain";
 import { useState, useMemo, useCallback, useLayoutEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ function getPriceForBooking(durationStr: string): number {
 
 const HOUR_HEIGHT = 32;
 const START_HOUR = 8;
-const END_HOUR = 25;
+const END_HOUR = 31;
 const BAYS = ["1", "2", "3", "4"];
 const TIME_COL_WIDTH = 56;
 
@@ -241,7 +241,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                           {hours.map((h) => (
                             <div key={h} className="absolute w-full text-right pr-2 -translate-y-1/2" style={{ top: (h - START_HOUR) * hourHeight }}>
                               <span className="text-[11px] text-muted-foreground font-mono bg-white px-0.5">
-                                {(h >= 24 ? h - 24 : h).toString().padStart(2, "0")}:00
+                                {formatOperatingTime(`${String(h).padStart(2, "0")}:00`)}
                               </span>
                             </div>
                           ))}
@@ -288,7 +288,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                     key={booking.id}
                                     className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-grab overflow-hidden z-[2]`}
                                     style={{ top, height }}
-                                    title={`${booking.name} · ${booking.time}–${endTime} · Durée : ${booking.duration} · Baie ${booking.bayType}`}
+                                    title={`${booking.name} · ${formatOperatingTime(booking.time)}–${formatOperatingTime(endTime)} · Durée : ${booking.duration} · Baie ${booking.bayType}`}
                                     draggable
                                     onDragStart={e => {
                                       e.stopPropagation();
@@ -304,11 +304,11 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       <p className={`font-bold truncate ${colors.text} ${isShort ? "text-[11px]" : "text-xs"}`}>
                                         {booking.name}
                                       </p>
-                                      {isShort && durMin >= 60 && <p className="text-[10px] text-muted-foreground truncate">{booking.time}–{endTime}</p>}
+                                      {isShort && durMin >= 60 && <p className="text-[10px] text-muted-foreground truncate">{formatOperatingTime(booking.time)}–{formatOperatingTime(endTime)}</p>}
                                       {!isShort && (
                                         <>
                                           <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                            {booking.time}–{endTime}
+                                            {formatOperatingTime(booking.time)}–{formatOperatingTime(endTime)}
                                           </p>
                                           <p className="text-[10px] text-muted-foreground">
                                             {booking.duration}
@@ -323,7 +323,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       )}
                                       {isShort && (
                                         <p className="text-[9px] text-muted-foreground truncate">
-                                          {durMin >= 60 ? booking.duration : `${booking.time}–${endTime}`} · {booking.players}j
+                                          {durMin >= 60 ? booking.duration : `${formatOperatingTime(booking.time)}–${formatOperatingTime(endTime)}`} · {booking.players}j
                                         </p>
                                       )}
                                     </div>
@@ -517,7 +517,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Heure</label>
-                  <Input type="time" step={1800} value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-time" />
+                  <Input type="text" inputMode="numeric" placeholder="HH:MM, ex. 24:30" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-time" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Durée</label>
@@ -587,8 +587,8 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4 text-center">
                   <Clock className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
-                  <p className="font-bold text-base" data-testid="text-modal-time">{booking.time}</p>
-                  <p className="text-xs text-muted-foreground mt-1">à {endTime}</p>
+                  <p className="font-bold text-base" data-testid="text-modal-time">{formatOperatingTime(booking.time)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">à {formatOperatingTime(endTime)}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 text-center">
                   <Users className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
