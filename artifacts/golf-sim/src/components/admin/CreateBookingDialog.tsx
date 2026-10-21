@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { ChevronDown } from "lucide-react";
 import { staffAvailableBays, staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
 
 export interface BookingPrefill {
@@ -32,6 +34,7 @@ async function fetchStaffSlots(date: string, durationMinutes: number): Promise<S
 export default function CreateBookingDialog({ prefill, onClose }: { prefill: BookingPrefill; onClose: () => void }) {
   const [date, setDate] = useState(prefill.date);
   const [time, setTime] = useState(prefill.time || "");
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [duration, setDuration] = useState(prefill.duration || "1h");
   const [bayType, setBayType] = useState(prefill.bayType || "");
   const [players, setPlayers] = useState(String(prefill.players || 1));
@@ -107,10 +110,48 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
             </div>
             <div className="space-y-2">
               <Label htmlFor="staff-time">Heure</Label>
-              <Select value={selectedTime} onValueChange={setTime} disabled={slotsQuery.isFetching || slotsQuery.isError || availableTimes.length === 0}>
-                <SelectTrigger id="staff-time" aria-label="Heure"><SelectValue placeholder="Choisir une heure" /></SelectTrigger>
-                <SelectContent>{availableTimes.map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
-              </Select>
+              <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="staff-time"
+                    type="button"
+                    variant="outline"
+                    disabled={slotsQuery.isFetching || slotsQuery.isError || availableTimes.length === 0}
+                    aria-label="Heure"
+                    aria-haspopup="dialog"
+                    aria-expanded={timePickerOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedTime || "Choisir une heure"}
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  side="bottom"
+                  collisionPadding={12}
+                  className="w-[var(--radix-popover-trigger-width)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto p-2"
+                >
+                  <div role="group" aria-label="Heures disponibles" className="grid grid-cols-2 gap-2">
+                    {availableTimes.map(value => (
+                      <Button
+                        key={value}
+                        type="button"
+                        size="sm"
+                        variant={selectedTime === value ? "default" : "outline"}
+                        aria-pressed={selectedTime === value}
+                        className="w-full"
+                        onClick={() => {
+                          setTime(value);
+                          setTimePickerOpen(false);
+                        }}
+                      >
+                        {value}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-muted-foreground" role="status">
                 {slotsQuery.isFetching ? "Chargement des heures disponibles..." : slotsQuery.isError ? `Erreur : ${slotsQuery.error.message}` : availableTimes.length === 0 ? "Aucune heure disponible pour cette baie." : !selectedTime && time ? "L'heure choisie n'est plus disponible." : `${availableTimes.length} heure${availableTimes.length > 1 ? "s" : ""} disponible${availableTimes.length > 1 ? "s" : ""}`}
               </p>
