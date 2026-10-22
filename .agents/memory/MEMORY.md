@@ -21,3 +21,4 @@
 - [Booking abuse protection](booking-abuse-policy.md) — public quotas must not affect staff or leagues; signed form tokens are not human verification; release both sides together.
 - [Shared package typechecks](shared-package-typechecks.md) — rebuild shared TypeScript packages after export changes before typechecking their consumers.
 - [Overnight schedule ceiling](overnight-operating-hours.md) — operating hours and calendar display stop at 02:00; the last-start cutoff is separate from session end.
+- [Dependency scan coverage](dependency-scan-coverage.md) — a clean package-manager audit can still miss advisories; verify independently across archived lockfiles too.
