@@ -13,8 +13,8 @@ import BarLounge from "@/components/home/BarLounge";
 
 // Images
 // Fix imports to use local assets instead of generated_images alias directly if inconsistent
-import heroImage from "@assets/20260105-1-01_1790696495855.webp";
-import techImage from "@assets/20260105-2-02_1790696495856.webp";
+import heroImage from "@/assets/site/20260105-1-01_1790696495855.webp";
+import techImage from "@/assets/site/20260105-2-02_1790696495856.webp";
 
 export default function Home() {
   return (

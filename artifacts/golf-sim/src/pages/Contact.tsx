@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { useRef } from "react";
 import { sendContactRequest, type ContactInput } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
-import headerBg from "@assets/20260105-6-06_1790696495857.webp";
+import headerBg from "@/assets/site/20260105-6-06_1790696495857.webp";
 
 export default function Contact() {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Omit<ContactInput, "requestId">>({

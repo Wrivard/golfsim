@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Beer, GlassWater } from "lucide-react";
-import barImage from "@assets/20260105-6-06_1790696495857.webp";
+import barImage from "@/assets/site/20260105-6-06_1790696495857.webp";
 
 export default function BarLounge() {
   return (

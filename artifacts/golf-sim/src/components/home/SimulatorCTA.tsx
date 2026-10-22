@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import ctaImage from "@assets/20260105-7-07_1790696495857.webp";
+import ctaImage from "@/assets/site/20260105-7-07_1790696495857.webp";
 
 export default function SimulatorCTA() {
   return (

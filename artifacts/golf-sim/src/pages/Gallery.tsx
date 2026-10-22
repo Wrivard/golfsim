@@ -4,21 +4,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Images
-import img1 from "@assets/20260105-1-01_1790696495855.webp";
-import img2 from "@assets/20260105-2-02_1790696495856.webp";
-import img3 from "@assets/20260105-3-03_1790696495856.webp";
-import img4 from "@assets/20260105-4-04_1790696495856.webp";
-import img5 from "@assets/20260105-5-05_1790696495856.webp";
-import img6 from "@assets/20260105-6-06_1790696495857.webp";
-import img7 from "@assets/20260105-7-07_1790696495857.webp";
-import img8 from "@assets/20260105-8-08_1790696495857.webp";
-import img9 from "@assets/20260105-9-09_1790696495857.webp";
-import img10 from "@assets/20260105-10-10_1790696495858.webp";
-import img11 from "@assets/20260105-11-11_1790696495858.webp";
-import img12 from "@assets/20260105-12-12_1790696495858.webp";
-import img13 from "@assets/20260105-13-13_1790696495858.webp";
-import img14 from "@assets/20260105-14-14_1790696495858.webp";
-import headerBg from "@assets/20260105-9-09_1790696495857.webp";
+import img1 from "@/assets/site/20260105-1-01_1790696495855.webp";
+import img2 from "@/assets/site/20260105-2-02_1790696495856.webp";
+import img3 from "@/assets/site/20260105-3-03_1790696495856.webp";
+import img4 from "@/assets/site/20260105-4-04_1790696495856.webp";
+import img5 from "@/assets/site/20260105-5-05_1790696495856.webp";
+import img6 from "@/assets/site/20260105-6-06_1790696495857.webp";
+import img7 from "@/assets/site/20260105-7-07_1790696495857.webp";
+import img8 from "@/assets/site/20260105-8-08_1790696495857.webp";
+import img9 from "@/assets/site/20260105-9-09_1790696495857.webp";
+import img10 from "@/assets/site/20260105-10-10_1790696495858.webp";
+import img11 from "@/assets/site/20260105-11-11_1790696495858.webp";
+import img12 from "@/assets/site/20260105-12-12_1790696495858.webp";
+import img13 from "@/assets/site/20260105-13-13_1790696495858.webp";
+import img14 from "@/assets/site/20260105-14-14_1790696495858.webp";
+import headerBg from "@/assets/site/20260105-9-09_1790696495857.webp";
 
 const images = [
   { src: img1, alt: "Baie de golf avec écran de simulation", category: "La Baie" },

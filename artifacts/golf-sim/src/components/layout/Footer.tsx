@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Facebook, MapPin, Phone, Mail } from "lucide-react";
-import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
-import kuaLogo from "@assets/white-letter-kua-logo_1764361974050.png";
+import logo from "@/assets/site/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
+import kuaLogo from "@/assets/site/white-letter-kua-logo_1764361974050.png";
 
 export default function Footer() {
   return (

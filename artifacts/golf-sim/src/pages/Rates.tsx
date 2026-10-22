@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Link } from "wouter";
 import FAQ from "@/components/rates/FAQ";
-import headerBg from "@assets/20260105-5-05_1790696495856.webp";
+import headerBg from "@/assets/site/20260105-5-05_1790696495856.webp";
 
 export default function Rates() {
   return (

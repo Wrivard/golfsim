@@ -22,3 +22,4 @@
 - [Shared package typechecks](shared-package-typechecks.md) — rebuild shared TypeScript packages after export changes before typechecking their consumers.
 - [Overnight schedule ceiling](overnight-operating-hours.md) — operating hours and calendar display stop at 02:00; the last-start cutoff is separate from session end.
 - [Dependency scan coverage](dependency-scan-coverage.md) — a clean package-manager audit can still miss advisories; verify independently across archived lockfiles too.
+- [Vercel source assets](vercel-source-assets.md) — Vercel Git builds cannot rely on globally ignored attached_assets; keep imported product images in tracked artifact source.

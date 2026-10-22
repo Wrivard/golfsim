@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
 // Images
-import loungeImage from "@assets/20260105-12-12_1790696495858.webp";
-import headerBg from "@assets/20260105-9-09_1790696495857.webp";
+import loungeImage from "@/assets/site/20260105-12-12_1790696495858.webp";
+import headerBg from "@/assets/site/20260105-9-09_1790696495857.webp";
 
 export default function About() {
   return (

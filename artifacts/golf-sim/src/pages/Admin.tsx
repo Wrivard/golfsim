@@ -16,7 +16,7 @@ import EmailContactBank from "@/components/admin/EmailContactBank";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
-import logo from "@assets/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
+import logo from "@/assets/site/713ff390-44c3-4643-aade-0154b9a25262.jfif_1764347062569.png";
 
 async function fetchSession() {
   const response = await fetch("/api/auth/session");

@@ -10,7 +10,7 @@ import { useBookingStore } from "@/lib/booking-store";
 import { TimeSlot, DaySchedule } from "@/lib/booking-types";
 import { Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
-import headerBg from "@assets/20260105-2-02_1790696495856.webp";
+import headerBg from "@/assets/site/20260105-2-02_1790696495856.webp";
 import { useBookingProtection } from "@/hooks/use-booking-protection";
 
 const stepTitles: Record<number, string> = {
