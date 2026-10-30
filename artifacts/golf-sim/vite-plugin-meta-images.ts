@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 export function metaImagesPlugin(): Plugin {
   return {
     name: 'vite-plugin-meta-images',
+    enforce: 'post',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
@@ -19,49 +20,62 @@ export function metaImagesPlugin(): Plugin {
           return html;
         }
 
-        // Check if opengraph image exists in public directory
-        const publicDir = path.resolve(import.meta.dirname, 'public');
-        const opengraphPngPath = path.join(publicDir, 'opengraph.png');
-        const opengraphJpgPath = path.join(publicDir, 'opengraph.jpg');
-        const opengraphJpegPath = path.join(publicDir, 'opengraph.jpeg');
-
-        let imageExt: string | null = null;
-        if (fs.existsSync(opengraphPngPath)) {
-          imageExt = 'png';
-        } else if (fs.existsSync(opengraphJpgPath)) {
-          imageExt = 'jpg';
-        } else if (fs.existsSync(opengraphJpegPath)) {
-          imageExt = 'jpeg';
-        }
-
-        if (!imageExt) {
+        const imageUrl = getOpenGraphImageUrl(baseUrl);
+        if (!imageUrl) {
           log('[meta-images] OpenGraph image not found, skipping meta tag updates');
           return html;
         }
 
-        const imagePath = path.join(publicDir, `opengraph.${imageExt}`);
-        const imageVersion = createHash('sha256')
-          .update(fs.readFileSync(imagePath))
-          .digest('hex')
-          .slice(0, 12);
-        const imageUrl = `${baseUrl}/opengraph.${imageExt}?v=${imageVersion}`;
-
         log('[meta-images] updating meta image tags to:', imageUrl);
+        return rewriteMetaImageUrls(html, imageUrl);
+      },
+    },
+    generateBundle: {
+      order: 'post',
+      handler(_options, bundle) {
+        const baseUrl = getDeploymentUrl();
+        if (!baseUrl) return;
 
-        html = html.replace(
-          /<meta\s+property="og:image"\s+content="[^"]*"\s*\/>/g,
-          `<meta property="og:image" content="${imageUrl}" />`
-        );
+        const imageUrl = getOpenGraphImageUrl(baseUrl);
+        if (!imageUrl) {
+          log('[meta-images] OpenGraph image not found, skipping emitted HTML updates');
+          return;
+        }
 
-        html = html.replace(
-          /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/>/g,
-          `<meta name="twitter:image" content="${imageUrl}" />`
-        );
-
-        return html;
+        for (const asset of Object.values(bundle)) {
+          if (asset.type !== 'asset' || !asset.fileName.endsWith('.html')) continue;
+          asset.source = rewriteMetaImageUrls(String(asset.source), imageUrl);
+        }
       },
     },
   };
+}
+
+function getOpenGraphImageUrl(baseUrl: string): string | null {
+  const publicDir = path.resolve(import.meta.dirname, 'public');
+  const imageExt = ['png', 'jpg', 'jpeg'].find((ext) =>
+    fs.existsSync(path.join(publicDir, `opengraph.${ext}`))
+  );
+  if (!imageExt) return null;
+
+  const imagePath = path.join(publicDir, `opengraph.${imageExt}`);
+  const imageVersion = createHash('sha256')
+    .update(fs.readFileSync(imagePath))
+    .digest('hex')
+    .slice(0, 12);
+  return `${baseUrl}/opengraph.${imageExt}?v=${imageVersion}`;
+}
+
+function rewriteMetaImageUrls(html: string, imageUrl: string): string {
+  return html
+    .replace(
+      /<meta\s+property="og:image"\s+content="[^"]*"\s*\/>/g,
+      `<meta property="og:image" content="${imageUrl}" />`
+    )
+    .replace(
+      /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/>/g,
+      `<meta name="twitter:image" content="${imageUrl}" />`
+    );
 }
 
 function getDeploymentUrl(): string | null {

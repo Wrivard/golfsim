@@ -161,3 +161,17 @@ mtime_ms = 1792006834511
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/76b8f2ab-46b7-4acc-870d-ce783e9623ce/b2c7d2dc-d941-442f-9e5d-42410e224af0"
 storage_version_token = "1792006855937754"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "tO5Xx_uma36P826A8eLU8"
+uri = "file://artifacts/golf-sim/public/opengraph.jpg"
+type = "image"
+title = "Updated Golf SIM link preview image"
+description = "1200×630 screenshot of the homepage hero with the current H1."
+logical_id = "2ac0ff3a-dc41-4323-84b1-c071c7ca2704"
+content_hash = "sha256:902165d70a5174c93efb84920eb5fc5c8a55315e28168c40cc3753fc3a98f828"
+size = 64253
+mtime_ms = 1792755812673
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:3ca1e4fa-65c1-4771-b29d-9d837333c664/2ac0ff3a-dc41-4323-84b1-c071c7ca2704/f0416c2e-4229-4bc5-925a-f818d923a817"
+storage_version_token = "1793369046345821"
+content_type = "image/jpeg"

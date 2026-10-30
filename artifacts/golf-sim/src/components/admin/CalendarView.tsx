@@ -40,7 +40,7 @@ interface CalendarViewProps {
 
 const BAY_COLORS: Record<string, { bg: string; bgSolid: string; border: string; text: string; headerBg: string }> = {
   "1": { bg: "bg-emerald-50", bgSolid: "#ecfdf5", border: "border-emerald-400", text: "text-emerald-800", headerBg: "bg-emerald-100" },
-  "2": { bg: "bg-blue-50", bgSolid: "#eff6ff", border: "border-blue-400", text: "text-blue-800", headerBg: "bg-blue-100" },
+  "2": { bg: "bg-yellow-50", bgSolid: "#fefce8", border: "border-yellow-400", text: "text-yellow-900", headerBg: "bg-yellow-100" },
   "3": { bg: "bg-amber-50", bgSolid: "#fffbeb", border: "border-amber-400", text: "text-amber-800", headerBg: "bg-amber-100" },
   "4": { bg: "bg-red-50", bgSolid: "#fef2f2", border: "border-red-400", text: "text-red-800", headerBg: "bg-red-100" },
 };

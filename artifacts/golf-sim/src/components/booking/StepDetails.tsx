@@ -15,7 +15,7 @@ import { formatOperatingTime } from "@workspace/booking-domain";
 const formSchema = z.object({
   name: z.string().min(2, "Le nom est requis (minimum 2 caractères)"),
   email: z.string().email("Adresse courriel invalide"),
-  phone: z.string().optional(),
+  phone: z.string().trim().min(1, "Le numéro de téléphone est requis."),
   players: z.coerce.number().min(1, "Minimum 1 joueur").max(4, "Maximum 4 joueurs"),
   notes: z.string().optional(),
   marketingConsent: z.boolean().default(false),
@@ -101,18 +101,22 @@ export function StepDetails() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-foreground/80">Téléphone</Label>
+          <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-foreground/80">Téléphone <span className="text-red-500">*</span></Label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               id="phone" 
               type="tel" 
               placeholder="(450) 561-3815" 
+              required
               className="pl-9 bg-background/80 border-foreground/20 h-11" 
               {...form.register("phone")} 
               data-testid="input-phone"
             />
           </div>
+          {form.formState.errors.phone && (
+            <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">

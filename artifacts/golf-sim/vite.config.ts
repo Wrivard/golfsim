@@ -35,8 +35,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     ...(process.env.NODE_ENV !== 'production' ? [runtimeErrorOverlay()] : []),
-    metaImagesPlugin(),
     seoPlugin(),
+    metaImagesPlugin(),
     {
       name: 'preserve-essential-script-consent',
       // Vite reconstructs the module tag and drops custom entry attributes.

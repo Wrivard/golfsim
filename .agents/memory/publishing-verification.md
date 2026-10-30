@@ -9,6 +9,12 @@ A working development preview is not sufficient verification for publishing, esp
 
 **How to apply:** Run the affected artifact's actual production build before declaring it ready to publish. Check generated route HTML and its compiled asset references, not just the root page in the development server.
 
+Social-preview image rewrites must cover every generated route, not only the root HTML. SEO route pages may be injected during bundle generation, after `transformIndexHtml` hooks have run.
+
+**Why:** A rewrite can log the updated URL and pass for the homepage while copied route pages still publish the old image URL.
+
+**How to apply:** Apply Open Graph and Twitter image updates after route HTML is emitted, and verify all built HTML pages use the current image URL.
+
 Vercel's Node function compilation must also be checked with NodeNext resolution, independently of the workspace's Bundler-mode type check.
 
 **Why:** The workspace build passed, but Vercel rejected extensionless imports in the function's transitive TypeScript graph. Fixing only the entry-point import revealed the same problem inside the server.
