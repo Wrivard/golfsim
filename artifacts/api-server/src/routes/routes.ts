@@ -38,6 +38,7 @@ import { registerCalendarJobs, runCalendarMaintenance } from "../calendar-jobs";
 import { closureInput, getClosuresForDate, closureOccupancy, isClosed, listClosures, saveClosure, removeClosure } from "../availability-closures";
 import { listContacts, csvContacts, withdrawConsent, withdrawContact, contactUnsubscribeLink } from "../email-contacts";
 import { historicalContactPreview, importHistoricalContacts } from "../email-backfill";
+import { isPastTorontoSlot } from "../calendar-time";
 
 declare module "express-session" {
   interface SessionData {
@@ -1010,10 +1011,17 @@ export async function registerRoutes(
         closeMinute: daySchedule.closeMinute,
       } : undefined;
 
+      const now = new Date();
       const slots = getOptimizedStartTimes(targetDate, durationMinutes,
         [...formattedBookings,
           ...closureOccupancy(closures, date, audience),
-          ...closureOccupancy(closures, nextDateStr, audience)], undefined, schedule);
+          ...closureOccupancy(closures, nextDateStr, audience)], undefined, schedule)
+        .filter(slot => {
+          if (audience !== "public") return true;
+          // Schedule timestamps use UTC fields as Toronto wall-clock values.
+          const localSlot = new Date(slot.time).toISOString();
+          return !isPastTorontoSlot(localSlot.slice(0, 10), localSlot.slice(11, 16), now);
+        });
 
       return res.json({
         ok: true,
@@ -1071,6 +1079,7 @@ export async function registerRoutes(
       
       const availability: Record<string, { slots: Array<{ time: string; availableBays: string[] }>; fullyBooked: boolean }> = {};
       
+      const now = new Date();
       const currentDate = new Date(startDate);
       while (currentDate <= endDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
@@ -1093,7 +1102,11 @@ export async function registerRoutes(
               return !isClosed(closures, actual.date, actual.time, durationHours * 60, bay, "public");
             }),
           }))
-          .filter(slot => slot.availableBays.length > 0);
+          .filter(slot => {
+            if (!slot.availableBays.length) return false;
+            const actual = actualCalendarSlot(dateStr, slot.time);
+            return !isPastTorontoSlot(actual.date, actual.time, now);
+          });
         
         availability[dateStr] = {
           slots,
@@ -1134,6 +1147,13 @@ export async function registerRoutes(
       }
 
       const bookingDateStr = validatedData.date.toISOString().split('T')[0];
+      const actualRequestedSlot = actualCalendarSlot(bookingDateStr, validatedData.time);
+      if (isPastTorontoSlot(actualRequestedSlot.date, actualRequestedSlot.time)) {
+        return res.status(409).json({
+          ok: false,
+          message: "Ce créneau est déjà passé. Choisissez une heure future.",
+        });
+      }
       const bookingDayOfWeek = validatedData.date.getUTCDay();
       const bookingDaySchedule = await storage.getScheduleForDay(bookingDayOfWeek);
       const bookingSchedule = bookingDaySchedule ? {
