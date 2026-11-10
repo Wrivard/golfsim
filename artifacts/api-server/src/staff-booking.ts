@@ -3,7 +3,7 @@ import { isHalfHourStart } from "@workspace/booking-domain";
 
 /** Validate the slot shape here; the selected weekday schedule sets its real hours. */
 export function isWithinPublicBookingHours(time: string, durationMinutes: number): boolean {
-  if (!isHalfHourStart(time) || !Number.isInteger(durationMinutes) || durationMinutes < 60 || durationMinutes % 30 !== 0) return false;
+  if (!isHalfHourStart(time) || !Number.isInteger(durationMinutes) || durationMinutes < 30 || durationMinutes % 30 !== 0) return false;
   return true;
 }
 

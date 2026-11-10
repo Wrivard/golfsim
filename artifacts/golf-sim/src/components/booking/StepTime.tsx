@@ -1,3 +1,4 @@
+import { formatDuration } from "@workspace/booking-domain";
 import { useMemo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useBookingStore } from "@/lib/booking-store";
 import { format } from "date-fns";
@@ -219,7 +220,7 @@ export function StepTime({ onHoverSlot, onSlotsReady, onScheduleReady }: StepTim
 
       <div className="text-center mb-2">
         <p className="text-sm text-muted-foreground">
-          Session de <strong>{selectedDuration ? selectedDuration / 60 : 0}h</strong> — {format(selectedDate, "EEEE d MMMM", { locale: fr })}
+          Session de <strong>{selectedDuration ? formatDuration(selectedDuration) : "—"}</strong> — {format(selectedDate, "EEEE d MMMM", { locale: fr })}
         </p>
       </div>
 

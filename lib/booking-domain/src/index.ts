@@ -8,6 +8,39 @@ export function durationMinutes(value: string): number {
   return Number.isFinite(minutes) && Number.isInteger(minutes) && minutes > 0 ? minutes : 0;
 }
 
+/** New sales use this catalogue; reading historical/imported durations stays permissive. */
+export const BOOKING_DURATION_VALUES = ["0.5h", "1h", "2h", "3h", "4h"] as const;
+export const BOOKING_DURATIONS = [
+  { value: "0.5h", minutes: 30, label: "30 min", price: null },
+  { value: "1h", minutes: 60, label: "1 h", price: 25 },
+  { value: "2h", minutes: 120, label: "2 h", price: 56 },
+  { value: "3h", minutes: 180, label: "3 h", price: 84 },
+  { value: "4h", minutes: 240, label: "4 h", price: 112 },
+] as const;
+export const BOOKING_DURATION_MINUTES: readonly number[] = BOOKING_DURATIONS.map(option => option.minutes);
+
+export function isOfferedDurationMinutes(minutes: number): boolean {
+  return BOOKING_DURATION_MINUTES.includes(minutes);
+}
+
+export function isOfferedDuration(value: string): boolean {
+  return isOfferedDurationMinutes(durationMinutes(value));
+}
+
+/** null is unknown, never free or a prorated hourly estimate. */
+export function bookingPrice(duration: string | number): number | null {
+  const minutes = typeof duration === "number" ? duration : durationMinutes(duration);
+  return BOOKING_DURATIONS.find(option => option.minutes === minutes)?.price ?? null;
+}
+
+export function formatDuration(duration: string | number): string {
+  const minutes = typeof duration === "number" ? duration : durationMinutes(duration);
+  if (!Number.isInteger(minutes) || minutes <= 0) return "Durée inconnue";
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return [hours ? `${hours} h` : "", remainder ? `${remainder} min` : ""].filter(Boolean).join(" ");
+}
+
 export const MAX_OPERATING_HOUR = 26;
 
 /** Keep any legacy schedule row within the supported 2 a.m. operating-day limit. */

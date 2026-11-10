@@ -8,14 +8,9 @@
 import * as zod from 'zod';
 
 
-export const getStaffAvailabilityQueryDurationMin = 60;
-export const getStaffAvailabilityQueryDurationMax = 240;
-
-
-
 export const GetStaffAvailabilityQueryParams = zod.object({
   "date": zod.date(),
-  "duration": zod.coerce.number().int().min(getStaffAvailabilityQueryDurationMin).max(getStaffAvailabilityQueryDurationMax)
+  "duration": zod.union([zod.literal(30),zod.literal(60),zod.literal(120),zod.literal(180),zod.literal(240)])
 })
 
 export const GetStaffAvailabilityResponse = zod.object({
@@ -292,7 +287,7 @@ export const CreatePublicBookingHeader = zod.object({
 
 export const createPublicBookingBodyNameMin = 2;
 
-export const createPublicBookingBodyTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const createPublicBookingBodyTimeRegExp = new RegExp('^(?:([01]\\d|2[0-5]):(?:00|30)|26:00)$');
 export const createPublicBookingBodyPlayersMax = 4;
 
 export const createPublicBookingBodyMarketingConsentDefault = false;
@@ -307,7 +302,7 @@ export const CreatePublicBookingBody = zod.object({
   "email": zod.string().email(),
   "date": zod.coerce.date(),
   "time": zod.string().regex(createPublicBookingBodyTimeRegExp),
-  "duration": zod.enum(['1h', '2h', '3h', '4h']),
+  "duration": zod.enum(['0.5h', '1h', '2h', '3h', '4h']),
   "bayType": zod.enum(['1', '2', '3', '4']),
   "players": zod.number().int().min(1).max(createPublicBookingBodyPlayersMax),
   "phone": zod.string().optional(),
@@ -420,7 +415,7 @@ export const EditAdminBookingBody = zod.object({
   "phone": zod.string().max(editAdminBookingBodyPhoneMax).nullish(),
   "date": zod.coerce.date().optional(),
   "time": zod.string().regex(editAdminBookingBodyTimeRegExp).optional(),
-  "duration": zod.enum(['1h', '2h', '3h', '4h']).optional(),
+  "duration": zod.enum(['0.5h', '1h', '2h', '3h', '4h']).optional(),
   "bayType": zod.enum(['1', '2', '3', '4']).optional(),
   "players": zod.number().int().min(1).max(editAdminBookingBodyPlayersMax).optional(),
   "notes": zod.string().max(editAdminBookingBodyNotesMax).nullish()

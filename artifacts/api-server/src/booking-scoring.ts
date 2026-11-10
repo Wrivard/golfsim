@@ -1,6 +1,7 @@
 import { addMinutes, differenceInMinutes } from "date-fns";
+import { BOOKING_DURATION_MINUTES } from "@workspace/booking-domain";
 
-const ALLOWED_DURATIONS = [60, 120, 180, 240] as const;
+const ALLOWED_DURATIONS = BOOKING_DURATION_MINUTES;
 
 export interface PlacementMetrics {
   existingUnsellableMinutes: number;
@@ -18,16 +19,16 @@ export function measureFreeSegment(
   closeTime: Date,
   granularity: number,
   candidateGranularities: readonly number[] = [granularity],
-): { unsellable: number; longStarts: number; mediumStarts: number; startsByDuration: [number, number, number, number] } {
+): { unsellable: number; longStarts: number; mediumStarts: number; startsByDuration: number[] } {
   const length = differenceInMinutes(end, start);
-  if (length <= 0) return { unsellable: 0, longStarts: 0, mediumStarts: 0, startsByDuration: [0, 0, 0, 0] };
+  if (length <= 0) return { unsellable: 0, longStarts: 0, mediumStarts: 0, startsByDuration: ALLOWED_DURATIONS.map(() => 0) };
 
-  // Only actual bookable starts count. A 30-minute remainder on an hourly bay
-  // can be waste even if the remainder itself is longer than 60 minutes.
+  // Only actual bookable starts count. A 30-minute remainder is now sellable
+  // when a legal start exists before the last-start cutoff.
   const ranges: Array<[number, number]> = [];
   let longStarts = 0;
   let mediumStarts = 0;
-  const startsByDuration: [number, number, number, number] = [0, 0, 0, 0];
+  const startsByDuration = ALLOWED_DURATIONS.map(() => 0);
   const seenStarts = new Set<number>();
   // Candidate times come from the union of every bay's opening-relative grid,
   // then eligibility uses the wall-clock minute. In particular, an 08:30

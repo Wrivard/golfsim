@@ -1,5 +1,5 @@
 import { google, type calendar_v3 } from 'googleapis';
-import { durationMinutes as parseDurationStr } from "@workspace/booking-domain";
+import { durationMinutes as parseDurationStr, formatDuration } from "@workspace/booking-domain";
 import { storage } from './storage';
 import { markSourcePending, markSourceReady, sourceReady, withCalendarSource } from "./calendar-source";
 import crypto from 'crypto';
@@ -300,7 +300,7 @@ Courriel: ${booking.email}
 Téléphone: ${booking.phone || 'Non fourni'}
 Joueurs: ${booking.players}
 ${bayLabel}
-Durée: ${booking.duration}
+Durée: ${formatDuration(booking.duration)}
 ${booking.notes ? `Remarques: ${booking.notes}` : ''}
     `.trim(),
     colorId: BAY_COLORS[booking.bayType] || "10",
@@ -470,7 +470,7 @@ async function syncActiveCalendar(until?: Date): Promise<CalendarSyncResult> {
               
               const dateChanged = new Date(existingBooking.date).toISOString().slice(0, 10) !== slot.day;
               const timeChanged = existingBooking.time !== timeStr;
-              const durationChanged = existingBooking.duration !== durationStr;
+              const durationChanged = parseDurationStr(existingBooking.duration) !== parseDurationStr(durationStr);
 
               if (dateChanged || timeChanged || durationChanged) {
                 await storage.updateBookingByCalendarEventId(event.id, {
@@ -516,7 +516,7 @@ async function syncActiveCalendar(until?: Date): Promise<CalendarSyncResult> {
         if (existingBooking) {
           const dateChanged = new Date(existingBooking.date).toISOString().slice(0, 10) !== new Date(parsed.date).toISOString().slice(0, 10);
           const timeChanged = existingBooking.time !== parsed.time;
-          const durationChanged = existingBooking.duration !== parsed.duration;
+          const durationChanged = parseDurationStr(existingBooking.duration) !== parseDurationStr(parsed.duration);
           const bayChanged = existingBooking.bayType !== parsed.bayType;
           const nameChanged = existingBooking.name !== parsed.name;
           const emailChanged = existingBooking.email !== parsed.email;
@@ -600,7 +600,7 @@ function parseTimeStr(time: string): number {
 }
 
 
-function parseCalendarEvent(event: any): {
+export function parseCalendarEvent(event: any): {
   name: string;
   email: string;
   phone: string | null;

@@ -9,7 +9,7 @@ const day = new Date(2026, 9, 16);
 const bays = ["1", "2", "3", "4"];
 
 test("public and staff accept whole-hour and half-hour starts on every bay for all durations", () => {
-  for (const duration of [60, 120, 180, 240]) {
+  for (const duration of [30, 60, 120, 180, 240]) {
     for (const bay of bays) {
       for (const time of ["16:00", "16:30", "17:00", "17:30"]) {
         assert.equal(validateBayAssignment(day, time, duration, bay, []).valid, true);

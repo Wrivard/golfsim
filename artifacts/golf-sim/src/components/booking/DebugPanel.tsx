@@ -1,3 +1,4 @@
+import { formatDuration } from "@workspace/booking-domain";
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -211,7 +212,7 @@ export function DebugPanel({ slots, bookings, hoveredSlot, selectedDuration, sch
         </h2>
         <p className="text-gray-500 text-xs mt-1">État du Moteur de Disponibilité</p>
         <p className="text-primary text-xs mt-0.5 font-medium">
-          Mode horaire : {selectedDuration ? selectedDuration / 60 : "—"}h • {dateLabel}
+          Mode horaire : {selectedDuration ? formatDuration(selectedDuration) : "—"} • {dateLabel}
         </p>
         {schedule && (
           <p className="text-gray-500 text-[10px] mt-1 font-mono">

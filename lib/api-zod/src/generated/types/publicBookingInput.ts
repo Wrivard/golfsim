@@ -13,7 +13,7 @@ export interface PublicBookingInput {
   name: string;
   email: string;
   date: Date;
-  /** @pattern ^([01]\d|2[0-3]):[0-5]\d$ */
+  /** @pattern ^(?:([01]\d|2[0-5]):(?:00|30)|26:00)$ */
   time: string;
   duration: PublicBookingInputDuration;
   bayType: PublicBookingInputBayType;

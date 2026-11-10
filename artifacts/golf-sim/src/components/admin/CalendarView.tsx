@@ -1,4 +1,4 @@
-import { durationMinutes, formatOperatingTime } from "@workspace/booking-domain";
+import { BOOKING_DURATIONS, bookingPrice, durationMinutes, formatDuration, formatOperatingTime } from "@workspace/booking-domain";
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { Calendar as DateCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGetAdminClosures, getGetAdminClosuresQueryKey } from "@workspace/api-client-react";
 
-interface Booking {
+export interface Booking {
   id: string;
   name: string;
   email: string;
@@ -45,11 +45,12 @@ const BAY_COLORS: Record<string, { bg: string; bgSolid: string; border: string; 
   "4": { bg: "bg-red-50", bgSolid: "#fef2f2", border: "border-red-400", text: "text-red-800", headerBg: "bg-red-100" },
 };
 
-function getPriceForBooking(durationStr: string): number {
-  const hours = durationMinutes(durationStr || "") / 60;
-  const pricePerHour = hours === 1 ? 25 : 28;
-  return hours * pricePerHour;
-}
+/** null = no known price (30 min, historical durations); never shown as 0 or prorated. */
+const priceLabel = (durationStr: string) => {
+  const price = bookingPrice(durationStr || "");
+  return price === null ? "Tarif non défini" : `${price} $`;
+};
+const CATALOG_VALUES: readonly string[] = BOOKING_DURATIONS.map(d => d.value);
 
 /** Fixed readable scale: a 1 h booking is 46 px tall (name + time + one detail line). */
 const HOUR_HEIGHT = 38;
@@ -299,10 +300,10 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                     key={booking.id}
                                     role="button"
                                     tabIndex={0}
-                                    aria-label={`${booking.name}, baie ${booking.bayType}, ${range}, durée ${booking.duration}, ${playersLabel(booking.players)}${continuesAfter ? ", se poursuit après minuit" : ""}. Ouvrir le détail.`}
+                                    aria-label={`${booking.name}, baie ${booking.bayType}, ${range}, durée ${formatDuration(booking.duration)}, ${playersLabel(booking.players)}${continuesAfter ? ", se poursuit après minuit" : ""}. Ouvrir le détail.`}
                                     className={`absolute left-1 right-1 border-l-[3px] ${colors.border} ${colors.bg} ${continuesAfter ? "rounded-t-md rounded-b-none" : "rounded-md shadow-sm hover:shadow-md"} hover:brightness-95 transition-[filter,box-shadow] cursor-grab overflow-hidden z-[2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B5734] focus-visible:ring-offset-1`}
                                     style={{ top: top + 1, height: Math.max(continuesAfter ? height - 1 : height - 2, 14) }}
-                                    title={`${booking.name} · ${range} · Durée : ${booking.duration} · Baie ${booking.bayType}${continuesAfter ? " · se poursuit après minuit" : ""}`}
+                                    title={`${booking.name} · ${range} · Durée : ${formatDuration(booking.duration)} · Baie ${booking.bayType}${continuesAfter ? " · se poursuit après minuit" : ""}`}
                                     draggable
                                     onDragStart={e => {
                                       e.stopPropagation();
@@ -317,16 +318,27 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                     data-continues-after-midnight={continuesAfter || undefined}
                                   >
                                     <div className={`px-1.5 ${compact ? "py-0 flex items-center gap-1" : "pt-1"} h-full min-w-0 leading-tight`}>
-                                      <p className={`font-bold truncate text-xs ${colors.text}`}>{booking.name}</p>
-                                      <p className={`text-[11px] tabular-nums text-gray-700 truncate ${compact ? "shrink-0" : ""}`}>
-                                        {range}{continuesAfter && <ArrowDown className="inline-block ml-0.5 w-2.5 h-2.5" aria-hidden="true" />}
-                                      </p>
+                                      {compact ? (
+                                        <>
+                                          <p className="text-[10px] font-semibold tabular-nums text-gray-800 shrink-0 leading-none">
+                                            {range}{continuesAfter && <ArrowDown className="inline-block ml-0.5 w-2.5 h-2.5" aria-hidden="true" />}
+                                          </p>
+                                          <p className={`font-bold truncate text-[10px] leading-none min-w-0 ${colors.text}`}>{booking.name}</p>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <p className={`font-bold truncate text-xs ${colors.text}`}>{booking.name}</p>
+                                          <p className="text-[11px] tabular-nums text-gray-700 truncate">
+                                            {range}{continuesAfter && <ArrowDown className="inline-block ml-0.5 w-2.5 h-2.5" aria-hidden="true" />}
+                                          </p>
+                                        </>
+                                      )}
                                       {showDetail && !showPlayersLine && (
-                                        <p className="text-[10px] text-muted-foreground truncate">{booking.duration} · {booking.players} j.</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">{formatDuration(booking.duration)} · {booking.players} j.</p>
                                       )}
                                       {showPlayersLine && (
                                         <>
-                                          <p className="text-[10px] text-muted-foreground truncate">Durée {booking.duration}</p>
+                                          <p className="text-[10px] text-muted-foreground truncate">Durée {formatDuration(booking.duration)}</p>
                                           <p className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
                                             <Users className="w-3 h-3 shrink-0" aria-hidden="true" /> {playersLabel(booking.players)}
                                           </p>
@@ -371,7 +383,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                 <button type="button" onClick={e => openBooking(booking, e)}
                                   className={`w-full text-left rounded border-l-[3px] ${colors.border} ${colors.bg} px-1.5 py-0.5 text-[11px] leading-tight hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B5734]`}
                                   data-testid={`late-booking-${booking.id}`}
-                                  aria-label={`${booking.name}, après minuit, ${t(booking.time)}–${t(geo.endTime)}, durée ${booking.duration}. Ouvrir le détail.`}>
+                                  aria-label={`${booking.name}, après minuit, ${t(booking.time)}–${t(geo.endTime)}, durée ${formatDuration(booking.duration)}. Ouvrir le détail.`}>
                                   <span className="tabular-nums text-gray-700">{t(booking.time)}</span>{" "}
                                   <span className={`font-semibold ${colors.text}`}>{booking.name}</span>
                                 </button>
@@ -426,7 +438,7 @@ async function updateBookingApi(id: string, updates: Record<string, any>) {
   return data.booking;
 }
 
-function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDeleting }: {
+export function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDeleting }: {
   booking: Booking;
   onClose: () => void;
   onUpdated?: (booking: Booking) => void;
@@ -469,6 +481,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
       queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
       queryClient.invalidateQueries({ queryKey: ["availability"] });
       queryClient.invalidateQueries({ queryKey: ["optimized-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-availability"] });
       setIsEditing(false);
       onUpdated?.(updated);
       onClose();
@@ -491,7 +504,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
 
   const colors = BAY_COLORS[isEditing ? editBay : booking.bayType] || BAY_COLORS["1"];
   const displayDuration = isEditing ? editDuration : (booking.duration || "1h");
-  const price = getPriceForBooking(displayDuration);
+  const price = priceLabel(displayDuration);
   const dateStr = isEditing ? editDate : typeof booking.date === "string" ? booking.date.split("T")[0] : "";
   let formattedDate = dateStr;
   try {
@@ -514,7 +527,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose} data-testid="modal-booking-overlay">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
         data-testid="modal-booking-detail"
       >
@@ -564,15 +577,12 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
                   <Select value={editDuration} onValueChange={setEditDuration}>
                     <SelectTrigger data-testid="select-edit-duration"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {!["1h","2h","3h","4h"].includes(booking.duration) && durationMinutes(booking.duration) > 0 && (
+                      {!CATALOG_VALUES.includes(booking.duration) && durationMinutes(booking.duration) > 0 && (
                         <SelectItem value={booking.duration}>
-                          {Math.floor(durationMinutes(booking.duration) / 60)} h {durationMinutes(booking.duration) % 60 ? `${durationMinutes(booking.duration) % 60} min` : ""} (durée actuelle)
+                          {formatDuration(booking.duration)} (durée actuelle)
                         </SelectItem>
                       )}
-                      <SelectItem value="1h">1h</SelectItem>
-                      <SelectItem value="2h">2h</SelectItem>
-                      <SelectItem value="3h">3h</SelectItem>
-                      <SelectItem value="4h">4h</SelectItem>
+                      {BOOKING_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -605,7 +615,7 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Montant</label>
-                  <div className="h-9 flex items-center px-3 bg-gray-50 rounded-md border text-sm font-bold">{price} $</div>
+                  <div className="h-9 flex items-center px-3 bg-gray-50 rounded-md border text-sm font-bold">{price}</div>
                 </div>
               </div>
 
@@ -638,13 +648,13 @@ function BookingModal({ booking, onClose, onUpdated, onDuplicate, onDelete, isDe
                 <div className="bg-gray-50 rounded-xl p-4 text-center">
                   <MapPin className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
                   <p className={`font-bold text-base ${colors.text}`} data-testid="text-modal-bay">Baie {booking.bayType}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{booking.duration}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formatDuration(booking.duration)}</p>
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Montant estimé</span>
-                <span className="font-bold text-lg">{price} $</span>
+                <span className="font-bold text-lg" data-testid="text-modal-price">{price}</span>
               </div>
 
               <div className="space-y-3">

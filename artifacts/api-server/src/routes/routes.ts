@@ -29,7 +29,8 @@ import { getConfirmationBay } from "../confirmation-bay";
 import { isStaffSlotAvailable, isWithinPublicBookingHours } from "../staff-booking";
 import { bookingEditSchema, isEditedSlotAvailable } from "../booking-edit";
 import { z } from "zod";
-import { durationMinutes as parseDurationToMinutes, intervalsOverlap, isHalfHourStart, MAX_OPERATING_HOUR, publicOccupancy } from "@workspace/booking-domain";
+import { durationMinutes as parseDurationToMinutes, intervalsOverlap, MAX_OPERATING_HOUR, publicOccupancy, BOOKING_DURATION_VALUES, isOfferedDurationMinutes } from "@workspace/booking-domain";
+import { bookingRequestSchema, staffBookingSchema } from "../booking-input";
 import bcrypt from "bcrypt";
 import { rateLimit, sanitizeBookingInput, sanitizeString, sanitizeEmail, sanitizePhone } from "../middleware/security";
 import { registerContact } from "../contact";
@@ -46,32 +47,6 @@ declare module "express-session" {
     oauthState?: string;
   }
 }
-
-const bookingRequestSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  date: z.string().transform((str) => new Date(str)),
-  time: z.string().refine(isHalfHourStart, "Choisissez une heure ou une demi-heure."),
-  duration: z.string().refine(value => parseDurationToMinutes(value) >= 60 && parseDurationToMinutes(value) <= 240 && parseDurationToMinutes(value) % 30 === 0),
-  bayType: z.enum(["1", "2", "3", "4"]),
-  players: z.number().min(1).max(4),
-  notes: z.string().optional(),
-  marketingConsent: z.boolean().optional().default(false),
-});
-
-const staffBookingSchema = z.object({
-  name: z.string().trim().min(2).max(200),
-  email: z.union([z.literal(""), z.string().email()]).default(""),
-  phone: z.string().max(100).default(""),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =>
-    !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value),
-  time: z.string().refine(isHalfHourStart, "Choisissez une heure ou une demi-heure."),
-  duration: z.enum(["1h", "2h", "3h", "4h"]),
-  bayType: z.enum(["1", "2", "3", "4"]),
-  players: z.number().int().min(1).max(4),
-  notes: z.string().max(2000).default(""),
-});
 
 const loginSchema = z.object({
   username: z.string().min(1),
@@ -437,16 +412,23 @@ export async function registerRoutes(
       const sync = await syncCalendarToDatabase(new Date(rule.end));
       if (sync.errors) return res.status(503).json({ok:false,message:"Synchronisation incomplète. Aucun créneau ne peut être confirmé."});
       const conflicts:string[]=[];
-      const periodBookings=await storage.getBookingsByDateRange(new Date(rule.start),new Date(Date.parse(rule.end)+86400000-1));
+      // Include neighbouring real calendar dates, just like single staff creation.
+      const periodBookings=await storage.getBookingsByDateRange(
+        new Date(Date.parse(rule.start)-86400000), new Date(Date.parse(rule.end)+3*86400000));
       const schedules=new Map<number,Awaited<ReturnType<typeof storage.getScheduleForDay>>>();
       for (const day of dates) {
         const date=new Date(day);
         if (!schedules.has(date.getUTCDay())) schedules.set(date.getUTCDay(),await storage.getScheduleForDay(date.getUTCDay()));
         const schedule=schedules.get(date.getUTCDay());
-        const existing=periodBookings.filter(b=>new Date(b.date).toISOString().slice(0,10)===day);
-        const closures = await getClosuresForDate(day);
+        const nextDay=new Date(Date.parse(day)+86400000).toISOString().slice(0,10);
+        const closures=[...new Map(
+          [...await getClosuresForDate(day),...await getClosuresForDate(nextDay)]
+            .map(closure=>[closure.id,closure])
+        ).values()];
         if (!isStaffSlotAvailable(date,input.time,parseDurationToMinutes(input.duration),input.bayType,
-          [...formatBookingsForLogic(existing,day), ...closureOccupancy(closures, day, "staff")],schedule || undefined)) conflicts.push(day);
+          [...formatBookingsForLogic(periodBookings,day),
+            ...closureOccupancy(closures, day, "staff"),
+            ...closureOccupancy(closures, nextDay, "staff")],schedule || undefined)) conflicts.push(day);
       }
       const source=createHash("sha256").update(await activeCalendarSource()).digest("hex");
       return res.json({ok:true,dates,conflicts,source});
@@ -581,7 +563,7 @@ export async function registerRoutes(
         updates.time = t;
       }
       if (duration !== undefined) {
-        if (!["1h", "2h", "3h", "4h"].includes(duration)) return res.status(400).json({ ok: false, message: "Durée invalide" });
+        if (!(BOOKING_DURATION_VALUES as readonly string[]).includes(duration)) return res.status(400).json({ ok: false, message: "Durée invalide" });
         updates.duration = duration;
       }
       if (bayType !== undefined) {
@@ -807,7 +789,6 @@ export async function registerRoutes(
 
   const BAY_NUMBERS = ["1", "2", "3", "4"];
   const MIN_DURATION_HOURS = 1;
-  const PRICE_PER_HOUR = 25;
   
   
   function parseTimeToMinutes(time: string): number {
@@ -978,9 +959,9 @@ export async function registerRoutes(
         return res.status(400).json({ ok: false, message: "Le paramètre duration est requis (en minutes)" });
       }
 
-      const durationMinutes = parseInt(duration, 10);
-      if (isNaN(durationMinutes) || durationMinutes < 60) {
-        return res.status(400).json({ ok: false, message: "Durée invalide (minimum 60 minutes)" });
+      const durationMinutes = Number(duration);
+      if (!isOfferedDurationMinutes(durationMinutes)) {
+        return res.status(400).json({ ok: false, message: "Choisissez 30 min, 1 h, 2 h, 3 h ou 4 h." });
       }
 
       const targetDate = new Date(`${date}T00:00:00.000Z`);
@@ -1068,7 +1049,7 @@ export async function registerRoutes(
       endDate.setUTCHours(23, 59, 59, 999);
       
       const durationHours = duration ? parseDurationToMinutes(String(duration)) / 60 : MIN_DURATION_HOURS;
-      if (durationHours < 1 || durationHours > 4 || (durationHours * 60) % 30 !== 0)
+      if (!isOfferedDurationMinutes(durationHours * 60))
         return res.status(400).json({ ok: false, message: "Durée invalide." });
       
       const bookingsStart = new Date(startDate);
@@ -1131,13 +1112,6 @@ export async function registerRoutes(
       
       const durationMinutes = parseDurationToMinutes(validatedData.duration);
       const durationHours = durationMinutes / 60;
-      
-      if (durationHours < MIN_DURATION_HOURS) {
-        return res.status(400).json({
-          ok: false,
-          message: `La durée minimale est de ${MIN_DURATION_HOURS} heure.`,
-        });
-      }
       
       if (!BAY_NUMBERS.includes(validatedData.bayType)) {
         return res.status(400).json({

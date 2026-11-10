@@ -51,7 +51,7 @@ const PAGE_META: Record<string, PageMeta> = {
   "/rates": {
     title: "Tarifs et Forfaits | Golf SIM Sorel-Tracy",
     description:
-      "Consultez nos tarifs : à partir de 25$/heure. Sessions de 1h à 4h, forfaits pratique et loisir. Réservez un simulateur de golf intérieur à Sorel-Tracy.",
+      "Consultez nos tarifs : à partir de 25$/heure pour une séance de 1h. Séances de 30 min et de 1h à 4h. Réservez un simulateur de golf intérieur à Sorel-Tracy.",
     canonical: "/rates",
     ogTitle: "Tarifs – Golf SIM Sorel-Tracy",
     ogDescription:

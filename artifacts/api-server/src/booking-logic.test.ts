@@ -100,21 +100,22 @@ test("half-hour availability matches an independent overlap oracle and retains o
       assert.equal(Boolean(slot.label), slot.score === ranked[0].score);
     }
   }
+  // Gaps after the last-start cutoff can still be unusable even with 30-min sales.
   assert.equal(baselineWaste, 30);
   assert.equal(newWaste, 0);
   console.log(`Captured baseline top choices: ${baseline.map(b => b.ranked[0]).join(", ")}; newly unsellable minutes: baseline=${baselineWaste}, new=${newWaste}`);
 });
 
-test("30-minute orphan loses to a sellable remainder even with booking proximity", () => {
+test("a remaining half-hour is sellable while adjacency still wins a tie", () => {
   const { schedule, bays, bookings } = fixtures(baseline[1]);
   const slots = getOptimizedStartTimes(date, 60, bookings, bays, schedule);
   const byTime = (t: string) => slots.find(s => time(s.time) === t)!;
-  assert.equal(byTime("09:00").allBays![0].metrics!.newlyUnsellableMinutes, 30);
+  assert.equal(byTime("09:00").allBays![0].metrics!.newlyUnsellableMinutes, 0);
   assert.equal(byTime("09:30").allBays![0].metrics!.newlyUnsellableMinutes, 0);
   assert.ok(byTime("09:30").score > byTime("09:00").score);
 });
 
-test("30-minute orphan determines the chosen bay at the same requested time", () => {
+test("a half-hour remainder does not falsely penalize a bay", () => {
   const bays = [{ id: "3", name: "3" }, { id: "4", name: "4" }];
   const bookings: BookingRecord[] = [{
     id: "a", simulatorId: "3", startTime: at("10:30").toISOString(),
@@ -123,19 +124,18 @@ test("30-minute orphan determines the chosen bay at the same requested time", ()
   const schedule = fixtures(baseline[1]).schedule;
   const slot = getOptimizedStartTimes(date, 60, bookings, bays, schedule)
     .find(s => time(s.time) === "09:00")!;
-  // Bay 3's remaining 09:00-10:30 gap would become a 30m orphan;
-  // bay 4's open stretch remains usable.
-  assert.equal(slot.allBays!.find(b => b.bayId === "3")!.metrics!.newlyUnsellableMinutes, 30);
+  // Both remainders remain sellable now; retain long-start protection.
+  assert.equal(slot.allBays!.find(b => b.bayId === "3")!.metrics!.newlyUnsellableMinutes, 0);
   assert.equal(slot.allBays!.find(b => b.bayId === "4")!.metrics!.newlyUnsellableMinutes, 0);
-  assert.equal(slot.assignedBayId, "4");
+  assert.equal(slot.assignedBayId, "3");
 });
 
 test("half-hour starts make the original 90-minute gap sellable before placement", () => {
   const { schedule, bays, bookings } = fixtures(baseline[2]);
   const slot = getOptimizedStartTimes(date, 60, bookings, bays, schedule).find(s => time(s.time) === "08:00")!;
   assert.equal(slot.allBays![0].metrics!.existingUnsellableMinutes, 0);
-  assert.equal(slot.allBays![0].metrics!.remainingUnsellableMinutes, 30);
-  assert.equal(slot.allBays![0].metrics!.newlyUnsellableMinutes, 30);
+  assert.equal(slot.allBays![0].metrics!.remainingUnsellableMinutes, 0);
+  assert.equal(slot.allBays![0].metrics!.newlyUnsellableMinutes, 0);
 });
 
 test("all four bays use half-hour starts while scoring measures actual sellable minutes", () => {
@@ -144,8 +144,8 @@ test("all four bays use half-hour starts while scoring measures actual sellable 
   const hourly = measurePlacement(...args, 60);
   const halfHourly = measurePlacement(...args, 30);
   assert.equal(hourly.existingUnsellableMinutes, 0);
-  assert.equal(hourly.newlyUnsellableMinutes, 60);
-  assert.equal(halfHourly.newlyUnsellableMinutes, 30);
+  assert.equal(hourly.newlyUnsellableMinutes, 30);
+  assert.equal(halfHourly.newlyUnsellableMinutes, 0);
   const slots = getOptimizedStartTimes(date, 60, [], [{ id: "1", name: "1" }, { id: "3", name: "3" }]);
   assert.deepEqual(slots.find(s => time(s.time) === "08:30")!.allBays!.map(b => b.bayId), ["1", "3"]);
   assert.equal(validateBayAssignment(date, "08:30", 60, "1", [], [{ id: "1", name: "1" }, { id: "3", name: "3" }]).valid, true);
@@ -188,7 +188,7 @@ test("half-hour opening exposes both hourly and half-hour starts on all four bay
 test("Meilleur choix labels the relative best even when every score is poor", () => {
   const schedule: DaySchedule = {
     openHour: 8, openMinute: 0, lastBookingHour: 8, lastBookingMinute: 30,
-    closeHour: 9, closeMinute: 30,
+    closeHour: 16, closeMinute: 0,
   };
   const slots = getOptimizedStartTimes(date, 60, [], [{ id: "3", name: "3" }], schedule);
   assert.deepEqual(slots.map(s => time(s.time)), ["08:00", "08:30"]);
@@ -211,7 +211,7 @@ type Inventory = {
   accepted: number;
   unsellableMinutes: number;
   bookableCoverageMinutes: number;
-  remainingStarts: [number, number, number, number];
+  remainingStarts: number[];
 };
 
 const simulationSchedule: DaySchedule = {
@@ -226,7 +226,7 @@ function inventory(bookings: BookingRecord[], day: Date): Omit<Inventory, "accep
   const close = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 15);
   const result = {
     unsellableMinutes: 0, bookableCoverageMinutes: 0,
-    remainingStarts: [0, 0, 0, 0] as [number, number, number, number],
+    remainingStarts: [0, 0, 0, 0, 0],
   };
   for (const bay of simulationBays) {
     const ordered = bookings.filter(b => b.simulatorId === bay.id)
@@ -260,7 +260,7 @@ function deterministicRequests(seed: number): Array<{ minute: number; duration: 
 test("identical seeded sequential requests compare baseline and new bay choices", () => {
   const aggregate = (): Inventory => ({
     accepted: 0, unsellableMinutes: 0, bookableCoverageMinutes: 0,
-    remainingStarts: [0, 0, 0, 0],
+    remainingStarts: [0, 0, 0, 0, 0],
   });
   const baselineTotal = aggregate();
   const newTotal = aggregate();
@@ -301,13 +301,13 @@ test("identical seeded sequential requests compare baseline and new bay choices"
   }
   assert.ok(baselineTotal.accepted <= seeds.length * 24);
   assert.ok(newTotal.accepted <= seeds.length * 24);
-  assert.equal(baselineTotal.remainingStarts.length, 4);
-  assert.equal(newTotal.remainingStarts.length, 4);
+  assert.equal(baselineTotal.remainingStarts.length, 5);
+  assert.equal(newTotal.remainingStarts.length, 5);
   console.log(JSON.stringify({
     simulation: { seeds, requestsPerSeed: 24, divergentAssignments, divergentAcceptance },
     baseline: baselineTotal, new: newTotal,
     // Coverage counts the union of minutes included in at least one remaining
     // valid start, not the sum of mutually overlapping booking opportunities.
-    startsOrderHours: [1, 2, 3, 4],
+    startsOrderHours: [0.5, 1, 2, 3, 4],
   }));
 });

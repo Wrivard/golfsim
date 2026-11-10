@@ -1,4 +1,4 @@
-import { durationMinutes, formatOperatingTime } from "@workspace/booking-domain";
+import { bookingPrice, durationMinutes, formatDuration, formatOperatingTime } from "@workspace/booking-domain";
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useSearch, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Settings, LogOut, Calendar, Save, CheckCircle2, XCircle, Unlink, Trash2, Users, DollarSign, CalendarDays, TrendingUp, ExternalLink, Search, Filter, RefreshCw, ChevronDown, Clock, Archive, LayoutGrid, List } from "lucide-react";
-import CalendarView from "@/components/admin/CalendarView";
+import CalendarView, { BookingModal, type Booking } from "@/components/admin/CalendarView";
+import CreateBookingDialog, { type BookingPrefill } from "@/components/admin/CreateBookingDialog";
 import AvailabilityManager from "@/components/admin/AvailabilityManager";
 import EmailContactBank from "@/components/admin/EmailContactBank";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -124,10 +125,17 @@ async function logout() {
   return data;
 }
 
-function getPriceForBooking(durationStr: string): number {
-  const hours = durationMinutes(durationStr || "") / 60;
-  const pricePerHour = hours === 1 ? 25 : 28;
-  return hours * pricePerHour;
+const BAY_CHIP: Record<string, string> = {
+  "1": "bg-emerald-100 text-emerald-800 border-emerald-400",
+  "2": "bg-yellow-100 text-yellow-900 border-yellow-400",
+  "3": "bg-blue-100 text-blue-800 border-blue-400",
+  "4": "bg-red-100 text-red-800 border-red-400",
+};
+
+function bookingEndLabel(time: string, duration: string): string {
+  const [h, m] = (time || "00:00").split(":").map(Number);
+  const total = (h || 0) * 60 + (m || 0) + durationMinutes(duration || "");
+  return formatOperatingTime(`${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`);
 }
 
 function getBookingDateTime(booking: any): Date {
@@ -154,6 +162,8 @@ export default function Admin() {
   const [filterPeriod, setFilterPeriod] = useState("upcoming");
   const [showArchived, setShowArchived] = useState(false);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+  const [listBooking, setListBooking] = useState<Booking | null>(null);
+  const [listDuplicate, setListDuplicate] = useState<BookingPrefill | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [showAdminSection, setShowAdminSection] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Record<number, { openHour: number; openMinute: number; lastBookingHour: number; lastBookingMinute: number; closeHour: number; closeMinute: number }>>({});
@@ -286,7 +296,9 @@ export default function Admin() {
     mutationFn: deleteBooking,
     onSuccess: () => {
       toast({ title: "Réservation supprimée avec succès" });
-      queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+      for (const key of ["adminBookings", "availability", "optimized-slots", "staff-availability"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
     onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -391,20 +403,21 @@ export default function Admin() {
       }
     });
     
-    const totalHours = allBookings.reduce((acc: number, b: any) => {
-      const hours = durationMinutes(b.duration || "") / 60;
-      return acc + hours;
-    }, 0);
-    
-    const estimatedRevenue = allBookings.reduce((acc: number, b: any) => {
-      return acc + getPriceForBooking(b.duration || '0h');
-    }, 0);
+    const totalMinutes = allBookings.reduce((acc: number, b: any) => acc + durationMinutes(b.duration || ""), 0);
+    let knownRevenue = 0;
+    let unpricedCount = 0;
+    for (const b of allBookings as any[]) {
+      const price = bookingPrice(b.duration || "");
+      if (price === null) unpricedCount += 1;
+      else knownRevenue += price;
+    }
     
     return {
       total: allBookings.length,
       upcoming: upcoming.length,
-      totalHours,
-      estimatedRevenue,
+      totalMinutes,
+      knownRevenue,
+      unpricedCount,
     };
   }, [allBookings]);
   
@@ -622,7 +635,7 @@ export default function Admin() {
                 {filteredBookings.map((booking: any) => {
                   const isPast = !isAfter(getBookingDateTime(booking), new Date());
                   return (
-                  <div key={booking.id} className={`p-3 md:p-4 hover:bg-gray-50 ${isPast ? 'opacity-60 bg-gray-50/50' : ''}`}>
+                  <div key={booking.id} className={`p-3 md:p-4 hover:bg-gray-50 border-l-4 ${(BAY_CHIP[booking.bayType] || "").split(" ").find((c: string) => c.startsWith("border-")) || "border-transparent"} ${isPast ? 'opacity-60 bg-gray-50/50' : ''}`} data-testid={`row-booking-${booking.id}`}>
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -643,16 +656,27 @@ export default function Admin() {
                               return format(new Date(y, mo - 1, dy), "d MMM yyyy", { locale: fr });
                             })()}
                           </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {formatOperatingTime(booking.time)} - {booking.duration}
+                          <p className="text-sm font-semibold tabular-nums text-foreground" data-testid={`text-booking-range-${booking.id}`}>
+                            {formatOperatingTime(booking.time)}–{bookingEndLabel(booking.time, booking.duration)}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 sm:justify-end">
+                            <span className={`inline-flex items-center rounded border px-1.5 text-[11px] font-bold ${BAY_CHIP[booking.bayType] || "bg-gray-100 text-gray-700 border-gray-300"}`}>Baie {booking.bayType}</span>
+                            {formatDuration(booking.duration)}
                           </p>
                         </div>
+                        <Button variant="outline" className="min-h-11 shrink-0"
+                          data-testid={`button-details-${booking.id}`}
+                          aria-label={`Détails de la réservation de ${booking.name}`}
+                          onClick={() => setListBooking(booking)}>
+                          Détails
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="h-11 w-11 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              aria-label={`Supprimer la réservation de ${booking.name}`}
                               data-testid={`button-delete-${booking.id}`}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -775,8 +799,10 @@ export default function Admin() {
             {([
               { label: "Réservations totales", value: stats.total, icon: CalendarDays, tone: "text-[#2B5734] bg-[#2B5734]/10" },
               { label: "À venir", value: stats.upcoming, icon: TrendingUp, tone: "text-blue-600 bg-blue-500/10" },
-              { label: "Heures réservées", value: `${stats.totalHours}h`, icon: Users, tone: "text-amber-600 bg-amber-500/10" },
-              { label: "Revenus estimés", value: `${stats.estimatedRevenue}$`, icon: DollarSign, tone: "text-green-600 bg-green-500/10" },
+              { label: "Temps réservé", value: stats.totalMinutes > 0 ? formatDuration(stats.totalMinutes) : "0 h", icon: Users, tone: "text-amber-600 bg-amber-500/10" },
+              stats.unpricedCount > 0
+                ? { label: `Sous-total connu, excluant ${stats.unpricedCount} séance${stats.unpricedCount > 1 ? "s" : ""} sans tarif`, value: `${stats.knownRevenue}$`, icon: DollarSign, tone: "text-green-600 bg-green-500/10" }
+                : { label: "Revenus estimés", value: `${stats.knownRevenue}$`, icon: DollarSign, tone: "text-green-600 bg-green-500/10" },
             ]).map(item => <Card key={item.label} className="shadow-md border-none bg-white"><CardContent className="p-4 md:p-6">
               <div className="flex items-center gap-3"><div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${item.tone}`}>
                 <item.icon className="w-5 h-5 md:w-6 md:h-6" />
@@ -1172,6 +1198,25 @@ export default function Admin() {
           )}
         </div>
       </main>
+      {listBooking && <BookingModal
+        booking={listBooking}
+        onClose={() => setListBooking(null)}
+        onUpdated={() => {
+          setListBooking(null);
+          queryClient.invalidateQueries({ queryKey: ["adminBookings"] });
+        }}
+        onDelete={id => { deleteMutation.mutate(id); setListBooking(null); }}
+        isDeleting={deleteMutation.isPending}
+        onDuplicate={booking => {
+          setListBooking(null);
+          setListDuplicate({
+            date: booking.date.slice(0, 10), time: booking.time, duration: booking.duration,
+            bayType: booking.bayType, players: booking.players, name: booking.name,
+            email: booking.email, phone: booking.phone || "", notes: booking.notes || "", duplicate: true,
+          });
+        }}
+      />}
+      {listDuplicate && <CreateBookingDialog prefill={listDuplicate} onClose={() => setListDuplicate(null)} />}
     </div>
   );
 }

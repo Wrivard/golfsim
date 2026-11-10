@@ -10,7 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown } from "lucide-react";
 import { staffAvailableBays, staffAvailableTimes, type StaffAvailabilitySlot } from "./staffSlotTime";
-import { formatOperatingTime } from "@workspace/booking-domain";
+import { BOOKING_DURATIONS, durationMinutes, formatDuration, formatOperatingTime } from "@workspace/booking-domain";
+
+/** Canonical catalogue value for a stored duration, or "" when it is outside the catalogue. */
+function canonicalDuration(value: string | undefined): string {
+  if (!value) return "";
+  const minutes = durationMinutes(value);
+  return BOOKING_DURATIONS.find(d => d.minutes === minutes)?.value ?? "";
+}
 
 export interface BookingPrefill {
   date: string;
@@ -36,7 +43,8 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
   const [date, setDate] = useState(prefill.date);
   const [time, setTime] = useState(prefill.time || "");
   const [timePickerOpen, setTimePickerOpen] = useState(false);
-  const [duration, setDuration] = useState(prefill.duration || "1h");
+  const originalOutsideCatalog = !!prefill.duration && !canonicalDuration(prefill.duration);
+  const [duration, setDurationState] = useState(prefill.duration ? canonicalDuration(prefill.duration) : "1h");
   const [bayType, setBayType] = useState(prefill.bayType || "");
   const [players, setPlayers] = useState(String(prefill.players || 1));
   const [name, setName] = useState(prefill.name || "");
@@ -45,11 +53,17 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
   const [notes, setNotes] = useState(prefill.notes || "");
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const durationMinutes = Number.parseInt(duration, 10) * 60;
+  const selectedMinutes = duration ? durationMinutes(duration) : 0;
+  const setDuration = (value: string) => {
+    if (value === duration) return;
+    setDurationState(value);
+    setTime("");
+    setBayType("");
+  };
   const slotsQuery = useQuery({
-    queryKey: ["staff-availability", date, durationMinutes],
-    queryFn: () => fetchStaffSlots(date, durationMinutes),
-    enabled: /^\d{4}-\d{2}-\d{2}$/.test(date),
+    queryKey: ["staff-availability", date, selectedMinutes],
+    queryFn: () => fetchStaffSlots(date, selectedMinutes),
+    enabled: /^\d{4}-\d{2}-\d{2}$/.test(date) && selectedMinutes > 0,
     staleTime: 15000,
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
@@ -88,7 +102,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedTime) return;
+    if (!selectedTime || !duration) return;
     create.mutate();
   };
 
@@ -117,7 +131,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
                     id="staff-time"
                     type="button"
                     variant="outline"
-                    disabled={slotsQuery.isFetching || slotsQuery.isError || availableTimes.length === 0}
+                    disabled={!duration || slotsQuery.isFetching || slotsQuery.isError || availableTimes.length === 0}
                     aria-label="Heure"
                     aria-haspopup="dialog"
                     aria-expanded={timePickerOpen}
@@ -154,19 +168,24 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
                 </PopoverContent>
               </Popover>
               <p className="text-xs text-muted-foreground" role="status">
-                {slotsQuery.isFetching ? "Chargement des heures disponibles..." : slotsQuery.isError ? `Erreur : ${slotsQuery.error.message}` : availableTimes.length === 0 ? "Aucune heure disponible pour cette baie." : !selectedTime && time ? "L'heure choisie n'est plus disponible." : `${availableTimes.length} heure${availableTimes.length > 1 ? "s" : ""} disponible${availableTimes.length > 1 ? "s" : ""}`}
+                {!duration ? "Choisissez d'abord une durée." : slotsQuery.isFetching ? "Chargement des heures disponibles..." : slotsQuery.isError ? `Erreur : ${slotsQuery.error.message}` : availableTimes.length === 0 ? "Aucune heure disponible pour cette baie." : !selectedTime && time ? "L'heure choisie n'est plus disponible." : `${availableTimes.length} heure${availableTimes.length > 1 ? "s" : ""} disponible${availableTimes.length > 1 ? "s" : ""}`}
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="staff-duration">Durée</Label>
               <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger id="staff-duration" aria-label="Durée"><SelectValue /></SelectTrigger>
-                <SelectContent>{["1h", "2h", "3h", "4h"].map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
+                <SelectTrigger id="staff-duration" aria-label="Durée" data-testid="select-staff-duration"><SelectValue placeholder="Choisir une durée" /></SelectTrigger>
+                <SelectContent>{BOOKING_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
               </Select>
+              {originalOutsideCatalog && (
+                <p className="text-xs text-amber-800" role="note" data-testid="text-duplicate-duration-note">
+                  Durée d'origine : {formatDuration(prefill.duration!)} (hors catalogue). Choisissez une durée offerte.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="staff-bay">Baie</Label>
-              <Select value={bayType} onValueChange={setBayType} disabled={slotsQuery.isFetching || slotsQuery.isError || availableBays.length === 0}>
+              <Select value={bayType} onValueChange={setBayType} disabled={!duration || slotsQuery.isFetching || slotsQuery.isError || availableBays.length === 0}>
                 <SelectTrigger id="staff-bay" aria-label="Baie"><SelectValue placeholder="Choisir une baie" /></SelectTrigger>
                 <SelectContent>{availableBays.map(value => <SelectItem key={value} value={value}>Baie {value}</SelectItem>)}</SelectContent>
               </Select>
@@ -199,7 +218,7 @@ export default function CreateBookingDialog({ prefill, onClose }: { prefill: Boo
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={create.isPending}>Annuler</Button>
-            <Button type="submit" disabled={create.isPending || !selectedTime || !bayType}>{create.isPending ? "Enregistrement..." : "Ajouter la réservation"}</Button>
+            <Button type="submit" disabled={create.isPending || !duration || !selectedTime || !bayType}>{create.isPending ? "Enregistrement..." : "Ajouter la réservation"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

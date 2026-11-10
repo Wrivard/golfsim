@@ -5,6 +5,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import { seasonEnd } from "./seasonEnd";
+import { BOOKING_DURATIONS } from "@workspace/booking-domain";
 
 type Preview={dates:string[];conflicts:string[];source:string};
 const days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -54,7 +55,7 @@ export default function RecurringBookingDialog({date,onClose}:{date:string;onClo
     <fieldset disabled={busy||started} className="space-y-4 disabled:opacity-60">
      <div className="grid grid-cols-2 gap-3">
        {([["start","Date de début","date"],["end","Date de fin (30 avril)","date"],["time","Heure","time"],["name","Nom de la ligue / responsable","text"],["email","Courriel (facultatif)","email"],["phone","Téléphone (facultatif)","tel"]] as const).map(([key,label,type])=><div key={key}><Label htmlFor={`series-${key}`}>{label}</Label><Input id={`series-${key}`} type={type} readOnly={key==="end"} required={["start","end","time","name"].includes(key)} step={key==="time"?1800:undefined} value={form[key]} onChange={e=>update(key,e.target.value)}/></div>)}
-      <div><Label htmlFor="series-duration">Durée</Label><select id="series-duration" className="w-full border rounded-md p-2" value={form.duration} onChange={e=>update("duration",e.target.value)}>{[1,2,3,4].map(n=><option key={n} value={`${n}h`}>{n} heure{n>1?"s":""}</option>)}</select></div>
+      <div><Label htmlFor="series-duration">Durée</Label><select id="series-duration" className="w-full border rounded-md p-2" value={form.duration} onChange={e=>update("duration",e.target.value)}>{BOOKING_DURATIONS.map(d=><option key={d.value} value={d.value}>{d.label}</option>)}</select></div>
       <div><Label htmlFor="series-bay">Baie</Label><select id="series-bay" className="w-full border rounded-md p-2" value={form.bayType} onChange={e=>update("bayType",e.target.value)}>{[1,2,3,4].map(n=><option key={n} value={n}>Baie {n}</option>)}</select></div>
       <div><Label htmlFor="series-players">Joueurs par séance</Label><Input id="series-players" type="number" min={1} max={4} required value={form.players} onChange={e=>update("players",Number(e.target.value))}/></div>
       <div><Label htmlFor="series-interval">Répéter toutes les</Label><select id="series-interval" className="w-full border rounded-md p-2" value={form.interval} onChange={e=>update("interval",Number(e.target.value))}>{[1,2,3,4].map(n=><option key={n} value={n}>{n} semaine{n>1?"s":""}</option>)}</select></div>

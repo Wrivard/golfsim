@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isHalfHourStart } from "@workspace/booking-domain";
+import { BOOKING_DURATION_VALUES, isHalfHourStart } from "@workspace/booking-domain";
 import type { BookingRecord } from "./booking-logic";
 import { isStaffSlotAvailable } from "./staff-booking";
 
@@ -10,7 +10,7 @@ export const bookingEditSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =>
     !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value).optional(),
   time: z.string().refine(isHalfHourStart, "Choisissez une heure ou une demi-heure.").optional(),
-  duration: z.enum(["1h", "2h", "3h", "4h"]).optional(),
+  duration: z.enum(BOOKING_DURATION_VALUES).optional(),
   bayType: z.enum(["1", "2", "3", "4"]).optional(),
   players: z.number().int().min(1).max(4).optional(),
   notes: z.string().max(2000).nullable().optional(),

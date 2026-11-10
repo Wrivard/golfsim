@@ -5,12 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { GetStaffAvailabilityDuration } from './getStaffAvailabilityDuration';
 
 export type GetStaffAvailabilityParams = {
 date: Date;
-/**
- * @minimum 60
- * @maximum 240
- */
-duration: number;
+duration: GetStaffAvailabilityDuration;
 };

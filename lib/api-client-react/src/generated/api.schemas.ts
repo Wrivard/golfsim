@@ -150,6 +150,7 @@ export type PublicBookingInputDuration = typeof PublicBookingInputDuration[keyof
 
 
 export const PublicBookingInputDuration = {
+  '05h': '0.5h',
   '1h': '1h',
   '2h': '2h',
   '3h': '3h',
@@ -171,7 +172,7 @@ export interface PublicBookingInput {
   name: string;
   email: string;
   date: string;
-  /** @pattern ^([01]\d|2[0-3]):[0-5]\d$ */
+  /** @pattern ^(?:([01]\d|2[0-5]):(?:00|30)|26:00)$ */
   time: string;
   duration: PublicBookingInputDuration;
   bayType: PublicBookingInputBayType;
@@ -264,6 +265,7 @@ export type BookingUpdateDuration = typeof BookingUpdateDuration[keyof typeof Bo
 
 
 export const BookingUpdateDuration = {
+  '05h': '0.5h',
   '1h': '1h',
   '2h': '2h',
   '3h': '3h',
@@ -337,12 +339,19 @@ export interface HealthStatus {
 
 export type GetStaffAvailabilityParams = {
 date: string;
-/**
- * @minimum 60
- * @maximum 240
- */
-duration: number;
+duration: GetStaffAvailabilityDuration;
 };
+
+export type GetStaffAvailabilityDuration = typeof GetStaffAvailabilityDuration[keyof typeof GetStaffAvailabilityDuration];
+
+
+export const GetStaffAvailabilityDuration = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+  NUMBER_120: 120,
+  NUMBER_180: 180,
+  NUMBER_240: 240,
+} as const;
 
 export type GetStaffAvailability200SlotsItem = {
   time: string;

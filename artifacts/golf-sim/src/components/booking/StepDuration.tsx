@@ -1,15 +1,11 @@
 import { useBookingStore } from "@/lib/booking-store";
 import { Clock } from "lucide-react";
+import { BOOKING_DURATIONS } from "@workspace/booking-domain";
+
+const BADGES: Record<number, string> = { 30: "Rapide", 60: "Pratique" };
 
 export function StepDuration() {
   const { setDuration, setStep } = useBookingStore();
-
-  const durations = [
-    { value: 60, label: "1 Heure", sub: "25$ / heure", badge: "Pratique" },
-    { value: 120, label: "2 Heures", sub: "28$ / heure", badge: null },
-    { value: 180, label: "3 Heures", sub: "28$ / heure", badge: null },
-    { value: 240, label: "4 Heures", sub: "28$ / heure", badge: null },
-  ];
 
   const handleSelect = (minutes: number) => {
     setDuration(minutes);
@@ -23,16 +19,16 @@ export function StepDuration() {
       </p>
 
       <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
-        {durations.map((d) => (
+        {BOOKING_DURATIONS.map((d, i) => (
           <button
             key={d.value}
-            onClick={() => handleSelect(d.value)}
-            className="group relative flex flex-col items-center justify-center py-8 px-6 rounded-xl border-2 border-foreground/10 bg-white hover:border-primary hover:shadow-lg active:scale-[0.98] transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            data-testid={`duration-${d.value}`}
+            onClick={() => handleSelect(d.minutes)}
+            className={`group relative flex flex-col items-center justify-center py-8 px-6 rounded-xl border-2 border-foreground/10 bg-white hover:border-primary hover:shadow-lg active:scale-[0.98] transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary ${i === 0 ? "col-span-2" : ""}`}
+            data-testid={`duration-${d.minutes}`}
           >
-            {d.badge && (
+            {BADGES[d.minutes] && (
               <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                {d.badge}
+                {BADGES[d.minutes]}
               </span>
             )}
             <div className="mb-3 text-primary/70 group-hover:text-primary transition-colors">
@@ -41,9 +37,9 @@ export function StepDuration() {
             <span className="text-xl font-heading font-bold text-foreground group-hover:text-primary transition-colors tracking-tight">
               {d.label}
             </span>
-            <span className="text-sm text-muted-foreground mt-1">
-              {d.sub}
-            </span>
+            {d.price !== null && <span className="text-sm text-muted-foreground mt-1">
+              {d.price}$ au total
+            </span>}
           </button>
         ))}
       </div>

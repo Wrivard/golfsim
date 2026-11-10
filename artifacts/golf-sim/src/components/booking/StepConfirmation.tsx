@@ -3,16 +3,13 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Check, Calendar, Clock, User, Trophy, ArrowRight, Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import type { BookingProtection } from "@/hooks/use-booking-protection";
 import { TurnstileChallenge } from "./TurnstileChallenge";
-import { formatOperatingTime } from "@workspace/booking-domain";
+import { BOOKING_DURATIONS, bookingPrice, formatDuration, formatOperatingTime } from "@workspace/booking-domain";
 
-function getPricePerHour(durationMinutes: number): number {
-  return durationMinutes === 60 ? 25 : 28;
-}
 
 async function createBooking(data: {
   bookingToken: string;
@@ -71,17 +68,19 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
   } = useBookingStore();
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const durationHours = selectedDuration ? selectedDuration / 60 : 0;
-  const durationString = durationHours % 1 === 0 ? `${durationHours}h` : `${durationHours}h`;
-  const pricePerHour = getPricePerHour(selectedDuration || 60);
-  const price = durationHours * pricePerHour;
+  const durationString = BOOKING_DURATIONS.find(d => d.minutes === selectedDuration)?.value ?? "";
+  const price = selectedDuration ? bookingPrice(selectedDuration) : null;
 
   const bookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: (result, request) => {
       confirmBay(request.bayType, result.reservation.bayType);
       setIsSubmitting(false);
+      for (const key of ["adminBookings", "availability", "optimized-slots", "staff-availability"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     },
     onError: (error: Error & { status?: number; code?: string }) => {
       setIsSubmitting(false);
@@ -95,7 +94,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
   });
 
   const handleConfirm = () => {
-    if (!selectedTimeSlot || !selectedDuration || !userDetails || !assignedBayId || !protection.ready || !turnstileToken || bookingMutation.isPending) return;
+    if (!selectedTimeSlot || !selectedDuration || !durationString || !userDetails || !assignedBayId || !protection.ready || !turnstileToken || bookingMutation.isPending) return;
     
     setIsSubmitting(true);
     
@@ -198,7 +197,7 @@ export function StepConfirmation({ protection }: { protection: BookingProtection
               {startTimeStr} — {endTimeStr}
             </p>
             <p className="text-sm text-primary font-medium">
-              Session de {durationHours}h • {price}$
+              Session de {selectedDuration ? formatDuration(selectedDuration) : "—"}{price !== null && ` • ${price}$`}
             </p>
           </div>
         </div>

@@ -10,6 +10,7 @@ export type PublicBookingInputDuration = typeof PublicBookingInputDuration[keyof
 
 
 export const PublicBookingInputDuration = {
+  '05h': '0.5h',
   '1h': '1h',
   '2h': '2h',
   '3h': '3h',

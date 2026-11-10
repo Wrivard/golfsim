@@ -52,7 +52,7 @@ export const useBookingStore = create<BookingStore>((set) => ({
   isLoadingBookings: false,
 
   setStep: (step) => set({ step }),
-  setDuration: (minutes) => set({ selectedDuration: minutes }),
+  setDuration: (minutes) => set((s) => s.selectedDuration === minutes ? {} : { selectedDuration: minutes, selectedTimeSlot: null, assignedBayId: null, proposedBayId: null }),
   setDate: (date) => set({ selectedDate: date, selectedTimeSlot: null, assignedBayId: null, proposedBayId: null }),
   setTimeSlot: (time, bayId) => set({ selectedTimeSlot: time, assignedBayId: bayId, proposedBayId: null }),
   setUserDetails: (details) => set({ userDetails: details }),

@@ -32,6 +32,7 @@ export * from './exportEmailContactsParams';
 export * from './getBookingProtection200';
 export * from './getStaffAvailability200';
 export * from './getStaffAvailability200SlotsItem';
+export * from './getStaffAvailabilityDuration';
 export * from './getStaffAvailabilityParams';
 export * from './healthStatus';
 export * from './historicalContactApproval';

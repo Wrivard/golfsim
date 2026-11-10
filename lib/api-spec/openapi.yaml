@@ -17,7 +17,7 @@ paths:
       security: [{ staffSession: [] }]
       parameters:
         - { in: query, name: date, required: true, schema: { type: string, format: date } }
-        - { in: query, name: duration, required: true, schema: { type: integer, minimum: 60, maximum: 240 } }
+        - { in: query, name: duration, required: true, schema: { type: integer, enum: [30, 60, 120, 180, 240] } }
       responses:
         "200":
           description: Disponibilités personnel ; fermetures physiques respectées, restriction publique ignorée
@@ -483,8 +483,8 @@ components:
         name: { type: string, minLength: 2 }
         email: { type: string, format: email }
         date: { type: string, format: date }
-        time: { type: string, pattern: '^([01]\d|2[0-3]):[0-5]\d$' }
-        duration: { type: string, enum: [1h, 2h, 3h, 4h] }
+        time: { type: string, pattern: '^(?:([01]\d|2[0-5]):(?:00|30)|26:00)$' }
+        duration: { type: string, enum: [0.5h, 1h, 2h, 3h, 4h] }
         bayType: { type: string, enum: ["1", "2", "3", "4"] }
         players: { type: integer, minimum: 1, maximum: 4 }
         phone: { type: string }
@@ -559,7 +559,7 @@ components:
         phone: { type: [string, "null"], maxLength: 100 }
         date: { type: string, format: date }
         time: { type: string, pattern: '^([01]\d|2[0-3]):[0-5]\d$' }
-        duration: { type: string, enum: [1h, 2h, 3h, 4h] }
+        duration: { type: string, enum: [0.5h, 1h, 2h, 3h, 4h] }
         bayType: { type: string, enum: ["1", "2", "3", "4"] }
         players: { type: integer, minimum: 1, maximum: 4 }
         notes: { type: [string, "null"], maxLength: 2000 }
