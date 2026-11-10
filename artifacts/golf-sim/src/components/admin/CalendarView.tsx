@@ -1,15 +1,15 @@
 import { durationMinutes, formatOperatingTime } from "@workspace/booking-domain";
-import { useState, useMemo, useCallback, useLayoutEffect, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink, Check, Loader2, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Calendar, CalendarDays, Moon, ArrowDown, Users, Clock, Mail, Phone, MapPin, X, Pencil, Trash2, ExternalLink, Check, Loader2, Plus } from "lucide-react";
 import { format, addDays, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { parseDurationToMinutes, bookingGeometry } from "./calendarDuration";
+import { parseDurationToMinutes, visibleBookingGeometry, visibleIntervalGeometry } from "./calendarDuration";
 import CreateBookingDialog, { type BookingPrefill } from "./CreateBookingDialog";
 import RecurringBookingDialog from "./RecurringBookingDialog";
 import DeleteSeriesDialog from "./DeleteSeriesDialog";
@@ -45,64 +45,32 @@ const BAY_COLORS: Record<string, { bg: string; bgSolid: string; border: string; 
   "4": { bg: "bg-red-50", bgSolid: "#fef2f2", border: "border-red-400", text: "text-red-800", headerBg: "bg-red-100" },
 };
 
-function parseTimeToMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + (m || 0);
-}
-
 function getPriceForBooking(durationStr: string): number {
   const hours = durationMinutes(durationStr || "") / 60;
   const pricePerHour = hours === 1 ? 25 : 28;
   return hours * pricePerHour;
 }
 
-const HOUR_HEIGHT = 32;
+/** Fixed readable scale: a 1 h booking is 46 px tall (name + time + one detail line). */
+const HOUR_HEIGHT = 38;
 const START_HOUR = 8;
-const END_HOUR = 26;
+/** DISPLAY-ONLY cutoff. Real operations still run until 02:00 (26). */
+const VISIBLE_END_HOUR = 24;
 const BAYS = ["1", "2", "3", "4"];
-const TIME_COL_WIDTH = 56;
+const TIME_COL_WIDTH = 52;
+
+const t = (time: string) => formatOperatingTime(time);
+const playersLabel = (n: number) => `${n} joueur${n > 1 ? "s" : ""}`;
 
 export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT);
-  const [calendarViewportHeight, setCalendarViewportHeight] = useState<number | null>(null);
-  const calendarViewportRef = useRef<HTMLDivElement>(null);
-  const tableHeadRef = useRef<HTMLTableSectionElement>(null);
+  const hourHeight = HOUR_HEIGHT;
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const closuresQuery = useGetAdminClosures({ query: { queryKey: getGetAdminClosuresQueryKey(), refetchInterval: 30000 } });
 
-  useLayoutEffect(() => {
-    const fitCalendarToViewport = () => {
-      const viewport = calendarViewportRef.current;
-      if (!viewport) return;
-
-      const top = viewport.getBoundingClientRect().top;
-      // Keep the compact default until the calendar is close enough to fit onscreen.
-      if (top > window.innerHeight - 120) return;
-
-      const availableHeight = Math.max(0, window.innerHeight - Math.max(0, top) - 12);
-      const headerHeight = tableHeadRef.current?.getBoundingClientRect().height ?? 50;
-      const dayHours = END_HOUR - START_HOUR;
-      const fittedHourHeight = Math.min(64, Math.max(12, (availableHeight - headerHeight) / dayHours));
-
-      setHourHeight(fittedHourHeight);
-      setCalendarViewportHeight(headerHeight + fittedHourHeight * dayHours);
-    };
-
-    fitCalendarToViewport();
-    window.addEventListener("resize", fitCalendarToViewport);
-    const observer = new ResizeObserver(fitCalendarToViewport);
-    if (calendarViewportRef.current) observer.observe(calendarViewportRef.current);
-    if (tableHeadRef.current) observer.observe(tableHeadRef.current);
-
-    return () => {
-      window.removeEventListener("resize", fitCalendarToViewport);
-      observer.disconnect();
-    };
-  }, []);
   const moveBooking = useMutation({
     mutationFn: ({ id, bayType }: { id: string; bayType: string }) => updateBookingApi(id, { bayType }),
     onSuccess: () => {
@@ -132,9 +100,14 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
 
   const hours = useMemo(() => {
     const slots = [];
-    for (let h = START_HOUR; h <= END_HOUR; h++) slots.push(h);
+    for (let h = START_HOUR; h <= VISIBLE_END_HOUR; h++) slots.push(h);
     return slots;
   }, []);
+
+  const placed = useMemo(() => dayBookings.map(b => ({
+    booking: b, geo: visibleBookingGeometry(b.time, b.duration, START_HOUR, VISIBLE_END_HOUR, HOUR_HEIGHT),
+  })), [dayBookings]);
+  const hasLate = placed.some(p => p.geo.afterWindow);
 
   const isToday = format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
@@ -142,82 +115,115 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
     if (!isToday) return null;
     const now = new Date();
     const minutes = now.getHours() * 60 + now.getMinutes();
-    if (minutes < START_HOUR * 60 || minutes > END_HOUR * 60) return null;
+    if (minutes < START_HOUR * 60 || minutes >= VISIBLE_END_HOUR * 60) return null;
     return ((minutes - START_HOUR * 60) / 60) * hourHeight;
   }, [hourHeight, isToday, selectedDate]);
 
-  const handleBookingClick = useCallback((booking: Booking, e: React.MouseEvent) => {
+  const openBooking = useCallback((booking: Booking, e: React.SyntheticEvent) => {
     e.stopPropagation();
     setSelectedBooking(booking);
   }, []);
+  const bookingKeyDown = (booking: Booking) => (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBooking(booking, e); }
+  };
 
   const closeModal = useCallback(() => {
     setSelectedBooking(null);
   }, []);
 
-  const totalHeight = (END_HOUR - START_HOUR) * hourHeight;
+  const totalHeight = (VISIBLE_END_HOUR - START_HOUR) * hourHeight;
+  const longDate = format(selectedDate, "EEEE d MMMM yyyy", { locale: fr });
+  const navBtn = "h-9 w-9 shrink-0 text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70";
 
   return (
     <>
       {recurring && <RecurringBookingDialog date={format(selectedDate,"yyyy-MM-dd")} onClose={()=>setRecurring(false)}/>}
       <Card className="shadow-lg border-none" data-testid="card-calendar-view">
-        <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider">
-              <Calendar className="w-5 h-5" />
-              Vue calendrier
-            </CardTitle>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" onClick={() => openCreate()} className="bg-[#2B5734] hover:bg-[#23482b] text-white gap-1.5">
-                <Plus className="w-4 h-4" /> Ajouter une réservation
-              </Button>
-              <Button size="sm" onClick={()=>setRecurring(true)} className="bg-[#2B5734] hover:bg-[#23482b] text-white" data-testid="button-recurring">Réservation récurrente</Button>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-prev-day">
-                <ChevronLeft className="w-4 h-4" />
+        <CardHeader className="bg-[#1B1A18] text-white rounded-t-lg px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-center justify-between gap-3 min-w-0">
+              <CardTitle className="flex items-center gap-2 font-heading uppercase tracking-wider text-lg">
+                <Calendar className="w-5 h-5" aria-hidden="true" />
+                Vue calendrier
+              </CardTitle>
+            </div>
+
+            <nav aria-label="Navigation par date" className="flex items-center gap-1 rounded-lg bg-white/5 p-1 ring-1 ring-white/10 w-full sm:w-auto">
+              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => subDays(d, 1))} className={navBtn} data-testid="button-prev-day" aria-label="Jour précédent">
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               </Button>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-sm font-heading uppercase tracking-wider" data-testid="button-admin-date-picker" aria-label="Choisir la date du calendrier">
-                    {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  <Button variant="ghost" size="sm"
+                    className="h-9 flex-1 sm:flex-none min-w-0 justify-between gap-1.5 rounded-md bg-white/10 px-2 sm:px-3 text-white ring-1 ring-white/25 hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70"
+                    data-testid="button-admin-date-picker"
+                    aria-haspopup="dialog"
+                    aria-expanded={datePickerOpen}
+                    aria-label={`Choisir une date. Date affichée : ${longDate}`}>
+                    <CalendarDays className="hidden sm:block w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate font-heading uppercase tracking-wider text-sm">
+                      <span className="hidden sm:inline">{longDate}</span>
+                      <span className="sm:hidden">{format(selectedDate, "d MMM yyyy", { locale: fr })}</span>
+                    </span>
+                    <ChevronDown className={`w-4 h-4 shrink-0 opacity-80 transition-transform ${datePickerOpen ? "rotate-180" : ""}`} aria-hidden="true" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" collisionPadding={12} className="w-[min(350px,calc(100vw-24px))] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
+                <PopoverContent align="center" collisionPadding={12} aria-label="Calendrier de sélection de date"
+                  className="w-[min(350px,calc(100vw-24px))] p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto">
                   <DateCalendar mode="single" selected={selectedDate} defaultMonth={selectedDate} locale={fr} initialFocus
-                    className="w-full p-3 [--cell-size:2.25rem] sm:[--cell-size:2.75rem]"
+                    captionLayout="dropdown" startMonth={new Date(2023, 0)} endMonth={new Date(new Date().getFullYear() + 2, 11)}
+                    formatters={{ formatMonthDropdown: date => format(date, "MMMM", { locale: fr }) }}
+                    className="w-full p-3 [--cell-size:2.25rem] sm:[--cell-size:2.6rem]"
                     onSelect={date => {
                       if (!date) return;
                       setSelectedDate(startOfDay(date));
                       setDatePickerOpen(false);
                     }} />
+                  <div className="flex justify-end border-t px-3 py-2">
+                    <Button size="sm" variant="ghost" className="text-[#2B5734]" data-testid="button-picker-today"
+                      onClick={() => { setSelectedDate(startOfDay(new Date())); setDatePickerOpen(false); }}>
+                      Revenir à aujourd’hui
+                    </Button>
+                  </div>
                 </PopoverContent>
               </Popover>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))} className={`text-white hover:bg-white/10 text-sm ${isToday ? "bg-white/10" : ""}`} data-testid="button-today">
+              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className={navBtn} data-testid="button-next-day" aria-label="Jour suivant">
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedDate(startOfDay(new Date()))}
+                aria-pressed={isToday}
+                className={`h-9 shrink-0 text-white hover:bg-white/10 hover:text-white text-sm focus-visible:ring-2 focus-visible:ring-white/70 ${isToday ? "bg-white/15" : ""}`} data-testid="button-today">
                 Aujourd’hui
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate((d) => addDays(d, 1))} className="h-8 w-8 text-white hover:bg-white/10" data-testid="button-next-day">
-                <ChevronRight className="w-4 h-4" />
+            </nav>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" onClick={() => openCreate()} className="bg-[#2B5734] hover:bg-[#23482b] text-white gap-1.5 flex-1 sm:flex-none">
+                <Plus className="w-4 h-4" aria-hidden="true" /> Ajouter une réservation
               </Button>
+              <Button size="sm" onClick={()=>setRecurring(true)} className="bg-[#2B5734] hover:bg-[#23482b] text-white flex-1 sm:flex-none" data-testid="button-recurring">Réservation récurrente</Button>
             </div>
           </div>
           {closuresQuery.isError && <p role="alert" className="text-sm text-amber-100 mt-2">Impossible de charger les fermetures. Vérifiez la section Disponibilités avant d’ajouter une réservation.</p>}
         </CardHeader>
         <CardContent className="p-0 bg-white overflow-hidden rounded-b-lg">
-          <div
-            ref={calendarViewportRef}
-            className="overflow-x-auto overflow-y-hidden"
-            style={calendarViewportHeight === null ? undefined : { height: calendarViewportHeight }}
-          >
-            <table className="w-full border-collapse" style={{ minWidth: 600 }}>
-              <thead ref={tableHeadRef} className="sticky top-0 z-10">
+          <p className="md:hidden px-3 py-1.5 text-[11px] text-muted-foreground bg-gray-50 border-b border-gray-200">
+            Faites défiler horizontalement pour voir les quatre baies.
+          </p>
+          <div className="overflow-x-auto" role="region" aria-label={`Horaire du ${longDate}`} tabIndex={0}>
+            <table className="w-full table-fixed border-collapse" style={{ minWidth: 640 }}>
+              <thead>
                 <tr>
-                  <th className="bg-gray-50 border-b border-r border-gray-200" style={{ width: TIME_COL_WIDTH }} />
+                  <th className="bg-gray-50 border-b border-r border-gray-200" style={{ width: TIME_COL_WIDTH }}>
+                    <span className="sr-only">Heure</span>
+                  </th>
                   {BAYS.map((bay) => {
                     const colors = BAY_COLORS[bay];
                     const count = dayBookings.filter((b) => b.bayType === bay).length;
                     return (
-                      <th key={bay} className={`p-3 text-center border-b border-r border-gray-200 last:border-r-0 ${colors.headerBg}`}>
+                      <th key={bay} className={`px-2 py-2 text-center border-b border-r border-gray-200 last:border-r-0 ${colors.headerBg}`}>
                         <p className={`text-sm font-bold uppercase tracking-wider ${colors.text}`}>Baie {bay}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 font-normal">
+                        <p className="text-[11px] text-muted-foreground font-normal" data-testid={`text-bay-count-${bay}`}>
                           {count} réservation{count !== 1 ? "s" : ""}
                         </p>
                       </th>
@@ -229,36 +235,36 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                 <tr>
                   <td colSpan={1 + BAYS.length} className="p-0 relative">
                     <div className="relative" style={{ height: totalHeight }}>
-                      {hours.map((h) => (
-                        <div key={`line-${h}`} className="absolute left-0 right-0 border-t border-gray-200" style={{ top: (h - START_HOUR) * hourHeight }} />
+                      {hours.filter(h => h < VISIBLE_END_HOUR).map((h) => (
+                        <div key={`line-${h}`} className={`absolute left-0 right-0 border-t ${h === VISIBLE_END_HOUR ? "border-gray-300" : "border-gray-200"}`} style={{ top: (h - START_HOUR) * hourHeight }} />
                       ))}
-                      {hours.filter((h) => h < END_HOUR).map((h) => (
+                      {hours.filter((h) => h < VISIBLE_END_HOUR).map((h) => (
                         <div key={`half-${h}`} className="absolute right-0 border-t border-dashed border-gray-100" style={{ top: (h - START_HOUR) * hourHeight + hourHeight / 2, left: TIME_COL_WIDTH }} />
                       ))}
 
-                      <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(${BAYS.length}, 1fr)` }}>
-                        <div className="relative border-r border-gray-200">
-                          {hours.map((h) => (
-                            <div key={h} className="absolute w-full text-right pr-2 -translate-y-1/2" style={{ top: (h - START_HOUR) * hourHeight }}>
-                              <span className="text-[11px] text-muted-foreground font-mono bg-white px-0.5">
-                                {formatOperatingTime(`${String(h).padStart(2, "0")}:00`)}
+                      <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(${BAYS.length}, minmax(0, 1fr))` }}>
+                        <div className="relative border-r border-gray-200" aria-hidden="true">
+                          {hours.filter(h => h < VISIBLE_END_HOUR).map((h) => (
+                            <div key={h} className="absolute w-full text-right pr-1.5" style={{ top: (h - START_HOUR) * hourHeight + 2 }}>
+                              <span className="text-[11px] leading-none text-muted-foreground font-mono tabular-nums">
+                                {`${String(h).padStart(2, "0")}:00`}
                               </span>
                             </div>
                           ))}
                         </div>
 
                         {BAYS.map((bay) => {
-                          const bayBookings = dayBookings.filter((b) => b.bayType === bay);
+                          const bayPlaced = placed.filter(p => p.booking.bayType === bay && !p.geo.afterWindow);
                           const colors = BAY_COLORS[bay];
                           return (
                             <div
                               key={bay}
-                              className="relative border-r border-gray-200 last:border-r-0 cursor-crosshair"
+                              className="relative border-r border-gray-200 last:border-r-0 cursor-crosshair overflow-hidden"
                               title={`Ajouter une réservation — baie ${bay}`}
                               onClick={e => {
                                 const bounds = e.currentTarget.getBoundingClientRect();
                                 const halfHours = Math.floor(Math.max(0, e.clientY - bounds.top) / (hourHeight / 2));
-                                const minutes = START_HOUR * 60 + Math.min(halfHours * 30, (END_HOUR - START_HOUR) * 60 - 30);
+                                const minutes = START_HOUR * 60 + Math.min(halfHours * 30, (VISIBLE_END_HOUR - START_HOUR) * 60 - 30);
                                 openCreate(bay, `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
                               }}
                               onDragOver={e => { if (draggingId) e.preventDefault(); }}
@@ -271,24 +277,32 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                 if (booking && booking.bayType !== bay) moveBooking.mutate({ id: booking.id, bayType: bay });
                               }}
                             >
-                              {dayClosures.filter(c => c.bayIds.some(id => id === bay)).map(c => (
-                                <div key={c.id} className="absolute left-0 right-0 z-[1] border-y border-slate-400 bg-slate-200/70 pointer-events-none overflow-hidden"
-                                  style={{ top: Math.max(0, (c.startMinute - START_HOUR * 60) / 60 * hourHeight),
-                                    height: Math.max(0, Math.min(c.endMinute, END_HOUR * 60) - Math.max(c.startMinute, START_HOUR * 60)) / 60 * hourHeight }}>
-                                  <span className="text-[10px] font-bold text-slate-800 px-1">{c.title} · Fermé</span>
-                                </div>
-                              ))}
-                              {bayBookings.map((booking) => {
-                                const durMin = parseDurationToMinutes(booking.duration);
-                                const { top, height, endTime } = bookingGeometry(booking.time, booking.duration, START_HOUR, hourHeight);
-                                const isShort = durMin <= 60;
-
+                              {dayClosures.filter(c => c.bayIds.some(id => id === bay)).map(c => {
+                                const closureGeo = visibleIntervalGeometry(c.startMinute, c.endMinute, START_HOUR, VISIBLE_END_HOUR, hourHeight);
+                                if (!closureGeo.height) return null;
+                                return (
+                                  <div key={c.id} className="absolute left-0 right-0 z-[1] border-y border-slate-400 bg-slate-200/70 pointer-events-none overflow-hidden"
+                                    style={{ top: closureGeo.top, height: closureGeo.height }}
+                                    data-testid={`closure-block-${c.id}`}>
+                                    <span className="text-[10px] font-bold text-slate-800 px-1">{c.title} · Fermé</span>
+                                  </div>
+                                );
+                              })}
+                              {bayPlaced.map(({ booking, geo }) => {
+                                const { top, height, endTime, continuesAfter } = geo;
+                                const range = `${t(booking.time)}–${t(endTime)}`;
+                                const showDetail = height >= 44;
+                                const showPlayersLine = height >= 80;
+                                const compact = height < 30;
                                 return (
                                   <div
                                     key={booking.id}
-                                    className={`absolute left-1 right-1 rounded-md border-l-[3px] ${colors.border} ${colors.bg} shadow-sm hover:shadow-lg hover:brightness-95 transition-all cursor-grab overflow-hidden z-[2]`}
-                                    style={{ top, height }}
-                                    title={`${booking.name} · ${formatOperatingTime(booking.time)}–${formatOperatingTime(endTime)} · Durée : ${booking.duration} · Baie ${booking.bayType}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`${booking.name}, baie ${booking.bayType}, ${range}, durée ${booking.duration}, ${playersLabel(booking.players)}${continuesAfter ? ", se poursuit après minuit" : ""}. Ouvrir le détail.`}
+                                    className={`absolute left-1 right-1 border-l-[3px] ${colors.border} ${colors.bg} ${continuesAfter ? "rounded-t-md rounded-b-none" : "rounded-md shadow-sm hover:shadow-md"} hover:brightness-95 transition-[filter,box-shadow] cursor-grab overflow-hidden z-[2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B5734] focus-visible:ring-offset-1`}
+                                    style={{ top: top + 1, height: Math.max(continuesAfter ? height - 1 : height - 2, 14) }}
+                                    title={`${booking.name} · ${range} · Durée : ${booking.duration} · Baie ${booking.bayType}${continuesAfter ? " · se poursuit après minuit" : ""}`}
                                     draggable
                                     onDragStart={e => {
                                       e.stopPropagation();
@@ -297,34 +311,26 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                                       setDraggingId(booking.id);
                                     }}
                                     onDragEnd={() => setDraggingId(null)}
-                                    onClick={(e) => handleBookingClick(booking, e)}
+                                    onClick={(e) => openBooking(booking, e)}
+                                    onKeyDown={bookingKeyDown(booking)}
                                     data-testid={`booking-block-${booking.id}`}
+                                    data-continues-after-midnight={continuesAfter || undefined}
                                   >
-                                    <div className={`px-2 ${isShort ? "py-0.5" : "py-1.5"} h-full flex flex-col justify-center`}>
-                                      <p className={`font-bold truncate ${colors.text} ${isShort ? "text-[11px]" : "text-xs"}`}>
-                                        {booking.name}
+                                    <div className={`px-1.5 ${compact ? "py-0 flex items-center gap-1" : "pt-1"} h-full min-w-0 leading-tight`}>
+                                      <p className={`font-bold truncate text-xs ${colors.text}`}>{booking.name}</p>
+                                      <p className={`text-[11px] tabular-nums text-gray-700 truncate ${compact ? "shrink-0" : ""}`}>
+                                        {range}{continuesAfter && <ArrowDown className="inline-block ml-0.5 w-2.5 h-2.5" aria-hidden="true" />}
                                       </p>
-                                      {isShort && durMin >= 60 && <p className="text-[10px] text-muted-foreground truncate">{formatOperatingTime(booking.time)}–{formatOperatingTime(endTime)}</p>}
-                                      {!isShort && (
-                                        <>
-                                          <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                            {formatOperatingTime(booking.time)}–{formatOperatingTime(endTime)}
-                                          </p>
-                                          <p className="text-[10px] text-muted-foreground">
-                                            {booking.duration}
-                                          </p>
-                                          <div className="flex items-center gap-1 mt-0.5">
-                                            <Users className="w-3 h-3 text-muted-foreground" />
-                                            <span className="text-[10px] text-muted-foreground">
-                                              {booking.players} joueur{booking.players > 1 ? "s" : ""}
-                                            </span>
-                                          </div>
-                                        </>
+                                      {showDetail && !showPlayersLine && (
+                                        <p className="text-[10px] text-muted-foreground truncate">{booking.duration} · {booking.players} j.</p>
                                       )}
-                                      {isShort && (
-                                        <p className="text-[9px] text-muted-foreground truncate">
-                                          {durMin >= 60 ? booking.duration : `${formatOperatingTime(booking.time)}–${formatOperatingTime(endTime)}`} · {booking.players}j
-                                        </p>
+                                      {showPlayersLine && (
+                                        <>
+                                          <p className="text-[10px] text-muted-foreground truncate">Durée {booking.duration}</p>
+                                          <p className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
+                                            <Users className="w-3 h-3 shrink-0" aria-hidden="true" /> {playersLabel(booking.players)}
+                                          </p>
+                                        </>
                                       )}
                                     </div>
                                   </div>
@@ -336,7 +342,7 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                       </div>
 
                       {currentTimeOffset !== null && (
-                        <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: currentTimeOffset }}>
+                        <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: currentTimeOffset }} aria-hidden="true">
                           <div className="flex items-center">
                             <div className="w-2 h-2 rounded-full bg-red-500 -ml-1" />
                             <div className="flex-1 h-[2px] bg-red-500" />
@@ -346,9 +352,43 @@ export default function CalendarView({ bookings, onDeleteBooking, isDeleting }: 
                     </div>
                   </td>
                 </tr>
+                <tr>
+                  <td className="bg-gray-50 align-top pt-1.5 pr-1.5 text-right" style={{ width: TIME_COL_WIDTH }}>
+                    <Moon className="w-3.5 h-3.5 inline text-muted-foreground" aria-hidden="true" />
+                    <span className="block text-[9px] leading-tight text-muted-foreground">Après<br />minuit</span>
+                  </td>
+                  {BAYS.map(bay => {
+                    const late = placed.filter(p => p.booking.bayType === bay && p.geo.afterWindow);
+                    const colors = BAY_COLORS[bay];
+                    return (
+                      <td key={bay} className="border-r last:border-r-0 border-gray-200 bg-gray-50 px-1 py-1 align-top" data-testid={`late-bookings-${bay}`}>
+                        {late.length === 0 ? (
+                          <span className="block text-[10px] text-gray-400 px-1 leading-5">{hasLate ? "—" : ""}</span>
+                        ) : (
+                          <ul className="flex flex-col gap-1" aria-label={`Réservations après minuit, baie ${bay}`}>
+                            {late.map(({ booking, geo }) => (
+                              <li key={booking.id}>
+                                <button type="button" onClick={e => openBooking(booking, e)}
+                                  className={`w-full text-left rounded border-l-[3px] ${colors.border} ${colors.bg} px-1.5 py-0.5 text-[11px] leading-tight hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B5734]`}
+                                  data-testid={`late-booking-${booking.id}`}
+                                  aria-label={`${booking.name}, après minuit, ${t(booking.time)}–${t(geo.endTime)}, durée ${booking.duration}. Ouvrir le détail.`}>
+                                  <span className="tabular-nums text-gray-700">{t(booking.time)}</span>{" "}
+                                  <span className={`font-semibold ${colors.text}`}>{booking.name}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
               </tbody>
             </table>
           </div>
+          <p className="px-3 py-1.5 text-[11px] text-muted-foreground border-t border-gray-200 bg-white">
+            Un bas ouvert et une flèche indiquent une réservation qui continue après minuit. Les départs après minuit restent accessibles ci-dessus; les heures réelles ne changent pas.
+          </p>
         </CardContent>
       </Card>
 

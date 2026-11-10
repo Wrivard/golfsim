@@ -14,3 +14,9 @@ The public booking date picker must show the complete month on mobile without in
 **Why:** The user repeatedly reported a cut-off calendar and explicitly rejected having to scroll within it. Merely checking that the last day becomes selectable after scrolling misses this requirement.
 
 **How to apply:** Assert no internal overflow and that every day is inside the visible viewport before scrolling. Include six-week months, browser chrome, short landscape heights, and viewport resizing while open. Distinguish Chromium mobile-size checks from testing Safari on an actual iPhone.
+
+For protected admin layout checks without an isolated test login, prefer a separate fixture rendering the real component with synthetic data and disabled writes; never add an authentication bypass to the application.
+
+**Why:** Staff use live reservations, and visual verification must not create or alter customer bookings merely to populate a screenshot.
+
+**How to apply:** Keep fixtures out of deployable application routes. Report component-only browser coverage separately from verification of the full signed-in page.
