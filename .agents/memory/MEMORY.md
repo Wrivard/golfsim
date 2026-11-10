@@ -23,3 +23,4 @@
 - [Overnight schedule ceiling](overnight-operating-hours.md) — operating hours and calendar display stop at 02:00; the last-start cutoff is separate from session end.
 - [Dependency scan coverage](dependency-scan-coverage.md) — a clean package-manager audit can still miss advisories; verify independently across archived lockfiles too.
 - [Vercel source assets](vercel-source-assets.md) — Vercel Git builds cannot rely on globally ignored attached_assets; keep imported product images in tracked artifact source.
+- [Durées commerciales](booking-duration-policy.md) — ajouter 30 min à 1–4 h, public/admin/ligues ; aucun prix pour 30 min tant que le client ne l’a pas fixé.
